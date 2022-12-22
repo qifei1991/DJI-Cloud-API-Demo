@@ -58,7 +58,7 @@ public abstract class AbstractClient {
         ResultView result = response.getBody();
         Assert.notNull(result, "访问[aircraft-manager]响应为空.");
 
-        log.debug("<=== 响应: " + result.toString());
+        log.debug("<=== 响应: {}", result);
 
         return result;
     }

@@ -18,8 +18,6 @@ import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.List;
 
-import static com.dji.sample.component.AuthInterceptor.TOKEN_CLAIM;
-
 /**
  * The Controller of Flight-task control.
  *
@@ -44,7 +42,7 @@ public class FlightTaskController {
     @PostMapping("/{workspace_id}/jobs")
     public ResponseResult publishCreateJob(HttpServletRequest request, @Valid @RequestBody CreateJobParam param,
             @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
-        CustomClaim customClaim = (CustomClaim)request.getAttribute(TOKEN_CLAIM);
+        CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);
         return waylineJobService.publishFlightTask(param, customClaim);
     }
@@ -54,11 +52,10 @@ public class FlightTaskController {
      * @param jobIds
      * @param workspaceId
      * @return
-     * @throws SQLException
      */
     @DeleteMapping("/{workspace_id}/jobs")
     public ResponseResult publishCancelJob(@RequestParam(name = "job_id") List<String> jobIds,
-            @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
+            @PathVariable(name = "workspace_id") String workspaceId) {
         waylineJobService.cancelFlightTask(workspaceId, jobIds);
         return ResponseResult.success();
     }
