@@ -6,7 +6,6 @@ import com.dji.sample.cloudapi.model.param.DeviceOfflineParam;
 import com.dji.sample.cloudapi.model.param.DeviceOnlineParam;
 import com.dji.sample.cloudapi.model.param.DockOsdParam;
 import com.dji.sample.cloudapi.model.param.RcOsdParam;
-import com.dji.sample.cloudapi.model.vo.ResultView;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
@@ -53,28 +52,22 @@ public class DeviceOsdStateClient extends AbstractClient {
                     break;
             }
             if (StringUtils.hasText(category)) {
-                ResultView result = this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE,
-                        DeviceOnlineParam.builder()
-                                .sn(deviceDTO.getDeviceSn())
-                                .name(deviceDTO.getDeviceName())
-                                .category(category)
-                                .type(deviceDTO.getDeviceName())
-                                .firmwareVersion(deviceDTO.getFirmwareVersion())
-                                .time(LocalDateTime.now().format(FORMATTER))
-                                .build());
-                log.debug("Report device online. response: " + result.toString());
+                this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE, DeviceOnlineParam.builder()
+                        .sn(deviceDTO.getDeviceSn())
+                        .name(deviceDTO.getDeviceName())
+                        .category(category)
+                        .type(deviceDTO.getDeviceName())
+                        .firmwareVersion(deviceDTO.getFirmwareVersion())
+                        .time(LocalDateTime.now().format(FORMATTER))
+                        .build());
             }
         });
     }
 
     @Async("asyncThreadPool")
     public void reportDeviceOffline(String deviceSn) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_DEVICE_OFFLINE,
-                DeviceOfflineParam.builder()
-                        .sn(deviceSn)
-                        .time(LocalDateTime.now().format(FORMATTER))
-                        .build());
-        log.debug("Report device offline. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_DEVICE_OFFLINE,
+                DeviceOfflineParam.builder().sn(deviceSn).time(LocalDateTime.now().format(FORMATTER)).build());
     }
 
     /**
@@ -108,51 +101,44 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
                         .gimbalRoll(mainPayload.getGimbalRoll())
                         .gimbalYaw(mainPayload.getGimbalYaw()));
-        ResultView result = this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
-        log.debug("Report aircraft osd information. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
     }
 
     @Async("asyncThreadPool")
     public void reportDockOsdInfo(OsdDockReceiver data, String sn) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_OSD_STATE,
-                DockOsdParam.builder()
-                        .sn(sn)
-                        .longitude(data.getLongitude())
-                        .latitude(data.getLatitude())
-                        .modelCode(data.getModeCode())
-                        .coverState(data.getCoverState())
-                        .putterState(data.getPutterState())
-                        .supplementLightState(data.getSupplementLightState())
-                        .networkRate(data.getNetworkState().getRate())
-                        .droneInDock(data.getDroneInDock())
-                        .activationTime(data.getActivationTime())
-                        .batteryStoreMode(data.getBatteryStoreMode())
-                        .alarmState(data.getAlarmState())
-                        .droneBatteryPercent(data.getDroneChargeState().getCapacityPercent())
-                        .droneBatteryState(data.getDroneChargeState().getState())
-                        .droneBatteryMaintenanceState(data.getDroneBatteryMaintenanceInfo().getMaintenanceState())
-                        .droneBatteryMaintenanceTimeLeft(data.getDroneBatteryMaintenanceInfo().getMaintenanceTimeLeft())
-                        .backupBatterySwitch(data.getBackupBattery().getBatterySwitch())
-                        .backupBatteryVoltage(data.getBackupBattery().getVoltage())
-                        .emergencyStopState(data.getEmergencyStopState())
-                        .time(System.currentTimeMillis())
-                        .build(),
-                DeviceCategory.DOCK.getCode());
-        log.debug("Report dock osd information. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_OSD_STATE, DockOsdParam.builder()
+                .sn(sn)
+                .longitude(data.getLongitude())
+                .latitude(data.getLatitude())
+                .modelCode(data.getModeCode())
+                .coverState(data.getCoverState())
+                .putterState(data.getPutterState())
+                .supplementLightState(data.getSupplementLightState())
+                .networkRate(data.getNetworkState().getRate())
+                .droneInDock(data.getDroneInDock())
+                .activationTime(data.getActivationTime())
+                .batteryStoreMode(data.getBatteryStoreMode())
+                .alarmState(data.getAlarmState())
+                .droneBatteryPercent(data.getDroneChargeState().getCapacityPercent())
+                .droneBatteryState(data.getDroneChargeState().getState())
+                .droneBatteryMaintenanceState(data.getDroneBatteryMaintenanceInfo().getMaintenanceState())
+                .droneBatteryMaintenanceTimeLeft(data.getDroneBatteryMaintenanceInfo().getMaintenanceTimeLeft())
+                .backupBatterySwitch(data.getBackupBattery().getBatterySwitch())
+                .backupBatteryVoltage(data.getBackupBattery().getVoltage())
+                .emergencyStopState(data.getEmergencyStopState())
+                .time(System.currentTimeMillis())
+                .build(), DeviceCategory.DOCK.getCode());
     }
 
     @Async("asyncThreadPool")
     public void reportRcOsdInfo(OsdGatewayReceiver data, DeviceDTO deviceDTO) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_OSD_STATE,
-                RcOsdParam.builder()
-                        .sn(deviceDTO.getDeviceSn())
-                        .firmwareVersion(deviceDTO.getFirmwareVersion())
-                        .longitude(data.getLongitude())
-                        .latitude(data.getLatitude())
-                        .batteryPercent(data.getRemainPower())
-                        .time(System.currentTimeMillis())
-                        .build(),
-                DeviceCategory.RC.getCode());
-        log.debug("Report rc osd information. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_OSD_STATE, RcOsdParam.builder()
+                .sn(deviceDTO.getDeviceSn())
+                .firmwareVersion(deviceDTO.getFirmwareVersion())
+                .longitude(data.getLongitude())
+                .latitude(data.getLatitude())
+                .batteryPercent(data.getRemainPower())
+                .time(System.currentTimeMillis())
+                .build(), DeviceCategory.RC.getCode());
     }
 }

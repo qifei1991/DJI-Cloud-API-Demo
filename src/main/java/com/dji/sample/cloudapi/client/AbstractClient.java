@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -40,21 +41,26 @@ public abstract class AbstractClient {
     protected <T> ResultView applicationJsonPost(String uri, T body, Object... uriVariables) {
 
         String url = this.getManagerServerBaseUrl() + uri;
-        log.debug("访问[aircraft-manager], url[{}], args[{}], uriArgs[{}]", url, body, uriVariables);
+        log.debug("===> 访问[aircraft-manager], url[{}],\t args[{}],\t uriArgs[{}]", url, body, uriVariables);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<T> requestEntity = new HttpEntity<>(body, headers);
-        ResponseEntity<ResultView> result;
+        ResponseEntity<ResultView> response;
         try {
-            result = Objects.isNull(uriVariables)
+            response = Objects.isNull(uriVariables)
                      ? this.mzRestTemplate.postForEntity(url, requestEntity, ResultView.class)
                      : this.mzRestTemplate.postForEntity(url, requestEntity, ResultView.class, uriVariables);
         } catch (RestClientException e) {
             log.error("访问[aircraft-manager]失败. ", e);
             throw new RuntimeException("访问[aircraft-manager]失败.");
         }
-        return Objects.requireNonNull(result.getBody(), "访问[aircraft-manager]响应为空. ");
+        ResultView result = response.getBody();
+        Assert.notNull(result, "访问[aircraft-manager]响应为空.");
+
+        log.debug("<=== 响应: " + result.toString());
+
+        return result;
     }
 
 

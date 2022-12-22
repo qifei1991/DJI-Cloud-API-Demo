@@ -2,7 +2,6 @@ package com.dji.sample.cloudapi.client;
 
 import cn.hutool.core.date.DateUtil;
 import com.dji.sample.cloudapi.model.param.MediaFileParam;
-import com.dji.sample.cloudapi.model.vo.ResultView;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.media.model.FileUploadDTO;
 import com.dji.sample.media.model.MediaFileCountDTO;
@@ -30,8 +29,7 @@ public class MediaClient extends AbstractClient{
      */
     @Async("asyncThreadPool")
     public void reportMediaUploadProgress(String jobId, MediaFileCountDTO mediaFileCountDTO) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_MEDIA_PROGRESS, mediaFileCountDTO, jobId);
-        log.debug("Report media-file uploading progress of flight task. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_MEDIA_PROGRESS, mediaFileCountDTO, jobId);
     }
 
     /**
@@ -51,7 +49,6 @@ public class MediaClient extends AbstractClient{
                 .updateTime(LocalDateTime.now().format(FORMATTER))
                 .uploadStatus(2)
                 .build();
-        ResultView result = this.applicationJsonPost(ClientUri.URI_MEDIA_UPLOAD_CALLBACK, Collections.singleton(fileParam));
-        log.debug("Media-file upload callback. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_MEDIA_UPLOAD_CALLBACK, Collections.singleton(fileParam));
     }
 }

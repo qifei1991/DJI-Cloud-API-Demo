@@ -1,7 +1,6 @@
 package com.dji.sample.cloudapi.client;
 
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
-import com.dji.sample.cloudapi.model.vo.ResultView;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.wayline.model.dto.FlightTaskProgressReceiver;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
@@ -25,15 +24,13 @@ public class FlightTaskClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void startFlightTask(WaylineJobDTO job) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_SORTIES_START,
-                SortiesRecordParam.builder()
-                        .sortiesId(job.getJobId())
-                        .name(job.getJobName())
-                        .waylineId(job.getFileId())
-                        .state(job.getStatus())
-                        .flightType(job.getTaskType())
-                        .build());
-        log.debug("Report flight task start. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_SORTIES_START, SortiesRecordParam.builder()
+                .sortiesId(job.getJobId())
+                .name(job.getJobName())
+                .waylineId(job.getFileId())
+                .state(job.getStatus())
+                .flightType(job.getTaskType())
+                .build());
     }
 
     /**
@@ -43,15 +40,13 @@ public class FlightTaskClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void stopFlightTask(WaylineJobDTO job, String sn) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_SORTIES_STOP,
-                SortiesRecordParam.builder()
-                        .sortiesId(job.getJobId())
-                        .aircraftSn(sn)
-                        .fileTotal(job.getMediaCount())
-                        .state(job.getStatus())
-                        .endTime(job.getEndTime().format(FORMATTER))
-                        .build());
-        log.debug("Report flight task end. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_SORTIES_STOP, SortiesRecordParam.builder()
+                .sortiesId(job.getJobId())
+                .aircraftSn(sn)
+                .fileTotal(job.getMediaCount())
+                .state(job.getStatus())
+                .endTime(job.getEndTime().format(FORMATTER))
+                .build());
     }
 
     /**
@@ -61,8 +56,7 @@ public class FlightTaskClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void reportFlightTaskProgress(String jobId, FlightTaskProgressReceiver progressReceiver) {
-        ResultView result = this.applicationJsonPost(ClientUri.URI_SORTIES_PROGRESS, progressReceiver, jobId);
-        log.debug("Report flight task executing progress. response: " + result.toString());
+        this.applicationJsonPost(ClientUri.URI_SORTIES_PROGRESS, progressReceiver, jobId);
     }
 
 }
