@@ -21,10 +21,10 @@ public class DevicePayloadController {
 
     /**
      * Handles messages in the state topic about basic drone data.
-     *
+     * <p>
      * Note: Only the data of the drone payload is handled here. You can handle other data from the drone
      * according to your business needs.
-     * @param deviceBasic   basic drone data
+     * @param deviceBasic basic drone data
      * @param headers
      */
     @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_BASIC)

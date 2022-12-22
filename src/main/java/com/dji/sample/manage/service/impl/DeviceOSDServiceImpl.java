@@ -66,8 +66,7 @@ public class DeviceOSDServiceImpl extends AbstractTSAService {
             try {
                 Map<String, Object> receiverData = (Map<String, Object>) receiver.getData();
                 data.setPayloads(payloadsList.stream()
-                        .map(payload -> mapper.convertValue(
-                                receiverData.getOrDefault(payload.getPayloadName(), Map.of()),
+                        .map(payload -> mapper.convertValue(receiverData.getOrDefault(payload.getPayloadName(), Map.of()),
                                 OsdPayloadReceiver.class))
                         .collect(Collectors.toList()));
 
@@ -80,6 +79,9 @@ public class DeviceOSDServiceImpl extends AbstractTSAService {
 
             sendMessageService.sendBatch(webSessions, wsMessage);
             this.pushTelemetryData(device.getWorkspaceId(), data, device.getDeviceSn());
+
+            // report device osd status
+            this.deviceOsdStateClient.reportDroneOsdInfo(data, device.getDeviceSn());
         }
         tsaService.handleOSD(receiver, device, webSessions, wsMessage);
     }

@@ -1,5 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
+import com.dji.sample.cloudapi.client.DeviceOsdStateClient;
 import com.dji.sample.component.mqtt.model.CommonTopicReceiver;
 import com.dji.sample.component.websocket.config.ConcurrentWebSocketSession;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
@@ -8,6 +9,7 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.dto.TelemetryDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
 import com.dji.sample.manage.model.receiver.OsdDockReceiver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -40,6 +42,8 @@ public class DockOSDServiceImpl extends AbstractTSAService {
             OsdDockReceiver data = mapper.convertValue(receiver.getData(), OsdDockReceiver.class);
             wsMessage.getData().setHost(data);
             sendMessageService.sendBatch(webSessions, wsMessage);
+
+            this.deviceOsdStateClient.reportDockOsdInfo(data, device.getDeviceSn());
         }
     }
 }

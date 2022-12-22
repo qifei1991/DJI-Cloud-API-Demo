@@ -108,6 +108,7 @@ public class MinIOServiceImpl implements IOssService {
         }
     }
 
+    @Override
     public void createClient() {
         if (Objects.nonNull(this.client)) {
             return;

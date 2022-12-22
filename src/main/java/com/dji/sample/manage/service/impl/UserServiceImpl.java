@@ -4,7 +4,6 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dji.sample.common.model.CustomClaim;
@@ -199,8 +198,7 @@ public class UserServiceImpl implements IUserService {
      * @return
      */
     private UserEntity getUserByUsername(String username) {
-        return mapper.selectOne(new QueryWrapper<UserEntity>()
-                .eq("username", username));
+        return mapper.selectOne(new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
     }
 
     /**

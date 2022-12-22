@@ -21,16 +21,21 @@ public class GlobalMVCConfigurer implements WebMvcConfigurer {
 
     @Value("${url.manage.prefix}")
     private String managePrefix;
-
     @Value("${url.manage.version}")
     private String manageVersion;
 
+    @Value("${url.cloud-api.prefix:/cloud-api}")
+    private String apiPrefix;
+    @Value("${url.cloud-api.version:}")
+    private String apiVersion;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // Exclude the login interface.
         excludePaths.add(managePrefix + manageVersion + "/login");
         excludePaths.add(managePrefix + manageVersion + "/token/refresh");
+
+        excludePaths.add(apiPrefix + apiVersion + "/*");
         // Intercept for all request interfaces.
         registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(excludePaths);
     }

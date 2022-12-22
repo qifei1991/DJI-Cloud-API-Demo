@@ -1,5 +1,6 @@
 package com.dji.sample.wayline.service.impl;
 
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.component.mqtt.model.*;
 import com.dji.sample.component.mqtt.service.IMessageSenderService;
@@ -56,6 +57,9 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
     @Autowired
     private IWaylineJobService waylineJobService;
 
+    @Autowired
+    private FlightTaskClient flightTaskClient;
+
     @Override
     @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_FLIGHT_TASK_PROGRESS, outputChannel = ChannelName.OUTBOUND)
     public void handleProgress(CommonTopicReceiver receiver, MessageHeaders headers) {
@@ -94,13 +98,15 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
 
             waylineJobService.updateJob(job);
             RedisOpsUtils.del(receiver.getBid());
+
+            // add by Qfei, report flight task end.
+            this.flightTaskClient.stopFlightTask(job, receiver.getGateway());
         }
         RedisOpsUtils.setWithExpire(receiver.getBid(), eventsReceiver, RedisConst.DEVICE_ALIVE_SECOND * RedisConst.DEVICE_ALIVE_SECOND);
 
         DeviceDTO device = (DeviceDTO) RedisOpsUtils.get(RedisConst.DEVICE_ONLINE_PREFIX + receiver.getGateway());
         websocketMessageService.sendBatch(
-                webSocketManageService.getValueWithWorkspaceAndUserType(
-                        device.getWorkspaceId(), UserTypeEnum.WEB.getVal()),
+                webSocketManageService.getValueWithWorkspaceAndUserType(device.getWorkspaceId(), UserTypeEnum.WEB.getVal()),
                 CustomWebSocketMessage.builder()
                         .data(eventsReceiver)
                         .timestamp(System.currentTimeMillis())
@@ -118,6 +124,9 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
                             .data(RequestsReply.success())
                             .build());
         }
+
+        // add by Qfei, report flight task progress.
+        this.flightTaskClient.reportFlightTaskProgress(receiver.getBid(), output);
     }
 
     @Scheduled(initialDelay = 10, fixedRate = 5, timeUnit = TimeUnit.SECONDS)

@@ -3,12 +3,21 @@ package com.dji.sample.wayline.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.common.model.Pagination;
 import com.dji.sample.common.model.PaginationData;
 import com.dji.sample.common.model.ResponseResult;
-import com.dji.sample.component.mqtt.model.*;
+import com.dji.sample.component.mqtt.model.ChannelName;
+import com.dji.sample.component.mqtt.model.CommonTopicReceiver;
+import com.dji.sample.component.mqtt.model.CommonTopicResponse;
+import com.dji.sample.component.mqtt.model.EventsReceiver;
+import com.dji.sample.component.mqtt.model.MapKeyConst;
+import com.dji.sample.component.mqtt.model.RequestsMethodEnum;
+import com.dji.sample.component.mqtt.model.RequestsReply;
+import com.dji.sample.component.mqtt.model.ServiceReply;
+import com.dji.sample.component.mqtt.model.TopicConst;
 import com.dji.sample.component.mqtt.service.IMessageSenderService;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
@@ -18,7 +27,11 @@ import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.model.MediaMethodEnum;
 import com.dji.sample.media.service.IFileService;
 import com.dji.sample.wayline.dao.IWaylineJobMapper;
-import com.dji.sample.wayline.model.dto.*;
+import com.dji.sample.wayline.model.dto.FlightTaskCreateDTO;
+import com.dji.sample.wayline.model.dto.FlightTaskFileDTO;
+import com.dji.sample.wayline.model.dto.FlightTaskProgressReceiver;
+import com.dji.sample.wayline.model.dto.WaylineFileDTO;
+import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.entity.WaylineJobEntity;
 import com.dji.sample.wayline.model.enums.WaylineJobStatusEnum;
 import com.dji.sample.wayline.model.enums.WaylineMethodEnum;
@@ -43,7 +56,14 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -73,6 +93,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     @Autowired
     private IFileService fileService;
+
+    @Autowired
+    private FlightTaskClient flightTaskClient;
 
     @Override
     public Optional<WaylineJobDTO> createWaylineJob(CreateJobParam param, CustomClaim customClaim) {
@@ -224,6 +247,10 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         RedisOpsUtils.setWithExpire(jobId,
                 EventsReceiver.<FlightTaskProgressReceiver>builder().bid(jobId).sn(job.getDockSn()).build(),
                 RedisConst.DEVICE_ALIVE_SECOND * RedisConst.DEVICE_ALIVE_SECOND);
+
+        // add by Qfei, report start a wayline job.
+        this.flightTaskClient.startFlightTask(job);
+
         return true;
     }
 

@@ -3,6 +3,7 @@ package com.dji.sample.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.DeviceOsdStateClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.Pagination;
 import com.dji.sample.common.model.PaginationData;
@@ -95,6 +96,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Qualifier("gatewayOSDServiceImpl")
     private ITSAService tsaService;
 
+    @Autowired
+    private DeviceOsdStateClient deviceOsdStateClient;
+
     private static final List<String> INIT_TOPICS_SUFFIX = List.of(
             OSD_SUF, STATE_SUF, SERVICES_SUF + _REPLY_SUF, EVENTS_SUF, PROPERTY_SUF + SET_SUF + _REPLY_SUF);
 
@@ -152,6 +156,9 @@ public class DeviceServiceImpl implements IDeviceService {
         RedisOpsUtils.del(key);
         RedisOpsUtils.del(RedisConst.OSD_PREFIX + device.getDeviceSn());
         log.debug("{} offline.", deviceSn);
+
+        // report device offline status
+        this.deviceOsdStateClient.reportDeviceOffline(deviceSn);
         return true;
     }
 
@@ -238,6 +245,9 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         String prefix = THING_MODEL_PRE + PRODUCT + sn;
         INIT_TOPICS_SUFFIX.forEach(suffix -> topicService.subscribe(prefix + suffix));
+
+        // add by Qfei, report device online.
+        this.deviceOsdStateClient.reportOnline(this.getDeviceBySn(sn));
     }
 
     @Override
@@ -251,9 +261,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (CollectionUtils.isEmpty(ids)) {
             return true;
         }
-        return mapper.delete(new LambdaQueryWrapper<DeviceEntity>()
-                .in(DeviceEntity::getDeviceSn, ids))
-                > 0;
+        return mapper.delete(new LambdaQueryWrapper<DeviceEntity>().in(DeviceEntity::getDeviceSn, ids)) > 0;
     }
 
     @Override

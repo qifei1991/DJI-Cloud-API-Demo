@@ -1,8 +1,15 @@
 package com.dji.sample.media.service.impl;
 
+import com.dji.sample.cloudapi.client.MediaClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.ResponseResult;
-import com.dji.sample.component.mqtt.model.*;
+import com.dji.sample.component.mqtt.model.ChannelName;
+import com.dji.sample.component.mqtt.model.CommonTopicReceiver;
+import com.dji.sample.component.mqtt.model.CommonTopicResponse;
+import com.dji.sample.component.mqtt.model.EventsMethodEnum;
+import com.dji.sample.component.mqtt.model.MapKeyConst;
+import com.dji.sample.component.mqtt.model.RequestsReply;
+import com.dji.sample.component.mqtt.model.TopicConst;
 import com.dji.sample.component.mqtt.service.IMessageSenderService;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
@@ -62,6 +69,9 @@ public class MediaServiceImpl implements IMediaService {
 
     @Autowired
     private IWebSocketManageService webSocketManageService;
+
+    @Autowired
+    private MediaClient mediaClient;
 
     @Override
     public Boolean fastUpload(String workspaceId, String fingerprint) {
@@ -170,6 +180,9 @@ public class MediaServiceImpl implements IMediaService {
                         .timestamp(System.currentTimeMillis())
                         .data(mediaFileCount)
                         .build());
+
+        // add by Qfei, Report file-upload progress.
+        this.mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
     }
 
     private Boolean parseMediaFile(FileUploadCallback callback, WaylineJobDTO job) {
@@ -180,6 +193,9 @@ public class MediaServiceImpl implements IMediaService {
         // set path
         String objectKey = callback.getFile().getObjectKey();
         callback.getFile().setPath(objectKey.substring(objectKey.indexOf("/") + 1, objectKey.lastIndexOf("/")));
+
+        // add by Qfei, File-upload callback.
+        this.mediaClient.uploadCallback(job.getJobId(), callback.getFile());
 
         return fileService.saveFile(job.getWorkspaceId(), callback.getFile()) > 0;
     }

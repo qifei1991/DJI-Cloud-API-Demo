@@ -1,5 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
+import com.dji.sample.cloudapi.client.DeviceOsdStateClient;
 import com.dji.sample.component.mqtt.model.CommonTopicReceiver;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.component.websocket.config.ConcurrentWebSocketSession;
@@ -33,6 +34,9 @@ public abstract class AbstractTSAService implements ITSAService {
 
     @Autowired
     private IWebSocketManageService webSocketManageService;
+
+    @Autowired
+    protected DeviceOsdStateClient deviceOsdStateClient;
 
     public AbstractTSAService(AbstractTSAService tsaService) {
         this.tsaService = tsaService;

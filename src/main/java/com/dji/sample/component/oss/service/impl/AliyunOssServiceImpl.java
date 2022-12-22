@@ -98,6 +98,7 @@ public class AliyunOssServiceImpl implements IOssService {
         log.info("Upload File: {}", objectResult.getETag());
     }
 
+    @Override
     public void createClient() {
         if (Objects.nonNull(this.ossClient)) {
             return;

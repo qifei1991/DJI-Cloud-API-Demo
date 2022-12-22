@@ -56,6 +56,9 @@ public class GatewayOSDServiceImpl extends AbstractTSAService {
             this.sendMessageService.sendBatch(webSessions, wsMessage);
 
             this.pushTelemetryData(device.getWorkspaceId(), data, device.getDeviceSn());
+
+            // report gateway osd information.
+            this.deviceOsdStateClient.reportRcOsdInfo(data, device);
             return;
         }
 

@@ -3,20 +3,24 @@ server:
 spring:
   application:
     name: cloud-api-sample
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
   datasource:
     druid:
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://cloud_api_sample_mysql:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+      url: jdbc:mysql://192.168.1.202:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+#      url: jdbc:mysql://cloud_api_sample_mysql:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: root
       initial-size: 10
       min-idle: 10
       max-active: 20
       max-wait: 60000
-
   redis:
-    host: cloud_api_sample_redis
+    host: localhost
     port: 6379
     database: 0
     username: # if you enable
@@ -27,11 +31,6 @@ spring:
         max-idle: 8
         min-idle: 0
 
-  servlet:
-    multipart:
-      max-file-size: 2GB
-      max-request-size: 2GB
-
 jwt:
   issuer: DJI
   subject: CloudApiSample
@@ -40,11 +39,16 @@ jwt:
 
 mqtt:
   protocol: tcp
-  host: Please enter your ip. # 192.168.1.1
+  host: 192.168.1.202 #Please enter your ip. # 192.168.1.1
   port: 1883
   username: JavaServer
   password: 123456
   client-id: 123456
+#  host: localhost #Please enter your ip. # 192.168.1.1
+#  port: 61613
+#  username: admin
+#  password: admin
+#  client-id: 123456
   # Topics that need to be subscribed when initially connecting to mqtt, multiple topics are divided by ",".
   inbound-topic: sys/product/+/status,thing/product/+/requests
 
@@ -67,20 +71,33 @@ url:
   control:
     prefix: /control
     version: /api/v1
+  # provide api form aircraft-manager service.
+  cloud-api:
+    prefix: /cloud-api
+    version: /v1
+
+aircraft-manager-server:
+  url: http://10.10.2.17:82/wrjgl
+  cloud-api:
+    prefix: /cloud-api
+    version:
+
+workspace:
+  default-id: e3dea0f5-37f2-4d79-ae58-490af3228069
 
 # Tutorial: https://help.aliyun.com/document_detail/100624.htm?spm=a2c4g.11186623.0.0.74075e34eIhK7T#concept-xzh-nzk-2gb
-oss:
-  enable: true
-  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
-  endpoint: https://oss-cn-hangzhou.aliyuncs.com
-  access-key: Please enter your access key.
-  secret-key: Please enter your secret key.
-  expire: 3600
-  region: Please enter your oss region. # cn-hangzhou
-  role-session-name: cloudApi
-  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
-  bucket: Please enter your bucket name.
-  object-dir-prefix: Please enter a folder name.
+#oss:
+#  enable: true
+#  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+#  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+#  access-key: Please enter your access key.
+#  secret-key: Please enter your secret key.
+#  expire: 3600
+#  region: Please enter your oss region. # cn-hangzhou
+#  role-session-name: cloudApi
+#  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
+#  bucket: Please enter your bucket name.
+#  object-dir-prefix: Please enter a folder name.
 
 #oss:
 #  enable: true
@@ -105,6 +122,19 @@ oss:
 #  expire: 3600
 #  region: us-east-1
 #  object-dir-prefix: wayline
+
+oss:
+  enable: true
+  provider: obs # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+  endpoint: https://obs.cn-north-4.myhuaweicloud.com
+  access-key: MWY2L4ECVSNCHIZ1Z6Z1.
+  secret-key: 0itqHxcD9OMoA2IkKtGw9rLpJzIskLfL802XSUCj.
+  expire: 3600
+  region: cn-north-4
+  role-session-name: CloudApi
+  role-arn:  # acs:ram::123456789:role/stsrole
+  bucket: aircraft-dji
+  object-dir-prefix: test
 
 logging:
   level:

@@ -1,5 +1,7 @@
 package com.dji.sample.manage.model.enums;
 
+import java.util.Arrays;
+
 /**
  *
  * @author sean.zhou
@@ -73,5 +75,13 @@ public enum DeviceDomainEnum {
         return UNKNOWN.val;
     }
 
+    public static DeviceDomainEnum getDomain(String desc) {
+
+        return Arrays.stream(values())
+                .parallel()
+                .filter(domain -> domain.getDesc().equals(desc))
+                .findFirst()
+                .orElse(DeviceDomainEnum.UNKNOWN);
+    }
 
 }

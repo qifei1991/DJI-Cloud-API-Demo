@@ -74,6 +74,7 @@ public class AmazonS3ServiceImpl implements IOssService {
         return true;
     }
 
+    @Override
     public InputStream getObject(String bucket, String objectKey) {
         return client.getObject(bucket, objectKey).getObjectContent().getDelegateStream();
     }
@@ -87,6 +88,7 @@ public class AmazonS3ServiceImpl implements IOssService {
         log.info("Upload File: {}", objectResult.toString());
     }
 
+    @Override
     public void createClient() {
         if (Objects.nonNull(this.client)) {
             return;
