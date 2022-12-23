@@ -30,7 +30,7 @@ public class GlobalThreadPoolConfiguration {
 
     /**
      * A custom thread pool.
-     * @return
+     * @return ThreadPoolExecutor
      */
     @Bean
     public Executor threadPool() {
@@ -40,8 +40,12 @@ public class GlobalThreadPoolConfiguration {
                 Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardOldestPolicy());
     }
 
+    /**
+     * Async thread pool
+     * @return ThreadPoolExecutor
+     */
     @Bean("asyncThreadPool")
-    @ConditionalOnMissingBean
+    @ConditionalOnMissingBean(name = "asyncThreadPool")
     public Executor asyncThreadPool() {
         return new ThreadPoolExecutor(corePoolSize,
                 maximumPoolSize, keepAliveTime,
