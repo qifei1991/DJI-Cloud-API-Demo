@@ -2,11 +2,16 @@ package com.dji.sample.cloudapi.client;
 
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
 import com.dji.sample.cloudapi.util.ClientUri;
+import com.dji.sample.manage.model.dto.DeviceDTO;
+import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.wayline.model.dto.FlightTaskProgressReceiver;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * 飞行任务客户端
@@ -18,35 +23,46 @@ import org.springframework.stereotype.Component;
 @Component
 public class FlightTaskClient extends AbstractClient {
 
+    @Autowired
+    private IDeviceService deviceService;
+
     /**
      * Report the aircraft-manager that started a flight task.
      * @param job WaylineJobDTO
      */
     @Async("asyncThreadPool")
     public void startFlightTask(WaylineJobDTO job) {
-        this.applicationJsonPost(ClientUri.URI_SORTIES_START, SortiesRecordParam.builder()
+        SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
                 .name(job.getJobName())
                 .waylineId(job.getFileId())
                 .state(job.getStatus())
                 .flightType(job.getTaskType())
-                .build());
+                .build();
+        obtainDroneSn(job, recordParam);
+        this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
     }
 
     /**
      * Report the aircraft-manager that started a flight task.
      * @param job WaylineJobDTO
-     * @param sn deviceSn
      */
     @Async("asyncThreadPool")
-    public void stopFlightTask(WaylineJobDTO job, String sn) {
-        this.applicationJsonPost(ClientUri.URI_SORTIES_STOP, SortiesRecordParam.builder()
+    public void stopFlightTask(WaylineJobDTO job) {
+        SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
-                .aircraftSn(sn)
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())
                 .endTime(job.getEndTime().format(FORMATTER))
-                .build());
+                .build();
+        obtainDroneSn(job, recordParam);
+        this.applicationJsonPost(ClientUri.URI_SORTIES_STOP, recordParam);
+    }
+
+    private void obtainDroneSn(WaylineJobDTO job, SortiesRecordParam recordParam) {
+        // Set the drone sn that shoots the media
+        Optional<DeviceDTO> dockDTO = deviceService.getDeviceBySn(job.getDockSn());
+        dockDTO.ifPresent(deviceDTO -> recordParam.setAircraftSn(deviceDTO.getChildDeviceSn()));
     }
 
     /**

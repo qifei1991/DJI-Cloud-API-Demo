@@ -100,7 +100,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
             RedisOpsUtils.del(receiver.getBid());
 
             // add by Qfei, report flight task end.
-            this.flightTaskClient.stopFlightTask(job, receiver.getGateway());
+            this.flightTaskClient.stopFlightTask(job);
         }
         RedisOpsUtils.setWithExpire(receiver.getBid(), eventsReceiver, RedisConst.DEVICE_ALIVE_SECOND * RedisConst.DEVICE_ALIVE_SECOND);
 
