@@ -406,7 +406,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     public void uploadMediaHighestPriority(String workspaceId, String jobId) {
         Optional<WaylineJobDTO> jobOpt = getJobByJobId(jobId);
         if (jobOpt.isEmpty()) {
-            throw new RuntimeException(CommonErrorEnum.ILLEGAL_ARGUMENT.getErrorMsg());
+            throw new IllegalArgumentException("Job id " + jobId + " doesn't exist.");
         }
 
         String dockSn = jobOpt.get().getDockSn();

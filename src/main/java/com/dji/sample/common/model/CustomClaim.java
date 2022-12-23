@@ -48,11 +48,11 @@ public class CustomClaim {
                 JsonAlias annotation = field.getAnnotation(JsonAlias.class);
                 field.setAccessible(true);
                 // The value of key is named underscore.
-                map.put(annotation != null ? annotation.value()[0] : field.getName(),
-                        field.get(this).toString());
+                String name = annotation != null ? annotation.value()[0] : field.getName();
+                map.put(name, String.valueOf(field.get(this)));
             }
         } catch (IllegalAccessException e) {
-            log.info("CustomClaim converts failed. {}", this.toString());
+            log.info("CustomClaim converts failed. {}", this);
             e.printStackTrace();
         }
         return map;

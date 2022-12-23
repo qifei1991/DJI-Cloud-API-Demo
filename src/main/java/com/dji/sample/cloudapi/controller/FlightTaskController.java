@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.List;
  * @date 2022/12/21 14:42
  */
 @RestController
-@RequestMapping("${url.cloud-api.prefix}${url.cloud-api.version}/flight-tasks/workspaces")
+@RequestMapping("${url.cloud-api.prefix}${url.cloud-api.version}/wayline/workspaces")
 public class FlightTaskController {
 
     @Autowired
@@ -33,14 +32,13 @@ public class FlightTaskController {
 
     /**
      * Create a wayline task for the Dock.
-     * @param request
      * @param param
      * @param workspaceId
      * @return
      * @throws SQLException
      */
     @PostMapping("/{workspace_id}/jobs")
-    public ResponseResult publishCreateJob(HttpServletRequest request, @Valid @RequestBody CreateJobParam param,
+    public ResponseResult publishCreateJob(@Valid @RequestBody CreateJobParam param,
             @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);
