@@ -20,7 +20,7 @@ import java.util.Collections;
  */
 @Slf4j
 @Component
-public class MediaClient extends AbstractClient{
+public class MediaClient extends AbstractClient {
 
     /**
      * Report media-file upload progress.

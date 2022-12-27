@@ -38,7 +38,7 @@ public class LiveController {
     }
 
     /**
-     * Live-streaming according to the parameters passed in from the aircraft-manager service.
+     * Start Live-streaming according to the parameters passed in from the aircraft-manager service.
      * @param liveParam Live-streaming parameters.
      * @return ResponseResult
      */

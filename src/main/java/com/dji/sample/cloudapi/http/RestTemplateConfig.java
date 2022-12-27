@@ -33,7 +33,7 @@ import org.springframework.web.client.RestTemplate;
  * @date 2021-07-07 17:36
  */
 @Slf4j
-@Configuration("MapzoneRestTemplateConfiguration")
+@Configuration("mapzoneRestTemplateConfiguration")
 @EnableConfigurationProperties(HttpPoolProperties.class)
 public class RestTemplateConfig {
 

@@ -71,9 +71,9 @@ public class DeviceOsdStateClient extends AbstractClient {
     }
 
     /**
-     * 上报无人机osd信息
-     * @param data 参数对象
-     * @param sn 设备SN
+     * Report the OSD information of drone.
+     * @param data OSD data of MQTT received.
+     * @param sn drone SN
      */
     @Async("asyncThreadPool")
     public void reportDroneOsdInfo(OsdSubDeviceReceiver data, String sn) {
@@ -94,13 +94,13 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .homeDistance(data.getHomeDistance())
                 .time(System.currentTimeMillis());
         // obtain main gimbal osd information.
-        data.getPayloads()
-                .parallelStream()
-                .filter(osdPayloadReceiver -> "0".equals(osdPayloadReceiver.getPayloadIndex()))
-                .findFirst()
-                .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
-                        .gimbalRoll(mainPayload.getGimbalRoll())
-                        .gimbalYaw(mainPayload.getGimbalYaw()));
+        Optional.ofNullable(data.getPayloads())
+                .ifPresent(payloads -> payloads.parallelStream()
+                        .filter(osdPayloadReceiver -> "0".equals(osdPayloadReceiver.getPayloadIndex()))
+                        .findFirst()
+                        .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
+                                .gimbalRoll(mainPayload.getGimbalRoll())
+                                .gimbalYaw(mainPayload.getGimbalYaw())));
         this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
     }
 

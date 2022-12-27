@@ -13,11 +13,15 @@ public class ClientUri {
 
     public static final String URI_DEVICE_ONLINE = "/devices/online";
     public static final String URI_DEVICE_OFFLINE = "/devices/offline";
-    public static final String URI_OSD_STATE = "/devices/{category}";
+    public static final String URI_OSD_STATE = "/devices/osd/{category}";
     public static final String URI_SORTIES_START = "/sorties/start";
     public static final String URI_SORTIES_STOP = "/sorties/stop";
     public static final String URI_SORTIES_UPLOAD = "/sorties/upload";
-    public static final String URI_SORTIES_PROGRESS = "/sorties/{sortiesId}/progress";
-    public static final String URI_MEDIA_PROGRESS = "/media/{sortiesId}/upload-progress";
+    public static final String URI_SORTIES_PROGRESS = "/sorties/{sorties_id}/progress";
+    public static final String URI_MEDIA_PROGRESS = "/media/{sorties_id}/progress";
     public static final String URI_MEDIA_UPLOAD_CALLBACK = "/media/upload-callback";
+
+
+
+    public static final String URI_RECEIVE = "/tst/receive/{0}";
 }

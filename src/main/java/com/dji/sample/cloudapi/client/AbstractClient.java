@@ -40,8 +40,11 @@ public abstract class AbstractClient {
 
     protected <T> ResultView applicationJsonPost(String uri, T body, Object... uriVariables) {
 
-        String url = this.getManagerServerBaseUrl() + uri;
-        log.debug("===> 访问[aircraft-manager], url[{}],\t args[{}],\t uriArgs[{}]", url, body, uriVariables);
+        String url = this.getManagerServerBaseUrl(uri);
+        if (log.isDebugEnabled()) {
+            log.debug("===> Access [aircraft-manager], URL: {}", url);
+            log.debug("- uriArgs: {}, body: {}", uriVariables, body);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -52,19 +55,17 @@ public abstract class AbstractClient {
                      ? this.mzRestTemplate.postForEntity(url, requestEntity, ResultView.class)
                      : this.mzRestTemplate.postForEntity(url, requestEntity, ResultView.class, uriVariables);
         } catch (RestClientException e) {
-            log.error("访问[aircraft-manager]失败. ", e);
-            throw new RuntimeException("访问[aircraft-manager]失败.");
+            log.error("Access [aircraft-manager] fail. ", e);
+            throw new RuntimeException("Access [aircraft-manager] fail.");
         }
         ResultView result = response.getBody();
-        Assert.notNull(result, "访问[aircraft-manager]响应为空.");
-
-        log.debug("<=== 响应: {}", result);
-
+        log.debug("<=== Response: {}", result);
+        Assert.notNull(result, "The response is null of access [aircraft-manager].");
         return result;
     }
 
 
-    protected String getManagerServerBaseUrl() {
-        return this.url + this.apiPrefix + this.apiVersion;
+    protected String getManagerServerBaseUrl(String uri) {
+        return this.url + this.apiPrefix + this.apiVersion + uri;
     }
 }
