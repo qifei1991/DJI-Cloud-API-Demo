@@ -3,8 +3,6 @@ package com.dji.sample.cloudapi.model.param;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-
 /**
  * 无人机状态信息参数
  *
@@ -18,7 +16,6 @@ public class AircraftOsdParam {
      * 飞行记录ID（架次ID）
      */
     private String sortiesId;
-    @NotBlank(message = "设备SN不能为空")
     private String sn;
     private String firmwareVersion;
     private Integer modelCode;
@@ -33,7 +30,7 @@ public class AircraftOsdParam {
     private Double aircraftCourse;
     private Double aircraftPitch;
     private Double aircraftRoll;
-    private Double aircraftYaw;
+    private Float aircraftYaw;
     private Double gimbalPitch;
     private Double gimbalRoll;
     private Double gimbalYaw;

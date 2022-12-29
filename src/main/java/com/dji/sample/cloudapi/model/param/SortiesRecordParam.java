@@ -3,8 +3,6 @@ package com.dji.sample.cloudapi.model.param;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
-
 /**
  * 架次开始飞行参数
  *
@@ -14,7 +12,6 @@ import javax.validation.constraints.NotBlank;
 @Data
 @Builder
 public class SortiesRecordParam {
-    @NotBlank(message = "架次ID不能为空")
     private String sortiesId;
     private String name;
     private String aircraftSn;

@@ -5,10 +5,8 @@ import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.component.oss.model.enums.OssTypeEnum;
 import com.dji.sample.component.oss.service.IOssService;
 import com.dji.sample.media.model.CredentialsDTO;
-import com.obs.services.OBSCredentialsProviderChain;
 import com.obs.services.ObsClient;
 import com.obs.services.model.HttpMethodEnum;
-import com.obs.services.model.ISecurityKey;
 import com.obs.services.model.PutObjectResult;
 import com.obs.services.model.TemporarySignatureRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +36,7 @@ public class HuaweiObsServiceImpl implements IOssService {
     @Override
     public CredentialsDTO getCredentials() {
 
-        ISecurityKey securityKey = new OBSCredentialsProviderChain().getSecurityKey();
-
-        return new CredentialsDTO(securityKey, OssConfiguration.expire);
+        return new CredentialsDTO();
     }
 
     @Override

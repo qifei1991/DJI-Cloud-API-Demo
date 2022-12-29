@@ -91,16 +91,17 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .aircraftDirection(data.getAttitudeHead())
                 .aircraftPitch(data.getAttitudePitch())
                 .aircraftRoll(data.getAttitudeRoll())
+                .aircraftYaw(data.getAttitudeHead())
                 .homeDistance(data.getHomeDistance())
                 .time(System.currentTimeMillis());
-        // obtain main gimbal osd information.
+        // obtain main gimbal(the index of 0) osd information.
         Optional.ofNullable(data.getPayloads())
-                .ifPresent(payloads -> payloads.parallelStream()
-                        .filter(osdPayloadReceiver -> "0".equals(osdPayloadReceiver.getPayloadIndex()))
-                        .findFirst()
-                        .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
-                                .gimbalRoll(mainPayload.getGimbalRoll())
-                                .gimbalYaw(mainPayload.getGimbalYaw())));
+                .flatMap(payloads -> payloads.parallelStream()
+                        .filter(osdPayloadReceiver -> osdPayloadReceiver.getPayloadIndex().endsWith("-0"))
+                        .findFirst())
+                .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
+                        .gimbalRoll(mainPayload.getGimbalRoll())
+                        .gimbalYaw(mainPayload.getGimbalYaw()));
         this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
     }
 

@@ -2,7 +2,6 @@ package com.dji.sample.cloudapi.controller;
 
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.manage.model.dto.DeviceDTO;
-import com.dji.sample.manage.model.enums.DeviceDomainEnum;
 import com.dji.sample.manage.service.IDeviceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * The Controller of Devices.
@@ -27,15 +25,13 @@ public class DeviceApiController {
     private IDeviceService deviceService;
 
     /**
-     * Get the topology list of all dock devices in one workspace.
+     * Get the topology list of all online devices in one workspace.
      * @param workspaceId workspace ID
      * @return Dock devices
      */
     @GetMapping("/{workspace_id}/docks")
     public ResponseResult<List<DeviceDTO>> getDockDevices(@PathVariable("workspace_id") String workspaceId) {
-        List<DeviceDTO> devicesList = deviceService.getDevicesTopoForWeb(workspaceId).stream()
-                .filter(x -> DeviceDomainEnum.DOCK.getVal() == Integer.parseInt(x.getDomain()))
-                .collect(Collectors.toList());
+        List<DeviceDTO> devicesList = deviceService.getDevicesTopoForWeb(workspaceId);
         return ResponseResult.success(devicesList);
     }
 

@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.controller;
 
+import com.dji.sample.cloudapi.service.LiveService;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.manage.model.dto.CapacityDeviceDTO;
 import com.dji.sample.manage.model.dto.LiveTypeDTO;
@@ -26,6 +27,8 @@ public class LiveController {
 
     @Autowired
     private ILiveStreamService liveStreamService;
+    @Autowired
+    private LiveService liveService;
 
     /**
      * Get live capability data of all drones in the current workspace from the database.
@@ -35,6 +38,15 @@ public class LiveController {
     @GetMapping("/capacity/{workspace_id}")
     public ResponseResult<List<CapacityDeviceDTO>> getLiveCapacity(@PathVariable("workspace_id") String workspaceId) {
         return ResponseResult.success(this.liveStreamService.getLiveCapacity(workspaceId));
+    }
+    /**
+     * Get live capability data of all drones in the current workspace from the database.
+     * @param sn device sn
+     * @return live capacity.
+     */
+    @GetMapping("/{sn}/capacity/")
+    public ResponseResult<CapacityDeviceDTO> getDeviceLiveCapacity(@PathVariable("sn") String sn) {
+        return ResponseResult.success(this.liveService.getDeviceLiveCapacity(sn));
     }
 
     /**
