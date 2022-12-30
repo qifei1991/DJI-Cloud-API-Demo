@@ -1,7 +1,7 @@
 package com.dji.sample.media.model;
 
 import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
-import com.obs.services.model.ISecurityKey;
+import com.obs.services.internal.security.SecurityKeyBean;
 import io.minio.credentials.Credentials;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -49,10 +49,11 @@ public class CredentialsDTO {
         this.expire = (credentials.getExpiration().getTime() - System.currentTimeMillis()) / 1000 - DELAY;
     }
 
-    public CredentialsDTO(ISecurityKey securityKey, long expire) {
+    public CredentialsDTO(SecurityKeyBean securityKey, long expire) {
         this.accessKeyId = securityKey.getAccessKey();
         this.accessKeySecret = securityKey.getSecretKey();
         this.securityToken = securityKey.getSecurityToken();
         this.expire = expire - DELAY;
     }
+
 }
