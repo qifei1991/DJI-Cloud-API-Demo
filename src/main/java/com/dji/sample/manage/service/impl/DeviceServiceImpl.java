@@ -149,7 +149,9 @@ public class DeviceServiceImpl implements IDeviceService {
         // Cancel drone-related subscriptions.
         this.unsubscribeTopicOffline(deviceSn);
 
-        payloadService.deletePayloadsByDeviceSn(new ArrayList<>(List.of(deviceSn)));
+        // modify by Qfei.
+        // payloadService.deletePayloadsByDeviceSn(new ArrayList<>(List.of(deviceSn)));
+
         // Publish the latest device topology information in the current workspace.
         this.pushDeviceOfflineTopo(device.getWorkspaceId(), deviceSn);
 
@@ -457,8 +459,8 @@ public class DeviceServiceImpl implements IDeviceService {
                     this.unsubscribeTopicOffline(from);
                     return;
                 }
-                RedisOpsUtils.setWithExpire(RedisConst.DEVICE_ONLINE_PREFIX + from, device,
-                        RedisConst.DEVICE_ALIVE_SECOND);
+                device.setPayloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(from));
+                RedisOpsUtils.setWithExpire(RedisConst.DEVICE_ONLINE_PREFIX + from, device, RedisConst.DEVICE_ALIVE_SECOND);
                 this.subscribeTopicOnline(from);
             }
 
@@ -1077,6 +1079,7 @@ public class DeviceServiceImpl implements IDeviceService {
                         .domain(DeviceDomainEnum.getDesc(device.getDomain()))
                         .type(device.getDeviceType())
                         .subType(device.getSubType())
+                        .payloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(deviceSn))
                         .build(),
                 RedisConst.DEVICE_ALIVE_SECOND);
 

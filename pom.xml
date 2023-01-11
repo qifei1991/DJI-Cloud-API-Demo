@@ -27,8 +27,8 @@
 		<huawei-obs.version>3.22.3.1</huawei-obs.version>
 		<javax-activation.version>1.1.1</javax-activation.version>
 		<glassfish-jaxb.version>2.3.3</glassfish-jaxb.version>
-		<log4j2.version>2.15.0</log4j2.version>
 		<javax-jaxb.version>2.3.0</javax-jaxb.version>
+		<log4j2.version>2.15.0</log4j2.version>
 	</properties>
 
 	<dependencies>

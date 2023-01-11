@@ -39,6 +39,7 @@ public class LiveController {
     public ResponseResult<List<CapacityDeviceDTO>> getLiveCapacity(@PathVariable("workspace_id") String workspaceId) {
         return ResponseResult.success(this.liveStreamService.getLiveCapacity(workspaceId));
     }
+
     /**
      * Get live capability data of all drones in the current workspace from the database.
      * @param sn device sn

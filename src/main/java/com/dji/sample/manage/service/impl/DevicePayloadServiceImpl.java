@@ -135,7 +135,6 @@ public class DevicePayloadServiceImpl implements IDevicePayloadService {
             return;
         }
 
-
         // Filter unsaved payload information.
         Set<String> payloadSns = this.getDevicePayloadEntitiesByDeviceSn(payloadReceiverList.get(0).getDeviceSn())
                 .stream().map(DevicePayloadDTO::getPayloadSn).collect(Collectors.toSet());
