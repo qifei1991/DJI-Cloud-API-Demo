@@ -72,6 +72,14 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     @Autowired
     private IFileService fileService;
 
+    private Optional<WaylineJobDTO> insertWaylineJob(WaylineJobEntity jobEntity) {
+        int id = mapper.insert(jobEntity);
+        if (id <= 0) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(this.entity2Dto(jobEntity));
+    }
+
     @Override
     public Optional<WaylineJobDTO> createWaylineJob(CreateJobParam param, String workspaceId, String username, Long beginTime, Long endTime) {
         if (Objects.isNull(param)) {
@@ -266,6 +274,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     }
 
+    @Override
     public void publishCancelTask(String workspaceId, String dockSn, List<String> jobIds) {
         boolean isOnline = deviceService.checkDeviceOnline(dockSn);
         if (!isOnline) {
@@ -299,13 +308,14 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     }
 
+    @Override
     public List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, WaylineJobStatusEnum status) {
         return mapper.selectList(
-                new LambdaQueryWrapper<WaylineJobEntity>()
-                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
-                        .eq(Objects.nonNull(status), WaylineJobEntity::getStatus, status.getVal())
-                        .and(!CollectionUtils.isEmpty(jobIds),
-                                wrapper -> jobIds.forEach(id -> wrapper.eq(WaylineJobEntity::getJobId, id).or())))
+                        new LambdaQueryWrapper<WaylineJobEntity>()
+                                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                                .eq(Objects.nonNull(status), WaylineJobEntity::getStatus, status.getVal())
+                                .and(!CollectionUtils.isEmpty(jobIds),
+                                        wrapper -> jobIds.forEach(id -> wrapper.eq(WaylineJobEntity::getJobId, id).or())))
                 .stream()
                 .map(this::entity2Dto)
                 .collect(Collectors.toList());

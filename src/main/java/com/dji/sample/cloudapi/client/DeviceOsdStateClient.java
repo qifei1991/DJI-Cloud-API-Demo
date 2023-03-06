@@ -34,9 +34,8 @@ public class DeviceOsdStateClient extends AbstractClient {
     public void reportOnline(Optional<DeviceDTO> deviceDTOOptional) {
         deviceDTOOptional.ifPresent(deviceDTO -> {
             // 暂时只维护无人机、遥控器、机场的上线
-            String domainDesc = deviceDTO.getDomain();
             String category = null;
-            switch (DeviceDomainEnum.getDomain(domainDesc)) {
+            switch (DeviceDomainEnum.getDeviceDomain(deviceDTO.getDomain())) {
                 case SUB_DEVICE:
                     category = DeviceCategory.AIRCRAFT.getCode();
                     break;

@@ -957,6 +957,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     }
 
+    @Override
     public Boolean checkDeviceOnline(String sn) {
         String key = RedisConst.DEVICE_ONLINE_PREFIX + sn;
         return RedisOpsUtils.checkExist(key) && RedisOpsUtils.getExpire(key) > 0;
@@ -1080,7 +1081,7 @@ public class DeviceServiceImpl implements IDeviceService {
                         .domain(device.getDomain())
                         .type(device.getDeviceType())
                         .subType(device.getSubType())
-                        .payloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(deviceSn))
+                        .payloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(device.getDeviceSn()))
                         .build(),
                 RedisConst.DEVICE_ALIVE_SECOND);
 

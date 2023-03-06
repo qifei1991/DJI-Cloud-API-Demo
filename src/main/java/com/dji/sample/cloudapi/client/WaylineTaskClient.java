@@ -4,8 +4,8 @@ import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceService;
-import com.dji.sample.wayline.model.dto.FlightTaskProgressReceiver;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.dto.WaylineTaskProgressReceiver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
-public class FlightTaskClient extends AbstractClient {
+public class WaylineTaskClient extends AbstractClient {
 
     @Autowired
     private IDeviceService deviceService;
@@ -71,7 +71,7 @@ public class FlightTaskClient extends AbstractClient {
      * @param progressReceiver the progress information.
      */
     @Async("asyncThreadPool")
-    public void reportFlightTaskProgress(String jobId, FlightTaskProgressReceiver progressReceiver) {
+    public void reportFlightTaskProgress(String jobId, WaylineTaskProgressReceiver progressReceiver) {
         this.applicationJsonPost(ClientUri.URI_SORTIES_PROGRESS, progressReceiver, jobId);
     }
 

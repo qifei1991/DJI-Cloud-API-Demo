@@ -1,5 +1,7 @@
 server:
   port: 6789
+#  servlet:
+#    context-path: /cloud-service
 spring:
   application:
     name: cloud-api-sample
@@ -76,7 +78,7 @@ url:
   # provide api form aircraft-manager service.
   cloud-api:
     prefix: /cloud-api
-    version: /v1
+    version:
 
 aircraft-manager-server:
   url: http://10.10.2.17:82/wrjgl
@@ -88,18 +90,18 @@ workspace:
   default-id: e3dea0f5-37f2-4d79-ae58-490af3228069
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
-#oss:
-#  enable: true
-#  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
-#  endpoint: https://oss-cn-hangzhou.aliyuncs.com
-#  access-key: Please enter your access key.
-#  secret-key: Please enter your secret key.
-#  expire: 3600
-#  region: Please enter your oss region. # cn-hangzhou
-#  role-session-name: cloudApi
-#  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
-#  bucket: Please enter your bucket name.
-#  object-dir-prefix: Please enter a folder name.
+oss:
+  enable: true
+  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+  access-key: LTAI5tKJ5pyzUi4f82xvotic # Please enter your access key.
+  secret-key: cK86NSwguGqZ25QHonv1MI5j9wBwLT # Please enter your secret key.
+  expire: 3600
+  region: cn-hangzhou # Please enter your oss region. # cn-hangzhou
+  role-session-name: cloudApi
+  role-arn: acs:ram::1387195511836853:role/ramossrole # Please enter your role arn. # acs:ram::123456789:role/stsrole
+  bucket: aircraft-resource # Please enter your bucket name.
+  object-dir-prefix: test # Please enter a folder name.
 
 #oss:
 #  enable: true
@@ -111,36 +113,37 @@ workspace:
 #  region: us-east-1
 #  role-session-name: cloudApi
 #  role-arn:
-#  bucket: cloudapi-bucket
-#  object-dir-prefix: wayline
+#  bucket: aircraft-resource
+#  object-dir-prefix: test
 
 #oss:
 #  enable: true
 #  provider: minio
-#  endpoint: http://192.168.1.1:9000
+#  endpoint: http://192.168.1.202:9000
 #  access-key: minioadmin
 #  secret-key: minioadmin
-#  bucket: cloud-bucket
+#  bucket: aircraft-resource
 #  expire: 3600
 #  region: us-east-1
-#  object-dir-prefix: wayline
+#  object-dir-prefix: test
 
-oss:
-  enable: true
-  provider: obs # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
-  endpoint: https://obs.cn-north-4.myhuaweicloud.com
-  access-key: MWY2L4ECVSNCHIZ1Z6Z1.
-  secret-key: 0itqHxcD9OMoA2IkKtGw9rLpJzIskLfL802XSUCj.
-  expire: 3600
-  region: cn-north-4
-  role-session-name: CloudApi
-  role-arn:  # acs:ram::123456789:role/stsrole
-  bucket: aircraft-dji
-  object-dir-prefix: test
+#oss:
+#  enable: true
+#  provider: obs # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+#  endpoint: https://obs.cn-north-4.myhuaweicloud.com
+#  access-key: MWY2L4ECVSNCHIZ1Z6Z1.
+#  secret-key: 0itqHxcD9OMoA2IkKtGw9rLpJzIskLfL802XSUCj.
+#  expire: 3600
+#  region: cn-north-4
+#  role-session-name: CloudApi
+#  role-arn: wrj-obs/Dlwy+Wrj2022/Hw77360206 # IAM用户信息（user_name/user_password/domainName）
+#  bucket: aircraft-resource
+#  object-dir-prefix: test
 
 logging:
   level:
     com.dji.sample: debug
+    com.dji.sample.cloudapi: info
   file:
     name: logs/cloud-api-sample.log
 

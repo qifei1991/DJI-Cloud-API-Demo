@@ -9,6 +9,7 @@ import com.dji.sample.manage.model.dto.UserDTO;
 import com.dji.sample.manage.model.dto.WorkspaceDTO;
 import com.dji.sample.manage.service.IWorkspaceService;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -50,18 +51,13 @@ public class TokenService {
 
         // create token
         String token = JwtUtil.createToken(customClaim.convertToMap());
-
+        MqttConnectOptions basicConnectOpt = mqttConfiguration.mqttConnectOptions();
         UserDTO userDTO = UserDTO.builder()
                 .username(userParam.getUsername())
                 .userType(userParam.getUserType())
-                .mqttUsername(mqttConfiguration.getUsername())
-                .mqttPassword(mqttConfiguration.getPassword())
-                .mqttAddr(new StringBuilder().append(mqttConfiguration.getProtocol().trim())
-                        .append("://")
-                        .append(mqttConfiguration.getHost().trim())
-                        .append(":")
-                        .append(mqttConfiguration.getPort())
-                        .toString())
+                .mqttUsername(basicConnectOpt.getUserName())
+                .mqttPassword(new String(basicConnectOpt.getPassword()))
+                .mqttAddr(MqttConfiguration.getBasicMqttAddress())
                 .accessToken(token)
                 .workspaceId(workspaceOpt.get().getWorkspaceId())
                 .build();
