@@ -3,10 +3,6 @@ server:
 spring:
   application:
     name: cloud-api-sample
-  servlet:
-    multipart:
-      max-file-size: 2GB
-      max-request-size: 2GB
   datasource:
     druid:
       type: com.alibaba.druid.pool.DruidDataSource
@@ -19,6 +15,7 @@ spring:
       min-idle: 10
       max-active: 20
       max-wait: 60000
+
   redis:
     host: localhost
     port: 6379
@@ -31,6 +28,11 @@ spring:
         max-idle: 8
         min-idle: 0
 
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+
 jwt:
   issuer: DJI
   subject: CloudApiSample
@@ -38,19 +40,19 @@ jwt:
   age: 86400
 
 mqtt:
-  protocol: tcp
-  host: 192.168.1.202 #Please enter your ip. # 192.168.1.1
-  port: 1883
-  username: JavaServer
-  password: 123456
-  client-id: 123456
-#  host: localhost #Please enter your ip. # 192.168.1.1
-#  port: 61613
-#  username: admin
-#  password: admin
-#  client-id: 123456
-  # Topics that need to be subscribed when initially connecting to mqtt, multiple topics are divided by ",".
-  inbound-topic: sys/product/+/status,thing/product/+/requests
+  # @see com.dji.sample.component.mqtt.model.MqttUseEnum
+  # BASIC parameters are required.
+  BASIC:
+    protocol: MQTT # @see com.dji.sample.component.mqtt.model.MqttProtocolEnum
+    host: 192.168.1.202 #Please enter your ip. # 192.168.1.1
+    port: 1883
+    username: JavaServer
+    password: 123456
+    client-id: 123456
+    # If the protocol is ws/wss, this value is required.
+    path:
+    # Topics that need to be subscribed when initially connecting to mqtt, multiple topics are divided by ",".
+    inbound-topic: sys/product/+/status,thing/product/+/requests
 
 url:
   manage:
@@ -85,7 +87,7 @@ aircraft-manager-server:
 workspace:
   default-id: e3dea0f5-37f2-4d79-ae58-490af3228069
 
-# Tutorial: https://help.aliyun.com/document_detail/100624.htm?spm=a2c4g.11186623.0.0.74075e34eIhK7T#concept-xzh-nzk-2gb
+# Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
 #oss:
 #  enable: true
 #  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
@@ -145,3 +147,10 @@ logging:
 ntp:
   server:
     host: Google.mzr.me
+
+# To create a license for an application: https://developer.dji.com/user/apps/#all
+cloud-api:
+  app:
+    id: Please enter the app id.
+    key: Please enter the app key.
+    license: Please enter the app license.

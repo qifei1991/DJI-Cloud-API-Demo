@@ -1,6 +1,6 @@
 package com.dji.sample.manage.model.enums;
 
-import java.util.Arrays;
+import lombok.Getter;
 
 /**
  *
@@ -8,80 +8,20 @@ import java.util.Arrays;
  * @date 2021/11/15
  * @version 0.1
  */
+@Getter
 public enum DeviceDomainEnum {
 
-    SUB_DEVICE(0, "sub-device"),
+    SUB_DEVICE(0),
 
-    GATEWAY(2, "gateway"),
+    GATEWAY(2),
 
-    PAYLOAD(1, "payload"),
+    PAYLOAD(1),
 
-    DOCK (3, "dock"),
+    DOCK (3);
 
-    UNKNOWN(-1, "unknown");
+    int val;
 
-    private int val;
-
-    private String desc;
-
-    DeviceDomainEnum(int val, String desc) {
+    DeviceDomainEnum(int val) {
         this.val = val;
-        this.desc = desc;
     }
-
-    public int getVal() {
-        return val;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public static String getDesc(int val) {
-        if (SUB_DEVICE.val == val) {
-            return SUB_DEVICE.desc;
-        }
-
-        if (GATEWAY.val == val) {
-            return GATEWAY.desc;
-        }
-
-        if (PAYLOAD.val == val) {
-            return PAYLOAD.desc;
-        }
-
-        if (DOCK.val == val) {
-            return DOCK.desc;
-        }
-        return UNKNOWN.desc;
-    }
-
-    public static int getVal(String desc) {
-        if (SUB_DEVICE.desc.equals(desc)) {
-            return SUB_DEVICE.val;
-        }
-
-        if (GATEWAY.desc.equals(desc)) {
-            return GATEWAY.val;
-        }
-
-        if (PAYLOAD.desc.equals(desc)) {
-            return PAYLOAD.val;
-        }
-
-        if (DOCK.desc.equals(desc)) {
-            return DOCK.val;
-        }
-        return UNKNOWN.val;
-    }
-
-    public static DeviceDomainEnum getDomain(String desc) {
-
-        return Arrays.stream(values())
-                .parallel()
-                .filter(domain -> domain.getDesc().equals(desc))
-                .findFirst()
-                .orElse(DeviceDomainEnum.UNKNOWN);
-    }
-
 }
