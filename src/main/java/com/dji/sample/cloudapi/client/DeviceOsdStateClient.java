@@ -9,9 +9,7 @@ import com.dji.sample.cloudapi.model.param.RcOsdParam;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
-import com.dji.sample.manage.model.receiver.OsdDockReceiver;
-import com.dji.sample.manage.model.receiver.OsdGatewayReceiver;
-import com.dji.sample.manage.model.receiver.OsdSubDeviceReceiver;
+import com.dji.sample.manage.model.receiver.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -115,17 +113,22 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .coverState(data.getCoverState())
                 .putterState(data.getPutterState())
                 .supplementLightState(data.getSupplementLightState())
-                .networkRate(data.getNetworkState().getRate())
+                .networkRate(Optional.ofNullable(data.getNetworkState()).map(NetworkStateReceiver::getRate).orElse(null))
                 .droneInDock(data.getDroneInDock())
                 .activationTime(data.getActivationTime())
                 .batteryStoreMode(data.getBatteryStoreMode())
                 .alarmState(data.getAlarmState())
-                .droneBatteryPercent(data.getDroneChargeState().getCapacityPercent())
-                .droneBatteryState(data.getDroneChargeState().getState())
-                .droneBatteryMaintenanceState(data.getDroneBatteryMaintenanceInfo().getMaintenanceState())
-                .droneBatteryMaintenanceTimeLeft(data.getDroneBatteryMaintenanceInfo().getMaintenanceTimeLeft())
-                .backupBatterySwitch(data.getBackupBattery().getBatterySwitch())
-                .backupBatteryVoltage(data.getBackupBattery().getVoltage())
+                .droneBatteryPercent(
+                        Optional.ofNullable(data.getDroneChargeState()).map(DroneChargeStateReceiver::getCapacityPercent).orElse(null))
+                .droneBatteryState(Optional.ofNullable(data.getDroneChargeState()).map(DroneChargeStateReceiver::getState).orElse(null))
+                .droneBatteryMaintenanceState(Optional.ofNullable(data.getDroneBatteryMaintenanceInfo())
+                        .map(DroneBatteryMaintenanceInfoReceiver::getMaintenanceState)
+                        .orElse(null))
+                .droneBatteryMaintenanceTimeLeft(Optional.ofNullable(data.getDroneBatteryMaintenanceInfo())
+                        .map(DroneBatteryMaintenanceInfoReceiver::getMaintenanceTimeLeft)
+                        .orElse(null))
+                .backupBatterySwitch(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getBatterySwitch).orElse(null))
+                .backupBatteryVoltage(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getVoltage).orElse(null))
                 .emergencyStopState(data.getEmergencyStopState())
                 .time(System.currentTimeMillis())
                 .build(), DeviceCategory.DOCK.getCode());

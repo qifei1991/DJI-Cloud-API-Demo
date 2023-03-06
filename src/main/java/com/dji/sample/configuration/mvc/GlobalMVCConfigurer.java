@@ -23,7 +23,6 @@ public class GlobalMVCConfigurer implements WebMvcConfigurer {
     private String managePrefix;
     @Value("${url.manage.version}")
     private String manageVersion;
-
     @Value("${url.cloud-api.prefix:/cloud-api}")
     private String apiPrefix;
 
