@@ -1,6 +1,6 @@
 package com.dji.sample.wayline.service.impl;
 
-import com.dji.sample.cloudapi.client.WaylineTaskClient;
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.component.mqtt.model.*;
 import com.dji.sample.component.mqtt.service.IMessageSenderService;
@@ -58,7 +58,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
     private IWaylineJobService waylineJobService;
 
     @Autowired
-    private WaylineTaskClient waylineTaskClient;
+    private FlightTaskClient flightTaskClient;
 
     @Override
     @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_FLIGHT_TASK_PROGRESS, outputChannel = ChannelName.OUTBOUND)
@@ -107,7 +107,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
             RedisOpsUtils.del(RedisConst.WAYLINE_JOB_PAUSED_PREFIX + receiver.getBid());
 
             // add by Qfei, report flight task end.
-            this.waylineTaskClient.stopFlightTask(job);
+            this.flightTaskClient.flightTaskCompleted(job);
         }
 
         DeviceDTO device = (DeviceDTO) RedisOpsUtils.get(RedisConst.DEVICE_ONLINE_PREFIX + receiver.getGateway());
@@ -131,7 +131,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         }
 
         // add by Qfei, report flight task progress.
-        this.waylineTaskClient.reportFlightTaskProgress(receiver.getBid(), output);
+        this.flightTaskClient.flightTaskProgress(receiver.getBid(), output);
     }
 
     @Scheduled(initialDelay = 10, fixedRate = 5, timeUnit = TimeUnit.SECONDS)

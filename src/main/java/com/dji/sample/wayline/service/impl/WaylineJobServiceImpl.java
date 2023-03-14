@@ -3,6 +3,7 @@ package com.dji.sample.wayline.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.common.model.Pagination;
@@ -40,7 +41,9 @@ import org.springframework.util.CollectionUtils;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,6 +74,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     @Autowired
     private IFileService fileService;
+
+    @Autowired
+    private FlightTaskClient flightTaskClient;
 
     private Optional<WaylineJobDTO> insertWaylineJob(WaylineJobEntity jobEntity) {
         int id = mapper.insert(jobEntity);
@@ -251,6 +257,10 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         RedisOpsUtils.setWithExpire(RedisConst.WAYLINE_JOB_RUNNING_PREFIX + job.getDockSn(),
                 EventsReceiver.<WaylineTaskProgressReceiver>builder().bid(jobId).sn(job.getDockSn()).build(),
                 RedisConst.DEVICE_ALIVE_SECOND * RedisConst.DEVICE_ALIVE_SECOND);
+
+        // add by Qfei, report start a wayline job.
+        this.flightTaskClient.startFlightTask(job);
+
         return true;
     }
 

@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Component
-public class WaylineTaskClient extends AbstractClient {
+public class FlightTaskClient extends AbstractClient {
 
     @Autowired
     private IDeviceService deviceService;
@@ -44,19 +44,19 @@ public class WaylineTaskClient extends AbstractClient {
     }
 
     /**
-     * Report the aircraft-manager that started a flight task.
+     * Report the aircraft-manager that a flight task completed.
      * @param job WaylineJobDTO
      */
     @Async("asyncThreadPool")
-    public void stopFlightTask(WaylineJobDTO job) {
+    public void flightTaskCompleted(WaylineJobDTO job) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())
-                .endTime(job.getEndTime().format(FORMATTER))
+                .endTime(Optional.ofNullable(job.getEndTime()).map(x -> x.format(FORMATTER)).orElse(null))
                 .build();
         obtainDroneSn(job, recordParam);
-        this.applicationJsonPost(ClientUri.URI_SORTIES_STOP, recordParam);
+        this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
     private void obtainDroneSn(WaylineJobDTO job, SortiesRecordParam recordParam) {
@@ -71,7 +71,7 @@ public class WaylineTaskClient extends AbstractClient {
      * @param progressReceiver the progress information.
      */
     @Async("asyncThreadPool")
-    public void reportFlightTaskProgress(String jobId, WaylineTaskProgressReceiver progressReceiver) {
+    public void flightTaskProgress(String jobId, WaylineTaskProgressReceiver progressReceiver) {
         this.applicationJsonPost(ClientUri.URI_SORTIES_PROGRESS, progressReceiver, jobId);
     }
 
