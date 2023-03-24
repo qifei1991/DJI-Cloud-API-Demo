@@ -25,7 +25,7 @@ import java.util.Optional;
 @Service
 public class TokenService {
 
-    @Value("${workspace.default-id}")
+    @Value("${aircraft-manager-server.workspace-id}")
     String defaultWorkspaceId;
 
     @Autowired

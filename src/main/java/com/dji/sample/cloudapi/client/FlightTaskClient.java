@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.client;
 
+import cn.hutool.core.date.DateUtil;
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
@@ -38,6 +39,7 @@ public class FlightTaskClient extends AbstractClient {
                 .waylineId(job.getFileId())
                 .state(job.getStatus())
                 .flightType(job.getTaskType())
+                .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .build();
         obtainDroneSn(job, recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -51,9 +53,10 @@ public class FlightTaskClient extends AbstractClient {
     public void flightTaskCompleted(WaylineJobDTO job) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
+                .name(job.getJobName())
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())
-                .endTime(Optional.ofNullable(job.getEndTime()).map(x -> x.format(FORMATTER)).orElse(null))
+                .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .build();
         obtainDroneSn(job, recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);

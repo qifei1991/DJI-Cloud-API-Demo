@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The Controller of Devices.
@@ -29,10 +30,16 @@ public class DeviceApiController {
      * @param workspaceId workspace ID
      * @return Dock devices
      */
-    @GetMapping("/{workspace_id}/docks")
+    @GetMapping("/{workspace_id}/devices")
     public ResponseResult<List<DeviceDTO>> getDockDevices(@PathVariable("workspace_id") String workspaceId) {
         List<DeviceDTO> devicesList = deviceService.getDevicesTopoForWeb(workspaceId);
         return ResponseResult.success(devicesList);
+    }
+
+    @GetMapping("/{device_sn}")
+    public ResponseResult getDevice(@PathVariable("device_sn") String deviceSn) {
+        Optional<DeviceDTO> deviceOpt = deviceService.getDeviceBySn(deviceSn);
+        return deviceOpt.isEmpty() ? ResponseResult.error("device not found.") : ResponseResult.success(deviceOpt.get());
     }
 
 }

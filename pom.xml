@@ -201,6 +201,17 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<filtering>false</filtering>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<!--!!!【注意】本地调试一定要TM把下面玩意屏蔽掉,只有打包时候需要-->
+                    <!-- <exclude>application*.yml</exclude> -->
+				</excludes>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -213,6 +224,32 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<!-- 打包拷贝配置文件到jar同级config目录下 -->
+					<execution>
+						<id>copy-resources-config</id> <!-- here the phase you need -->
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration> <!--copyTo的目录-->
+							<outputDirectory>target/config</outputDirectory>
+							<resources>
+								<resource> <!--被copy的目录-->
+									<directory>src/main/resources</directory>
+									<includes>
+										<include>*.yml</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

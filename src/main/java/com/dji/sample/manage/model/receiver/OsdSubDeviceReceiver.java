@@ -67,4 +67,6 @@ public class OsdSubDeviceReceiver {
 
     private ObstacleAvoidanceReceiver obstacleAvoidance;
 
+    private String trackId;
+
 }

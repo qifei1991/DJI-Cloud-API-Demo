@@ -55,7 +55,7 @@ public abstract class AbstractClient {
                      ? this.mzRestTemplate.postForEntity(url, requestEntity, ResultView.class)
                      : this.mzRestTemplate.postForEntity(url, requestEntity, ResultView.class, uriVariables);
         } catch (RestClientException e) {
-            log.error("Access [aircraft-manager] fail, Please check the service usability.");
+            log.error("Access [aircraft-manager] fail, Please check the service usability.", e);
             return new ResultView(ResultView.STATUS.FAIL);
         }
         ResultView result = response.getBody();

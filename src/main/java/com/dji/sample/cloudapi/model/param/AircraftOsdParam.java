@@ -39,4 +39,6 @@ public class AircraftOsdParam {
     private Double homeHeight;
     private Double homeDistance;
     private Long time;
+
+    private String trackId;
 }

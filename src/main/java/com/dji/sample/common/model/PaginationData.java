@@ -1,6 +1,7 @@
 package com.dji.sample.common.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * @date 2021/12/22
  */
 @Data
+@NoArgsConstructor
 public class PaginationData<T> {
 
     /**

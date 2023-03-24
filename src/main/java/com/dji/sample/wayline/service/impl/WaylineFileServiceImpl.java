@@ -1,5 +1,6 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.text.CharPool;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -25,7 +26,6 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -219,7 +219,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                 return Optional.of(WaylineFileDTO.builder()
                         .droneModelKey(String.format("%s-%s-%s", DeviceDomainEnum.SUB_DEVICE.getVal(), type, subType))
                         .payloadModelKeys(List.of(String.format("%s-%s-%s",DeviceDomainEnum.PAYLOAD.getVal(), payloadType, payloadSubType)))
-                        .objectKey(OssConfiguration.objectDirPrefix + File.separator + filename)
+                        .objectKey(OssConfiguration.objectDirPrefix + CharPool.SLASH + filename)
                         .name(filename.substring(0, filename.lastIndexOf(WAYLINE_FILE_SUFFIX)))
                         .sign(DigestUtils.md5DigestAsHex(file.getInputStream()))
                         .templateTypes(List.of(Integer.parseInt(templateId)))

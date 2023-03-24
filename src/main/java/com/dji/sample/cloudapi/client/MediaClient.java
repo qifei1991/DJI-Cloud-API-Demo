@@ -1,8 +1,12 @@
 package com.dji.sample.cloudapi.client;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.text.CharPool;
+import com.dji.sample.cloudapi.model.enums.MediaFileType;
 import com.dji.sample.cloudapi.model.param.MediaFileParam;
 import com.dji.sample.cloudapi.util.ClientUri;
+import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.media.model.FileUploadDTO;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -40,15 +44,31 @@ public class MediaClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void uploadCallback(String jobId, FileUploadDTO fileUploadDTO) {
         String saveName = fileUploadDTO.getObjectKey().substring(fileUploadDTO.getObjectKey().lastIndexOf("/") + 1);
-        MediaFileParam fileParam = MediaFileParam.builder()
+        MediaFileParam.MediaFileParamBuilder builder = MediaFileParam.builder();
+        if (!isImageFile(saveName)) {
+            builder.type(MediaFileType.VIDEO.getCode());
+        }
+        MediaFileParam fileParam = builder
                 .sortiesId(jobId)
                 .aircraftSn(fileUploadDTO.getExt().getSn())
-                .filePath(fileUploadDTO.getPath())
+                .filePath(OssConfiguration.objectDirPrefix + CharPool.SLASH + fileUploadDTO.getPath())
                 .fileName(saveName)
                 .createTime(DateUtil.formatDateTime(fileUploadDTO.getMetadata().getCreatedTime()))
                 .updateTime(LocalDateTime.now().format(FORMATTER))
                 .uploadStatus(2)
+                .platform(OssConfiguration.provider)
                 .build();
         this.applicationJsonPost(ClientUri.URI_MEDIA_UPLOAD_CALLBACK, Collections.singleton(fileParam));
+    }
+
+
+    /**
+     * 是否是图片文件
+     *
+     * @param fileName 文件名
+     * @return java.lang.Boolean
+     */
+    public static boolean isImageFile(String fileName) {
+        return FileNameUtil.isType(fileName, "jpeg", "jpg", "png");
     }
 }
