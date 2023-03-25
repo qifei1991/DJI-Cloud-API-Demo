@@ -42,6 +42,7 @@ public class FlightTaskController {
             @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);
+        customClaim.setUsername(param.getUsername());
         return waylineJobService.publishFlightTask(param, customClaim);
     }
 

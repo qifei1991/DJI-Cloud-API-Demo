@@ -41,4 +41,9 @@ public class SortiesRecordParam {
     private String waylineId;
 
     private String flightTrackWkt;
+
+    /**
+     * 执行人
+     */
+    private String userName;
 }

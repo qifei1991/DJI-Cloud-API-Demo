@@ -40,4 +40,6 @@ public class CreateJobParam {
     @NotNull
     @Range(max = 2)
     private Integer outOfControlAction;
+
+    private String username;
 }

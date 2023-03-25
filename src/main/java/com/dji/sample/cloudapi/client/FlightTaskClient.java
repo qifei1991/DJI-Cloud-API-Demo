@@ -40,6 +40,7 @@ public class FlightTaskClient extends AbstractClient {
                 .state(job.getStatus())
                 .flightType(job.getTaskType())
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
+                .userName(job.getUsername())
                 .build();
         obtainDroneSn(job, recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
