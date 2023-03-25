@@ -1,6 +1,7 @@
 package com.dji.sample.cloudapi.client;
 
 import cn.hutool.core.date.DateUtil;
+import com.dji.sample.cloudapi.model.enums.WaylineType;
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
@@ -38,7 +39,7 @@ public class FlightTaskClient extends AbstractClient {
                 .name(job.getJobName())
                 .waylineId(job.getFileId())
                 .state(job.getStatus())
-                .flightType(job.getTaskType())
+                .flightType(WaylineType.getWaylineType(job.getWaylineType()).getFlightType())
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
                 .build();
