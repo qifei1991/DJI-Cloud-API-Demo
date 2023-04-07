@@ -194,10 +194,12 @@ public class MediaServiceImpl implements IMediaService {
         String objectKey = callback.getFile().getObjectKey();
         callback.getFile().setPath(objectKey.substring(objectKey.indexOf("/") + 1, objectKey.lastIndexOf("/")));
 
+        Integer integer = fileService.saveFile(job.getWorkspaceId(), callback.getFile());
+
         // add by Qfei, File-upload callback.
         this.mediaClient.uploadCallback(job.getJobId(), callback.getFile());
 
-        return fileService.saveFile(job.getWorkspaceId(), callback.getFile()) > 0;
+        return integer > 0;
     }
 
     @Override

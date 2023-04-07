@@ -1,6 +1,9 @@
 package com.dji.sample.wayline.model.enums;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Arrays;
 
 /**
  * @author sean
@@ -8,19 +11,24 @@ import lombok.Getter;
  * @date 2022/9/26
  */
 @Getter
+@AllArgsConstructor
 public enum WaylineTemplateTypeEnum {
 
-    WAYPOINT(0),
+    WAYPOINT(0, "waypoint"),
 
-    MAPPING_2D(1),
+    MAPPING_2D(1, "mapping2d"),
 
-    MAPPING_3D(2),
+    MAPPING_3D(2, "mapping3d"),
 
-    MAPPING_STRIP(4);
+    MAPPING_STRIP(4, "mappingStrip");
 
-    int val;
+    final int val;
+    final String code;
 
-    WaylineTemplateTypeEnum(int val) {
-        this.val = val;
+    public static WaylineTemplateTypeEnum findTemplateType(String code) {
+        return Arrays.stream(WaylineTemplateTypeEnum.values())
+                .filter(x -> x.getCode().equalsIgnoreCase(code))
+                .findAny()
+                .orElse(WAYPOINT);
     }
 }

@@ -23,7 +23,7 @@ public class CreateJobParam {
     @NotBlank
     private String dockSn;
 
-    @Range(max = 0)
+    @Range(max = 4)
     @NotNull
     private Integer waylineType;
 

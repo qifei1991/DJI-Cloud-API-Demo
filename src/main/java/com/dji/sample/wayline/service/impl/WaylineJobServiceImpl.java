@@ -362,7 +362,6 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         return new PaginationData<WaylineJobDTO>(records, new Pagination(pageData));
     }
 
-
     @Override
     @ServiceActivator(inputChannel = ChannelName.INBOUND_REQUESTS_FLIGHT_TASK_RESOURCE_GET, outputChannel = ChannelName.OUTBOUND)
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)

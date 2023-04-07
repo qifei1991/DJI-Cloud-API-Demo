@@ -33,7 +33,11 @@ public class MediaClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void reportMediaUploadProgress(String jobId, MediaFileCountDTO mediaFileCountDTO) {
-        this.applicationJsonPost(ClientUri.URI_MEDIA_PROGRESS, mediaFileCountDTO, jobId);
+        try {
+            this.applicationJsonPost(ClientUri.URI_MEDIA_PROGRESS, mediaFileCountDTO, jobId);
+        } catch (Exception e) {
+            log.error("文件上传进度上报出错", e);
+        }
     }
 
     /**
@@ -43,22 +47,26 @@ public class MediaClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void uploadCallback(String jobId, FileUploadDTO fileUploadDTO) {
-        String saveName = fileUploadDTO.getObjectKey().substring(fileUploadDTO.getObjectKey().lastIndexOf("/") + 1);
-        MediaFileParam.MediaFileParamBuilder builder = MediaFileParam.builder();
-        if (!isImageFile(saveName)) {
-            builder.type(MediaFileType.VIDEO.getCode());
+        try {
+            String saveName = fileUploadDTO.getObjectKey().substring(fileUploadDTO.getObjectKey().lastIndexOf("/") + 1);
+            MediaFileParam.MediaFileParamBuilder builder = MediaFileParam.builder();
+            if (!isImageFile(saveName)) {
+                builder.type(MediaFileType.VIDEO.getCode());
+            }
+            MediaFileParam fileParam = builder
+                    .sortiesId(jobId)
+                    .aircraftSn(fileUploadDTO.getExt().getSn())
+                    .filePath(OssConfiguration.objectDirPrefix + CharPool.SLASH + fileUploadDTO.getPath())
+                    .fileName(saveName)
+                    .createTime(DateUtil.formatDateTime(fileUploadDTO.getMetadata().getCreatedTime()))
+                    .updateTime(LocalDateTime.now().format(FORMATTER))
+                    .uploadStatus(2)
+                    .platform(OssConfiguration.provider)
+                    .build();
+            this.applicationJsonPost(ClientUri.URI_MEDIA_UPLOAD_CALLBACK, Collections.singleton(fileParam));
+        } catch (Exception e) {
+            log.error("上传文件上报出错", e);
         }
-        MediaFileParam fileParam = builder
-                .sortiesId(jobId)
-                .aircraftSn(fileUploadDTO.getExt().getSn())
-                .filePath(OssConfiguration.objectDirPrefix + CharPool.SLASH + fileUploadDTO.getPath())
-                .fileName(saveName)
-                .createTime(DateUtil.formatDateTime(fileUploadDTO.getMetadata().getCreatedTime()))
-                .updateTime(LocalDateTime.now().format(FORMATTER))
-                .uploadStatus(2)
-                .platform(OssConfiguration.provider)
-                .build();
-        this.applicationJsonPost(ClientUri.URI_MEDIA_UPLOAD_CALLBACK, Collections.singleton(fileParam));
     }
 
 

@@ -33,8 +33,9 @@ public class InboundMessageRouter extends AbstractMessageRouter {
     @Override
     @Router(inputChannel = ChannelName.INBOUND)
     protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+
         MessageHeaders headers = message.getHeaders();
-        String topic = headers.get(MqttHeaders.RECEIVED_TOPIC).toString();
+        String topic = String.valueOf(headers.get(MqttHeaders.RECEIVED_TOPIC));
         byte[] payload = (byte[])message.getPayload();
 
         log.debug("received topic :{} \t payload :{}", topic, new String(payload));

@@ -1,6 +1,8 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharPool;
+import cn.hutool.core.util.ZipUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,8 +15,10 @@ import com.dji.sample.wayline.dao.IWaylineFileMapper;
 import com.dji.sample.wayline.model.dto.KmzFileProperties;
 import com.dji.sample.wayline.model.dto.WaylineFileDTO;
 import com.dji.sample.wayline.model.entity.WaylineFileEntity;
+import com.dji.sample.wayline.model.enums.WaylineTemplateTypeEnum;
 import com.dji.sample.wayline.model.param.WaylineQueryParam;
 import com.dji.sample.wayline.service.IWaylineFileService;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -26,6 +30,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -33,8 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 import static com.dji.sample.wayline.model.dto.KmzFileProperties.WAYLINE_FILE_SUFFIX;
 
@@ -43,6 +47,7 @@ import static com.dji.sample.wayline.model.dto.KmzFileProperties.WAYLINE_FILE_SU
  * @version 0.3
  * @date 2021/12/22
  */
+@Slf4j
 @Service
 @Transactional
 public class WaylineFileServiceImpl implements IWaylineFileService {
@@ -179,54 +184,62 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     }
 
     private Optional<WaylineFileDTO> validKmzFile(MultipartFile file) {
+
         String filename = file.getOriginalFilename();
         if (Objects.nonNull(filename) && !filename.endsWith(WAYLINE_FILE_SUFFIX)) {
             throw new RuntimeException("The file format is incorrect.");
         }
-        try (ZipInputStream unzipFile = new ZipInputStream(file.getInputStream(), StandardCharsets.UTF_8)) {
 
-            ZipEntry nextEntry = unzipFile.getNextEntry();
-            while (Objects.nonNull(nextEntry)) {
-                boolean isWaylines = (KmzFileProperties.FILE_DIR_FIRST + "/" + KmzFileProperties.FILE_DIR_SECOND_WAYLINES).equals(nextEntry.getName());
-                if (!isWaylines) {
-                    nextEntry = unzipFile.getNextEntry();
-                    continue;
-                }
+        try (InputStream in = file.getInputStream()) {
+            File zFile = FileUtil.createTempFile();
+            FileUtil.writeFromStream(in, zFile, false);
+            ZipFile zipFile = ZipUtil.toZipFile(zFile, StandardCharsets.UTF_8);
+
+            WaylineFileDTO.WaylineFileDTOBuilder builder = WaylineFileDTO.builder();
+            ZipUtil.read(zipFile, entry -> {
+                log.info("entry file name: " + entry.getName());
                 SAXReader reader = new SAXReader();
-                Document document = reader.read(unzipFile);
-                if (!StandardCharsets.UTF_8.name().equals(document.getXMLEncoding())) {
-                    throw new RuntimeException("The file encoding format is incorrect.");
+                try {
+                    boolean isWaylines = (KmzFileProperties.FILE_DIR_FIRST + "/" + KmzFileProperties.FILE_DIR_SECOND_WAYLINES).equals(entry.getName());
+                    Document document = reader.read(ZipUtil.getStream(zipFile, entry));
+                    if (!isWaylines) {
+                        String templateType = document.valueOf("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_TEMPLATE_TYPE);
+                        WaylineTemplateTypeEnum templateTypeEnum = WaylineTemplateTypeEnum.findTemplateType(templateType);
+                        builder.templateTypes(List.of(templateTypeEnum.getVal()));
+                    } else {
+                        if (!StandardCharsets.UTF_8.name().equals(document.getXMLEncoding())) {
+                            throw new RuntimeException("The file encoding format is incorrect.");
+                        }
+
+                        Node droneNode = document.selectSingleNode("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_INFO);
+                        Node payloadNode = document.selectSingleNode("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_INFO);
+                        if (Objects.isNull(droneNode) || Objects.isNull(payloadNode)) {
+                            throw new RuntimeException("The file format is incorrect.");
+                        }
+
+                        String type = droneNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_ENUM_VALUE);
+                        String subType = droneNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_SUB_ENUM_VALUE);
+                        String payloadType = payloadNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_ENUM_VALUE);
+                        String payloadSubType = payloadNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_SUB_ENUM_VALUE);
+                        String templateId = document.valueOf("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_TEMPLATE_ID);
+
+                        if (!StringUtils.hasText(type) || !StringUtils.hasText(subType) ||
+                                !StringUtils.hasText(payloadSubType) || !StringUtils.hasText(payloadType) ||
+                                !StringUtils.hasText(templateId)) {
+                            throw new RuntimeException("The file format is incorrect.");
+                        }
+                        builder.droneModelKey(String.format("%s-%s-%s", DeviceDomainEnum.SUB_DEVICE.getVal(), type, subType))
+                                .payloadModelKeys(List.of(String.format("%s-%s-%s", DeviceDomainEnum.PAYLOAD.getVal(), payloadType, payloadSubType)))
+                                .objectKey(OssConfiguration.objectDirPrefix + CharPool.SLASH + filename)
+                                .name(filename.substring(0, filename.lastIndexOf(WAYLINE_FILE_SUFFIX)))
+                                .sign(DigestUtils.md5DigestAsHex(in));
+                    }
+                } catch (DocumentException | IOException e) {
+                    throw new RuntimeException(e);
                 }
-
-                Node droneNode = document.selectSingleNode("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_INFO);
-                Node payloadNode = document.selectSingleNode("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_INFO);
-                if (Objects.isNull(droneNode) || Objects.isNull(payloadNode)) {
-                    throw new RuntimeException("The file format is incorrect.");
-                }
-
-                String type = droneNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_ENUM_VALUE);
-                String subType = droneNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_SUB_ENUM_VALUE);
-                String payloadType = payloadNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_ENUM_VALUE);
-                String payloadSubType = payloadNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_SUB_ENUM_VALUE);
-                String templateId = document.valueOf("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_TEMPLATE_ID);
-
-                if (!StringUtils.hasText(type) || !StringUtils.hasText(subType) ||
-                        !StringUtils.hasText(payloadSubType) || !StringUtils.hasText(payloadType) ||
-                        !StringUtils.hasText(templateId)) {
-                    throw new RuntimeException("The file format is incorrect.");
-                }
-
-                return Optional.of(WaylineFileDTO.builder()
-                        .droneModelKey(String.format("%s-%s-%s", DeviceDomainEnum.SUB_DEVICE.getVal(), type, subType))
-                        .payloadModelKeys(List.of(String.format("%s-%s-%s",DeviceDomainEnum.PAYLOAD.getVal(), payloadType, payloadSubType)))
-                        .objectKey(OssConfiguration.objectDirPrefix + CharPool.SLASH + filename)
-                        .name(filename.substring(0, filename.lastIndexOf(WAYLINE_FILE_SUFFIX)))
-                        .sign(DigestUtils.md5DigestAsHex(file.getInputStream()))
-                        .templateTypes(List.of(Integer.parseInt(templateId)))
-                        .build());
-            }
-
-        } catch (IOException | DocumentException e) {
+            });
+            return Optional.ofNullable(builder.build());
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return Optional.empty();
