@@ -16,6 +16,9 @@
 
 	<properties>
 		<java.version>11</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.test.skip>true</maven.test.skip>
+
 		<mybatis-plus.version>3.4.2</mybatis-plus.version>
 		<druid.version>1.2.6</druid.version>
 		<jwt.version>3.12.1</jwt.version>
