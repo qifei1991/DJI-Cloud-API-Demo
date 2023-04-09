@@ -9,7 +9,7 @@ spring:
     druid:
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://192.168.1.202:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+      url: jdbc:mysql://cloud_api_sample_mysql:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
       username: root
       password: root
 #      url: jdbc:mysql://192.168.1.16:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
@@ -61,7 +61,7 @@ spring:
         usePingMethod: false
 
   redis:
-    host: localhost
+    host: cloud_api_sample_redis
     port: 6379
     database: 0
     username: # if you enable
@@ -88,15 +88,11 @@ mqtt:
   # BASIC parameters are required.
   BASIC:
     protocol: MQTT # @see com.dji.sample.component.mqtt.model.MqttProtocolEnum
-#    host: 10.10.2.17 #Please enter your ip. # 192.168.1.1
-#    port: 61613
-#    username: admin
-#    password: admin
-    host: 192.168.1.202 #Please enter your ip. # 192.168.1.1
+    host: Please enter your ip.
     port: 1883
     username: JavaServer
     password: 123456
-    client-id: CloudApiService # 123456
+    client-id: 123456
     # If the protocol is ws/wss, this value is required.
     path:
     # Topics that need to be subscribed when initially connecting to mqtt, multiple topics are divided by ",".
@@ -134,18 +130,18 @@ aircraft-manager-server:
   workspace-id: e3dea0f5-37f2-4d79-ae58-490af3228069
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
-#oss:
-#  enable: true
-#  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
-#  endpoint: https://oss-cn-hangzhou.aliyuncs.com
-#  access-key: LTAI5tKJ5pyzUi4f82xvotic # Please enter your access key.
-#  secret-key: cK86NSwguGqZ25QHonv1MI5j9wBwLT # Please enter your secret key.
-#  expire: 3600
-#  region: cn-hangzhou # Please enter your oss region. # cn-hangzhou
-#  role-session-name: cloudApi
-#  role-arn: acs:ram::1387195511836853:role/ramossrole # Please enter your role arn. # acs:ram::123456789:role/stsrole
-#  bucket: aircraft-resource # Please enter your bucket name.
-#  object-dir-prefix: test # Please enter a folder name.
+oss:
+  enable: true
+  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+  access-key: Please enter your access key.
+  secret-key: Please enter your secret key.
+  expire: 3600
+  region: Please enter your oss region. # cn-hangzhou
+  role-session-name: cloudApi
+  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
+  bucket: Please enter your bucket name.
+  object-dir-prefix: Please enter a folder name.
 
 #oss:
 #  enable: true
