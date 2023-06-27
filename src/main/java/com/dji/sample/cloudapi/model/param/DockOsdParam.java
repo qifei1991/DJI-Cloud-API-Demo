@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.model.param;
 
+import com.dji.sample.manage.model.enums.DockModeCodeEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -23,7 +24,7 @@ public class DockOsdParam {
     /**
      * 机场状态，{"0":"空闲中","1":"现场调试","2":"远程调试","3":"固件升级中","4":"作业中"}
      */
-    private Integer modelCode;
+    private DockModeCodeEnum modelCode;
     /**
      * 舱盖状态，{"0":"关闭","1":"打开","2":"半开","3":"舱盖状态异常"}
      */

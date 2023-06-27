@@ -39,7 +39,7 @@ public class FlightTaskClient extends AbstractClient {
                 .name(job.getJobName())
                 .waylineId(job.getFileId())
                 .state(job.getStatus())
-                .flightType(WaylineType.getWaylineType(job.getWaylineType()).getFlightType())
+                .flightType(WaylineType.getWaylineType(job.getWaylineType().getVal()).getFlightType())
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
                 .build();

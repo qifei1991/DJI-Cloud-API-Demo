@@ -18,7 +18,7 @@ public enum WaylineTaskTypeEnum {
 
     CONDITION(2);
 
-    int val;
+    final int val;
 
     WaylineTaskTypeEnum(int val) {
         this.val = val;

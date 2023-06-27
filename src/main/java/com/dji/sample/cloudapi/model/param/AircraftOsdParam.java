@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.model.param;
 
+import com.dji.sample.manage.model.enums.DeviceModeCodeEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,7 +19,7 @@ public class AircraftOsdParam {
     private String sortiesId;
     private String sn;
     private String firmwareVersion;
-    private Integer modelCode;
+    private DeviceModeCodeEnum modelCode;
     private Double longitude;
     private Double latitude;
     private Float horizontalSpeed;

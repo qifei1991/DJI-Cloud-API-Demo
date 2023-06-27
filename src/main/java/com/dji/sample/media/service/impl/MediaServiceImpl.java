@@ -1,5 +1,6 @@
 package com.dji.sample.media.service.impl;
 
+import com.dji.sample.cloudapi.client.MediaClient;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.component.mqtt.model.ChannelName;
 import com.dji.sample.component.mqtt.model.CommonTopicReceiver;

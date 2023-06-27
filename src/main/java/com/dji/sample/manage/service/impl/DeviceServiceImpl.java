@@ -3,6 +3,7 @@ package com.dji.sample.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.DeviceOsdStateClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.Pagination;
 import com.dji.sample.common.model.PaginationData;

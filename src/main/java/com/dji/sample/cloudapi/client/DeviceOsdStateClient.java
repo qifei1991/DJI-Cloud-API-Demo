@@ -35,7 +35,7 @@ public class DeviceOsdStateClient extends AbstractClient {
         deviceDTOOptional.ifPresent(deviceDTO -> {
             // 暂时只维护无人机、遥控器、机场的上线
             String category = null;
-            switch (DeviceDomainEnum.getDeviceDomain(deviceDTO.getDomain())) {
+            switch (DeviceDomainEnum.find(deviceDTO.getDomain())) {
                 case SUB_DEVICE:
                     category = DeviceCategory.AIRCRAFT.getCode();
                     break;
@@ -130,7 +130,7 @@ public class DeviceOsdStateClient extends AbstractClient {
                         .orElse(null))
                 .backupBatterySwitch(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getBatterySwitch).orElse(null))
                 .backupBatteryVoltage(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getVoltage).orElse(null))
-                .emergencyStopState(data.getEmergencyStopState())
+                .emergencyStopState(data.getEmergencyStopState() ? 1 : 0)
                 .time(System.currentTimeMillis())
                 .build(), DeviceCategory.DOCK.getCode());
     }

@@ -30,8 +30,8 @@
 		<huawei-obs.version>3.22.3.1</huawei-obs.version>
 		<javax-activation.version>1.1.1</javax-activation.version>
 		<glassfish-jaxb.version>2.3.3</glassfish-jaxb.version>
-		<javax-jaxb.version>2.3.0</javax-jaxb.version>
 		<log4j2.version>2.15.0</log4j2.version>
+		<javax-jaxb.version>2.3.0</javax-jaxb.version>
 	</properties>
 
 	<dependencies>
@@ -188,7 +188,7 @@
 		<dependency>
 			<groupId>cn.hutool</groupId>
 			<artifactId>hutool-all</artifactId>
-			<version>5.8.4</version>
+			<version>5.8.15</version>
 		</dependency>
 
 		<dependency>
@@ -210,7 +210,7 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<!--!!!【注意】本地调试一定要TM把下面玩意屏蔽掉,只有打包时候需要-->
-                    <!-- <exclude>application*.yml</exclude> -->
+					<!-- <exclude>application*.yml</exclude> -->
 				</excludes>
 			</resource>
 		</resources>
