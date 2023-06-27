@@ -38,7 +38,9 @@ public final class RedisConst {
 
     public static final String LOGS_FILE_PREFIX = "logs_file" + DELIMITER;
 
-    public static final String WAYLINE_JOB_TIMED_EXECUTE = "wayline_job_timed_execute";
+    public static final String WAYLINE_JOB_PREPARED = "wayline_job_prepared";
+
+    public static final String WAYLINE_JOB_CONDITION_PREFIX = "wayline_job_condition" + DELIMITER;
 
     public static final String WAYLINE_JOB_BLOCK_PREFIX = "wayline_job_block" + DELIMITER;
 
@@ -54,7 +56,13 @@ public final class RedisConst {
 
     public static final String LIVE_CAPACITY = "live_capacity";
 
+    public static final String DRC_PREFIX = "drc" + DELIMITER;
+
+    public static final Integer DRC_MODE_ALIVE_SECOND = 3600;
+
     public static final String MQTT_ACL_PREFIX = "mqtt_acl" + DELIMITER;
 
     public static final String FILE_UPLOADING_PREFIX = "file_uploading" + DELIMITER;
+
+    public static final String DRONE_CONTROL_PREFiX = "control_source" + DELIMITER;
 }

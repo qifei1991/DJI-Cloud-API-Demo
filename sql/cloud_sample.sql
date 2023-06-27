@@ -66,7 +66,7 @@ CREATE TABLE `manage_device` (
   `device_sn` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'dock, drone, remote control',
   `device_name` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'undefined' COMMENT 'model of the device. This parameter corresponds to the device name in the device dictionary table.',
   `user_id` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'The account used when the device was bound.',
-  `nickname` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'custom name of the device',
+  `nickname` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT 'custom name of the device',
   `workspace_id` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'The workspace to which the current device belongs.',
   `device_type` int NOT NULL DEFAULT '-1' COMMENT 'This parameter corresponds to the device type in the device dictionary table.',
   `sub_type` int NOT NULL DEFAULT '-1' COMMENT 'This parameter corresponds to the sub type in the device dictionary table.',
@@ -134,7 +134,8 @@ VALUES
 	(22,1,67,0,'Mavic 3T Camera',NULL),
 	(23,2,144,0,'DJI RC Pro','Remote control for Mavic 3E/T and Mavic 3M'),
 	(24,0,77,2,'Mavic 3M',NULL),
-	(25,1,68,0,'Mavic 3M Camera',NULL);
+	(25,1,68,0,'Mavic 3M Camera',NULL),
+	(26,0,89,0,'Matrice 350 RTK',NULL);
 
 /*!40000 ALTER TABLE `manage_device_dictionary` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -226,6 +227,7 @@ CREATE TABLE `manage_device_payload` (
   `payload_index` smallint NOT NULL COMMENT 'The location of the payload on the device.',
   `device_sn` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'Which device the current payload belongs to.',
   `payload_desc` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `control_source` varchar(1) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
   PRIMARY KEY (`id`),
@@ -452,7 +454,7 @@ CREATE TABLE `wayline_job` (
   `completed_time` bigint DEFAULT NULL COMMENT 'actual end time',
   `username` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The name of the creator.',
   `begin_time` bigint NOT NULL COMMENT 'planned begin time',
-  `end_time` bigint NOT NULL COMMENT 'planned end time',
+  `end_time` bigint DEFAULT NULL COMMENT 'planned end time',
   `error_code` int DEFAULT NULL,
   `status` int NOT NULL COMMENT '1: pending; 2: in progress; 3: success; 4: cancel; 5: failed',
   `rth_altitude` int NOT NULL COMMENT 'return to home altitude. min: 20m; max: 500m',

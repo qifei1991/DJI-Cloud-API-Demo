@@ -1,7 +1,8 @@
 package com.dji.sample.manage.service.impl;
 
-import com.dji.sample.cloudapi.client.DeviceOsdStateClient;
 import com.dji.sample.component.mqtt.model.CommonTopicReceiver;
+import com.dji.sample.component.redis.RedisConst;
+import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.component.websocket.config.ConcurrentWebSocketSession;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
 import com.dji.sample.component.websocket.model.CustomWebSocketMessage;
@@ -9,10 +10,10 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.dto.TelemetryDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
 import com.dji.sample.manage.model.receiver.OsdDockReceiver;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author sean
@@ -44,6 +45,21 @@ public class DockOSDServiceImpl extends AbstractTSAService {
             sendMessageService.sendBatch(webSessions, wsMessage);
 
             this.deviceOsdStateClient.reportDockOsdInfo(data, device.getDeviceSn());
+
+            String key = RedisConst.OSD_PREFIX + device.getDeviceSn();
+            OsdDockReceiver redisData = (OsdDockReceiver) RedisOpsUtils.get(key);
+            if (Objects.nonNull(data.getModeCode())) {
+                if (Objects.nonNull(redisData)) {
+                    data.setDrcState(redisData.getDrcState());
+                }
+                RedisOpsUtils.setWithExpire(key, data, RedisConst.DEVICE_ALIVE_SECOND);
+                return;
+            }
+
+            if (Objects.nonNull(data.getDrcState()) && Objects.nonNull(redisData)) {
+                redisData.setDrcState(data.getDrcState());
+                RedisOpsUtils.setWithExpire(key, redisData, RedisConst.DEVICE_ALIVE_SECOND);
+            }
         }
     }
 }

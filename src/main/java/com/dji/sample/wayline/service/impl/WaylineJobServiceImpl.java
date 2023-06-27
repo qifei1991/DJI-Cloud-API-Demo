@@ -13,7 +13,14 @@ import com.dji.sample.component.mqtt.model.*;
 import com.dji.sample.component.mqtt.service.IMessageSenderService;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
+import com.dji.sample.control.model.param.DrcModeParam;
+import com.dji.sample.control.service.IDrcService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
+import com.dji.sample.manage.model.enums.DeviceModeCodeEnum;
+import com.dji.sample.manage.model.enums.DockModeCodeEnum;
+import com.dji.sample.manage.model.receiver.OsdDockReceiver;
+import com.dji.sample.manage.model.receiver.OsdSubDeviceReceiver;
+import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.model.MediaMethodEnum;
@@ -21,12 +28,12 @@ import com.dji.sample.media.service.IFileService;
 import com.dji.sample.wayline.dao.IWaylineJobMapper;
 import com.dji.sample.wayline.model.dto.*;
 import com.dji.sample.wayline.model.entity.WaylineJobEntity;
-import com.dji.sample.wayline.model.enums.WaylineJobStatusEnum;
-import com.dji.sample.wayline.model.enums.WaylineMethodEnum;
-import com.dji.sample.wayline.model.enums.WaylineTaskTypeEnum;
+import com.dji.sample.wayline.model.enums.*;
 import com.dji.sample.wayline.model.param.CreateJobParam;
+import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sample.wayline.service.IWaylineJobService;
+import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +45,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -78,6 +84,15 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     @Autowired
     private FlightTaskClient flightTaskClient;
 
+    @Autowired
+    private IDrcService drcService;
+
+    @Autowired
+    private IDeviceRedisService deviceRedisService;
+
+    @Autowired
+    private IWaylineRedisService waylineRedisService;
+
     private Optional<WaylineJobDTO> insertWaylineJob(WaylineJobEntity jobEntity) {
         int id = mapper.insert(jobEntity);
         if (id <= 0) {
@@ -102,8 +117,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .beginTime(beginTime)
                 .endTime(endTime)
                 .status(WaylineJobStatusEnum.PENDING.getVal())
-                .taskType(param.getTaskType())
-                .waylineType(param.getWaylineType())
+                .taskType(param.getTaskType().getVal())
+                .waylineType(param.getWaylineType().getVal())
                 .outOfControlAction(param.getOutOfControlAction())
                 .rthAltitude(param.getRthAltitude())
                 .mediaCount(0)
@@ -129,20 +144,96 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         return this.insertWaylineJob(jobEntity);
     }
 
+    /**
+     * For immediate tasks, the server time shall prevail.
+     * @param param
+     */
+    private void fillImmediateTime(CreateJobParam param) {
+        if (WaylineTaskTypeEnum.IMMEDIATE != param.getTaskType()) {
+            return;
+        }
+        long now = System.currentTimeMillis() / 1000;
+        param.setTaskDays(Collections.singletonList(now));
+        param.setTaskPeriods(Collections.singletonList(Collections.singletonList(now)));
+    }
+
     @Override
     public ResponseResult publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException {
-        if (WaylineTaskTypeEnum.IMMEDIATE.getVal() == param.getTaskType()) {
-            param.setExecuteTime(System.currentTimeMillis());
-        }
-        Optional<WaylineJobDTO> waylineJobOpt = this.createWaylineJob(param,
-                customClaim.getWorkspaceId(), customClaim.getUsername(),
-                param.getExecuteTime(), param.getExecuteTime());
-        if (waylineJobOpt.isEmpty()) {
-            throw new SQLException("Failed to create wayline job.");
-        }
-        WaylineJobDTO waylineJob = waylineJobOpt.get();
+        fillImmediateTime(param);
 
-        boolean isOnline = deviceService.checkDeviceOnline(waylineJob.getDockSn());
+        param.getTaskDays().sort((a, b) -> (int) (a - b));
+        param.getTaskPeriods().sort((a, b) -> (int) (a.get(0) - b.get(0)));
+        for (Long taskDay : param.getTaskDays()) {
+            LocalDate date = LocalDate.ofInstant(Instant.ofEpochSecond(taskDay), ZoneId.systemDefault());
+            for (List<Long> taskPeriod : param.getTaskPeriods()) {
+                long beginTime = LocalDateTime.of(date, LocalTime.ofInstant(Instant.ofEpochSecond(taskPeriod.get(0)), ZoneId.systemDefault()))
+                        .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+                long endTime = taskPeriod.size() > 1 && Objects.nonNull(taskPeriod.get(1)) ?
+                        LocalDateTime.of(date, LocalTime.ofInstant(Instant.ofEpochSecond(taskPeriod.get(1)), ZoneId.systemDefault()))
+                                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : beginTime;
+                if (WaylineTaskTypeEnum.IMMEDIATE != param.getTaskType() && endTime < System.currentTimeMillis()) {
+                    return ResponseResult.error("The task has expired.");
+                }
+                Optional<WaylineJobDTO> waylineJobOpt = this.createWaylineJob(param, customClaim.getWorkspaceId(), customClaim.getUsername(), beginTime, endTime);
+                if (waylineJobOpt.isEmpty()) {
+                    return ResponseResult.error("Failed to create wayline job.");
+                }
+
+                WaylineJobDTO waylineJob = waylineJobOpt.get();
+                if (WaylineTaskTypeEnum.IMMEDIATE == param.getTaskType()) {
+                    return this.publishOneFlightTask(waylineJob);
+                }
+
+                // If it is a conditional task type, add conditions to the job parameters.
+                addPreparedJob(waylineJob, param, beginTime, endTime);
+            }
+        }
+        return ResponseResult.success();
+    }
+
+    private void addPreparedJob(WaylineJobDTO waylineJob, CreateJobParam param, Long beginTime, Long endTime) {
+        if (WaylineTaskTypeEnum.CONDITION == param.getTaskType()) {
+            waylineJob.setConditions(
+                    WaylineTaskConditionDTO.builder()
+                            .executableConditions(Objects.nonNull(param.getMinStorageCapacity()) ?
+                                    WaylineTaskExecutableConditionDTO.builder().storageCapacity(param.getMinStorageCapacity()).build() : null)
+                            .readyConditions(WaylineTaskReadyConditionDTO.builder()
+                                    .batteryCapacity(param.getMinBatteryCapacity())
+                                    .beginTime(beginTime)
+                                    .endTime(endTime)
+                                    .build())
+                            .build());
+
+            waylineRedisService.setConditionalWaylineJob(waylineJob);
+        }
+        // value: {workspace_id}:{dock_sn}:{job_id}
+        boolean isAdd = waylineRedisService.addPreparedWaylineJob(waylineJob);
+        if (!isAdd) {
+            throw new RuntimeException("Failed to create prepare job.");
+        }
+    }
+
+    public ResponseResult publishOneFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+
+        boolean isSuccess = this.prepareFlightTask(waylineJob);
+        if (!isSuccess) {
+            return ResponseResult.error("Failed to prepare job.");
+        }
+
+        // Issue an immediate task execution command.
+        if (WaylineTaskTypeEnum.IMMEDIATE == waylineJob.getTaskType()) {
+            boolean isExecuted = executeFlightTask(waylineJob.getWorkspaceId(), waylineJob.getJobId());
+            if (!isExecuted) {
+                return ResponseResult.error("Failed to execute job.");
+            }
+        }
+
+        return ResponseResult.success();
+    }
+
+    private Boolean prepareFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+
+        boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
         if (!isOnline) {
             throw new RuntimeException("Dock is offline.");
         }
@@ -169,17 +260,16 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                         .build())
                 .build();
 
-        String topic = TopicConst.THING_MODEL_PRE + TopicConst.PRODUCT +
-                waylineJob.getDockSn() + TopicConst.SERVICES_SUF;
-        CommonTopicResponse<Object> response = CommonTopicResponse.builder()
-                .tid(UUID.randomUUID().toString())
-                .bid(waylineJob.getJobId())
-                .timestamp(System.currentTimeMillis())
-                .data(flightTask)
-                .method(WaylineMethodEnum.FLIGHT_TASK_PREPARE.getMethod())
-                .build();
+        if (WaylineTaskTypeEnum.CONDITION == waylineJob.getTaskType()) {
+            if (Objects.isNull(waylineJob.getConditions())) {
+                throw new IllegalArgumentException();
+            }
+            flightTask.setReadyConditions(waylineJob.getConditions().getReadyConditions());
+            flightTask.setExecutableConditions(waylineJob.getConditions().getExecutableConditions());
+        }
 
-        ServiceReply serviceReply = messageSender.publishWithReply(topic, response);
+        ServiceReply serviceReply = messageSender.publishServicesTopic(
+                waylineJob.getDockSn(), WaylineMethodEnum.FLIGHT_TASK_PREPARE.getMethod(), flightTask, waylineJob.getJobId());
         if (ResponseResult.CODE_SUCCESS != serviceReply.getResult()) {
             log.info("Prepare task ====> Error code: {}", serviceReply.getResult());
             this.updateJob(WaylineJobDTO.builder()
@@ -189,26 +279,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                     .status(WaylineJobStatusEnum.FAILED.getVal())
                     .completedTime(LocalDateTime.now())
                     .code(serviceReply.getResult()).build());
-            return ResponseResult.error("Prepare task ====> Error code: " + serviceReply.getResult());
+            return false;
         }
-
-        // Issue an immediate task execution command.
-        if (WaylineTaskTypeEnum.IMMEDIATE.getVal() == waylineJob.getTaskType()) {
-            if (!executeFlightTask(waylineJob.getWorkspaceId(), waylineJob.getJobId())) {
-                return ResponseResult.error("Failed to execute job.");
-            }
-        }
-
-        if (WaylineTaskTypeEnum.TIMED.getVal() == waylineJob.getTaskType()) {
-            boolean isAdd = RedisOpsUtils.zAdd(RedisConst.WAYLINE_JOB_TIMED_EXECUTE,
-                    waylineJob.getWorkspaceId() + RedisConst.DELIMITER + waylineJob.getDockSn() + RedisConst.DELIMITER + waylineJob.getJobId(),
-                    waylineJob.getBeginTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-            if (!isAdd) {
-                return ResponseResult.error("Failed to create scheduled job.");
-            }
-        }
-
-        return ResponseResult.success();
+        return true;
     }
 
     @Override
@@ -219,7 +292,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
             throw new IllegalArgumentException("Job doesn't exist.");
         }
 
-        boolean isOnline = deviceService.checkDeviceOnline(waylineJob.get().getDockSn());
+        boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.get().getDockSn());
         if (!isOnline) {
             throw new RuntimeException("Dock is offline.");
         }
@@ -227,17 +300,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         WaylineJobDTO job = waylineJob.get();
         WaylineTaskCreateDTO flightTask = WaylineTaskCreateDTO.builder().flightId(jobId).build();
 
-        String topic = TopicConst.THING_MODEL_PRE + TopicConst.PRODUCT +
-                job.getDockSn() + TopicConst.SERVICES_SUF;
-        CommonTopicResponse<Object> response = CommonTopicResponse.builder()
-                .tid(UUID.randomUUID().toString())
-                .bid(jobId)
-                .timestamp(System.currentTimeMillis())
-                .data(flightTask)
-                .method(WaylineMethodEnum.FLIGHT_TASK_EXECUTE.getMethod())
-                .build();
-
-        ServiceReply serviceReply = messageSender.publishWithReply(topic, response);
+        ServiceReply serviceReply = messageSender.publishServicesTopic(
+                job.getDockSn(), WaylineMethodEnum.FLIGHT_TASK_EXECUTE.getMethod(), flightTask, jobId);
         if (ResponseResult.CODE_SUCCESS != serviceReply.getResult()) {
             log.info("Execute job ====> Error code: {}", serviceReply.getResult());
             this.updateJob(WaylineJobDTO.builder()
@@ -246,6 +310,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                     .status(WaylineJobStatusEnum.FAILED.getVal())
                     .completedTime(LocalDateTime.now())
                     .code(serviceReply.getResult()).build());
+            // The conditional task fails and enters the blocking status.
+            if (WaylineTaskTypeEnum.CONDITION == job.getTaskType()
+                    && WaylineErrorCodeEnum.find(serviceReply.getResult()).isBlock()) {
+                waylineRedisService.setBlockedWaylineJob(job.getDockSn(), jobId);
+            }
             return false;
         }
 
@@ -254,9 +323,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .executeTime(LocalDateTime.now())
                 .status(WaylineJobStatusEnum.IN_PROGRESS.getVal())
                 .build());
-        RedisOpsUtils.setWithExpire(RedisConst.WAYLINE_JOB_RUNNING_PREFIX + job.getDockSn(),
-                EventsReceiver.<WaylineTaskProgressReceiver>builder().bid(jobId).sn(job.getDockSn()).build(),
-                RedisConst.DEVICE_ALIVE_SECOND * RedisConst.DEVICE_ALIVE_SECOND);
+        waylineRedisService.setRunningWaylineJob(job.getDockSn(), EventsReceiver.<WaylineTaskProgressReceiver>builder().bid(jobId).sn(job.getDockSn()).build());
 
         // add by Qfei, report start a wayline job.
         this.flightTaskClient.startFlightTask(job);
@@ -272,8 +339,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         // Check if the task status is correct.
         boolean isErr = !jobIds.removeAll(waylineJobIds) || !jobIds.isEmpty() ;
         if (isErr) {
-            throw new IllegalArgumentException("These tasks have an incorrect status and cannot be canceled. "
-                    + Arrays.toString(jobIds.toArray()));
+            throw new IllegalArgumentException("These tasks have an incorrect status and cannot be canceled. " + Arrays.toString(jobIds.toArray()));
         }
 
         // Group job id by dock sn.
@@ -284,23 +350,14 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     }
 
-    @Override
     public void publishCancelTask(String workspaceId, String dockSn, List<String> jobIds) {
-        boolean isOnline = deviceService.checkDeviceOnline(dockSn);
+        boolean isOnline = deviceRedisService.checkDeviceOnline(dockSn);
         if (!isOnline) {
             throw new RuntimeException("Dock is offline.");
         }
-        String topic = TopicConst.THING_MODEL_PRE + TopicConst.PRODUCT + dockSn + TopicConst.SERVICES_SUF;
 
-        CommonTopicResponse<Object> response = CommonTopicResponse.builder()
-                .tid(UUID.randomUUID().toString())
-                .bid(UUID.randomUUID().toString())
-                .timestamp(System.currentTimeMillis())
-                .data(Map.of(MapKeyConst.FLIGHT_IDS, jobIds))
-                .method(WaylineMethodEnum.FLIGHT_TASK_CANCEL.getMethod())
-                .build();
-
-        ServiceReply serviceReply = messageSender.publishWithReply(topic, response);
+        ServiceReply serviceReply = messageSender.publishServicesTopic(
+                dockSn, WaylineMethodEnum.FLIGHT_TASK_CANCEL.getMethod(), Map.of(MapKeyConst.FLIGHT_IDS, jobIds));
         if (ResponseResult.CODE_SUCCESS != serviceReply.getResult()) {
             log.info("Cancel job ====> Error code: {}", serviceReply.getResult());
             throw new RuntimeException("Failed to cancel the wayline job of " + dockSn);
@@ -313,19 +370,16 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                     .status(WaylineJobStatusEnum.CANCEL.getVal())
                     .completedTime(LocalDateTime.now())
                     .build());
-            RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, workspaceId + RedisConst.DELIMITER + dockSn + RedisConst.DELIMITER + jobId);
         }
 
     }
 
-    @Override
     public List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, WaylineJobStatusEnum status) {
         return mapper.selectList(
-                        new LambdaQueryWrapper<WaylineJobEntity>()
-                                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
-                                .eq(Objects.nonNull(status), WaylineJobEntity::getStatus, status.getVal())
-                                .and(!CollectionUtils.isEmpty(jobIds),
-                                        wrapper -> jobIds.forEach(id -> wrapper.eq(WaylineJobEntity::getJobId, id).or())))
+                new LambdaQueryWrapper<WaylineJobEntity>()
+                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(Objects.nonNull(status), WaylineJobEntity::getStatus, status.getVal())
+                        .in(!CollectionUtils.isEmpty(jobIds), WaylineJobEntity::getJobId, jobIds))
                 .stream()
                 .map(this::entity2Dto)
                 .collect(Collectors.toList());
@@ -377,8 +431,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
         String topic = headers.get(MqttHeaders.RECEIVED_TOPIC).toString() + TopicConst._REPLY_SUF;
 
-        DeviceDTO device = (DeviceDTO) RedisOpsUtils.get(RedisConst.DEVICE_ONLINE_PREFIX + receiver.getGateway());
-        Optional<WaylineJobDTO> waylineJobOpt = this.getJobByJobId(device.getWorkspaceId(), jobId);
+        Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(receiver.getGateway());
+        if (deviceOpt.isEmpty()) {
+            return;
+        }
+        Optional<WaylineJobDTO> waylineJobOpt = this.getJobByJobId(deviceOpt.get().getWorkspaceId(), jobId);
         if (waylineJobOpt.isEmpty()) {
             builder.data(RequestsReply.error(CommonErrorEnum.ILLEGAL_ARGUMENT));
             messageSender.publish(topic, builder.build());
@@ -426,19 +483,12 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
         String dockSn = jobOpt.get().getDockSn();
         String key = RedisConst.MEDIA_HIGHEST_PRIORITY_PREFIX + dockSn;
-        if (RedisOpsUtils.checkExist(key) &&
-                jobId.equals(((MediaFileCountDTO) RedisOpsUtils.get(key)).getJobId())) {
+        if (RedisOpsUtils.checkExist(key) && jobId.equals(((MediaFileCountDTO) RedisOpsUtils.get(key)).getJobId())) {
             return;
         }
 
-        ServiceReply reply = messageSender.publishWithReply(TopicConst.THING_MODEL_PRE + TopicConst.PRODUCT + dockSn + TopicConst.SERVICES_SUF,
-                CommonTopicResponse.builder()
-                        .tid(UUID.randomUUID().toString())
-                        .bid(UUID.randomUUID().toString())
-                        .timestamp(System.currentTimeMillis())
-                        .method(MediaMethodEnum.UPLOAD_FLIGHT_TASK_MEDIA_PRIORITIZE.getMethod())
-                        .data(Map.of(MapKeyConst.FLIGHT_ID, jobId))
-                        .build());
+        ServiceReply reply = messageSender.publishServicesTopic(
+                dockSn, MediaMethodEnum.UPLOAD_FLIGHT_TASK_MEDIA_PRIORITIZE.getMethod(), Map.of(MapKeyConst.FLIGHT_ID, jobId));
         if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
             throw new RuntimeException("Failed to set media job upload priority. Error Code: " + reply.getResult());
         }
@@ -469,13 +519,98 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .fileId(dto.getFileId())
                 .dockSn(dto.getDockSn())
                 .workspaceId(dto.getWorkspaceId())
-                .taskType(dto.getTaskType())
-                .waylineType(dto.getWaylineType())
+                .taskType(Optional.ofNullable(dto.getTaskType()).map(WaylineTaskTypeEnum::getVal).orElse(null))
+                .waylineType(Optional.ofNullable(dto.getWaylineType()).map(WaylineTemplateTypeEnum::getVal).orElse(null))
                 .username(dto.getUsername())
                 .rthAltitude(dto.getRthAltitude())
                 .outOfControlAction(dto.getOutOfControlAction())
                 .parentId(dto.getParentId())
                 .build();
+    }
+
+    @Override
+    public void updateJobStatus(String workspaceId, String jobId, UpdateJobParam param) {
+        Optional<WaylineJobDTO> waylineJobOpt = this.getJobByJobId(workspaceId, jobId);
+        if (waylineJobOpt.isEmpty()) {
+            throw new RuntimeException("The job does not exist.");
+        }
+        WaylineJobDTO waylineJob = waylineJobOpt.get();
+        WaylineJobStatusEnum statusEnum = this.getWaylineState(waylineJob.getDockSn());
+        if (statusEnum.getEnd() || WaylineJobStatusEnum.PENDING == statusEnum) {
+            throw new RuntimeException("The wayline job status does not match, and the operation cannot be performed.");
+        }
+
+        switch (param.getStatus()) {
+            case PAUSE:
+                pauseJob(workspaceId, waylineJob.getDockSn(), jobId, statusEnum);
+                break;
+            case RESUME:
+                resumeJob(workspaceId, waylineJob.getDockSn(), jobId, statusEnum);
+                break;
+        }
+
+    }
+
+    public WaylineJobStatusEnum getWaylineState(String dockSn) {
+        Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
+        if (dockOpt.isEmpty() || !StringUtils.hasText(dockOpt.get().getChildDeviceSn())) {
+            return WaylineJobStatusEnum.UNKNOWN;
+        }
+        Optional<OsdDockReceiver> dockOsdOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDockReceiver.class);
+        Optional<OsdSubDeviceReceiver> deviceOsdOpt = deviceRedisService.getDeviceOsd(dockOpt.get().getChildDeviceSn(), OsdSubDeviceReceiver.class);
+        if (dockOsdOpt.isEmpty() || deviceOsdOpt.isEmpty() || DockModeCodeEnum.WORKING != dockOsdOpt.get().getModeCode()) {
+            return WaylineJobStatusEnum.UNKNOWN;
+        }
+
+        OsdSubDeviceReceiver osdDevice = deviceOsdOpt.get();
+        if (DeviceModeCodeEnum.WAYLINE == osdDevice.getModeCode()
+                || DeviceModeCodeEnum.MANUAL == osdDevice.getModeCode()
+                || DeviceModeCodeEnum.TAKEOFF_AUTO == osdDevice.getModeCode()) {
+            if (StringUtils.hasText(waylineRedisService.getPausedWaylineJobId(dockSn))) {
+                return WaylineJobStatusEnum.PAUSED;
+            }
+            if (waylineRedisService.getRunningWaylineJob(dockSn).isPresent()) {
+                return WaylineJobStatusEnum.IN_PROGRESS;
+            }
+        }
+        return WaylineJobStatusEnum.UNKNOWN;
+    }
+
+    private void pauseJob(String workspaceId, String dockSn, String jobId, WaylineJobStatusEnum statusEnum) {
+        if (WaylineJobStatusEnum.PAUSED == statusEnum && jobId.equals(waylineRedisService.getPausedWaylineJobId(dockSn))) {
+            waylineRedisService.setPausedWaylineJob(dockSn, jobId);
+            return;
+        }
+
+        ServiceReply reply = messageSender.publishServicesTopic(
+                dockSn, WaylineMethodEnum.FLIGHT_TASK_PAUSE.getMethod(), "", jobId);
+        if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
+            throw new RuntimeException("Failed to pause wayline job. Error Code: " + reply.getResult());
+        }
+        waylineRedisService.delRunningWaylineJob(dockSn);
+        waylineRedisService.setPausedWaylineJob(dockSn, jobId);
+    }
+
+    private void resumeJob(String workspaceId, String dockSn, String jobId, WaylineJobStatusEnum statusEnum) {
+        Optional<EventsReceiver<WaylineTaskProgressReceiver>> runningDataOpt = waylineRedisService.getRunningWaylineJob(dockSn);
+        if (WaylineJobStatusEnum.IN_PROGRESS == statusEnum && jobId.equals(runningDataOpt.map(EventsReceiver::getSn).get())) {
+            waylineRedisService.setRunningWaylineJob(dockSn, runningDataOpt.get());
+            return;
+        }
+        ServiceReply reply = messageSender.publishServicesTopic(
+                dockSn, WaylineMethodEnum.FLIGHT_TASK_RESUME.getMethod(), "", jobId);
+        if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
+            throw new RuntimeException("Failed to resume wayline job. Error Code: " + reply.getResult());
+        }
+
+        runningDataOpt.ifPresent(runningData -> waylineRedisService.setRunningWaylineJob(dockSn, runningData));
+        waylineRedisService.delPausedWaylineJob(dockSn);
+
+        if (deviceService.checkDockDrcMode(dockSn)) {
+            drcService.deviceDrcExit(workspaceId, DrcModeParam.builder().dockSn(dockSn)
+                    .clientId(drcService.getDrcModeInRedis(dockSn)).build());
+        }
+
     }
 
     private WaylineJobDTO entity2Dto(WaylineJobEntity entity) {
@@ -495,8 +630,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .username(entity.getUsername())
                 .workspaceId(entity.getWorkspaceId())
                 .status(WaylineJobStatusEnum.IN_PROGRESS.getVal() == entity.getStatus() &&
-                        RedisOpsUtils.checkExist(RedisConst.WAYLINE_JOB_PAUSED_PREFIX + entity.getJobId()) ?
-                        WaylineJobStatusEnum.PAUSED.getVal() : entity.getStatus())
+                        entity.getJobId().equals(waylineRedisService.getPausedWaylineJobId(entity.getDockSn())) ?
+                                WaylineJobStatusEnum.PAUSED.getVal() : entity.getStatus())
                 .code(entity.getErrorCode())
                 .beginTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getBeginTime()), ZoneId.systemDefault()))
                 .endTime(Objects.nonNull(entity.getEndTime()) ?
@@ -505,8 +640,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                         LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getExecuteTime()), ZoneId.systemDefault()) : null)
                 .completedTime(WaylineJobStatusEnum.find(entity.getStatus()).getEnd() ?
                         LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getUpdateTime()), ZoneId.systemDefault()) : null)
-                .taskType(entity.getTaskType())
-                .waylineType(entity.getWaylineType())
+                .taskType(WaylineTaskTypeEnum.find(entity.getTaskType()))
+                .waylineType(WaylineTemplateTypeEnum.find(entity.getWaylineType()))
                 .rthAltitude(entity.getRthAltitude())
                 .outOfControlAction(entity.getOutOfControlAction())
                 .mediaCount(entity.getMediaCount());
@@ -514,11 +649,12 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (Objects.nonNull(entity.getEndTime())) {
             builder.endTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getEndTime()), ZoneId.systemDefault()));
         }
-        if (WaylineJobStatusEnum.IN_PROGRESS.getVal() == entity.getStatus() && RedisOpsUtils.getExpire(entity.getJobId()) > 0) {
-            EventsReceiver<WaylineTaskProgressReceiver> taskProgress = (EventsReceiver<WaylineTaskProgressReceiver>) RedisOpsUtils.get(RedisConst.WAYLINE_JOB_RUNNING_PREFIX + entity.getDockSn());
-            if (Objects.nonNull(taskProgress.getOutput()) && Objects.nonNull(taskProgress.getOutput().getProgress())) {
-                builder.progress(taskProgress.getOutput().getProgress().getPercent());
-            }
+        if (WaylineJobStatusEnum.IN_PROGRESS.getVal() == entity.getStatus()) {
+            builder.progress(waylineRedisService.getRunningWaylineJob(entity.getDockSn())
+                    .map(EventsReceiver::getOutput)
+                    .map(WaylineTaskProgressReceiver::getProgress)
+                    .map(WaylineTaskProgress::getPercent)
+                    .orElse(null));
         }
 
         if (entity.getMediaCount() == 0) {

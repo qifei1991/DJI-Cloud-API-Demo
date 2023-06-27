@@ -19,7 +19,9 @@ public enum DeviceDomainEnum {
 
     PAYLOAD(1),
 
-    DOCK (3);
+    DOCK (3),
+
+    UNKNOWN(-1);
 
     int val;
 
@@ -27,8 +29,7 @@ public enum DeviceDomainEnum {
         this.val = val;
     }
 
-
-    public static DeviceDomainEnum getDeviceDomain(int val) {
-        return Arrays.stream(values()).filter(e -> e.getVal() == val).findFirst().orElse(null);
+    public static DeviceDomainEnum find(int val) {
+        return Arrays.stream(values()).filter(domainEnum -> domainEnum.val == val).findAny().orElse(UNKNOWN);
     }
 }
