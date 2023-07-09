@@ -1,11 +1,8 @@
 package com.dji.sample.cloudapi.client;
 
+import cn.hutool.core.util.StrUtil;
 import com.dji.sample.cloudapi.model.enums.DeviceCategory;
-import com.dji.sample.cloudapi.model.param.AircraftOsdParam;
-import com.dji.sample.cloudapi.model.param.DeviceOfflineParam;
-import com.dji.sample.cloudapi.model.param.DeviceOnlineParam;
-import com.dji.sample.cloudapi.model.param.DockOsdParam;
-import com.dji.sample.cloudapi.model.param.RcOsdParam;
+import com.dji.sample.cloudapi.model.param.*;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
@@ -51,7 +48,7 @@ public class DeviceOsdStateClient extends AbstractClient {
             if (StringUtils.hasText(category)) {
                 this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE, DeviceOnlineParam.builder()
                         .sn(deviceDTO.getDeviceSn())
-                        .name(deviceDTO.getDeviceName())
+                        .name(StrUtil.blankToDefault(deviceDTO.getNickname(), deviceDTO.getDeviceName()))
                         .category(category)
                         .type(deviceDTO.getDeviceName())
                         .firmwareVersion(deviceDTO.getFirmwareVersion())
@@ -130,7 +127,7 @@ public class DeviceOsdStateClient extends AbstractClient {
                         .orElse(null))
                 .backupBatterySwitch(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getBatterySwitch).orElse(null))
                 .backupBatteryVoltage(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getVoltage).orElse(null))
-                .emergencyStopState(data.getEmergencyStopState() ? 1 : 0)
+                .emergencyStopState(Optional.ofNullable(data.getEmergencyStopState()).map(x -> x ? 1 : 0).orElse(0))
                 .time(System.currentTimeMillis())
                 .build(), DeviceCategory.DOCK.getCode());
     }

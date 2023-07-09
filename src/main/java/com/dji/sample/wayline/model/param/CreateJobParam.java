@@ -32,13 +32,17 @@ public class CreateJobParam {
     @NotNull
     private WaylineTaskTypeEnum taskType;
 
-    @Range(min = 20, max = 500)
+    @Range(min = 20, max = 1500)
     @NotNull
     private Integer rthAltitude;
 
     @NotNull
     @Range(max = 2)
     private Integer outOfControlAction;
+
+    @NotNull
+    @Range(max = 2)
+    private Integer exitWaylineWhenRcLost;
 
     private String username;
 

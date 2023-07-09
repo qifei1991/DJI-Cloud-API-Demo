@@ -1,17 +1,13 @@
 package com.dji.sample.cloudapi.controller;
 
 import com.dji.sample.common.model.CustomClaim;
+import com.dji.sample.common.model.PaginationData;
 import com.dji.sample.common.model.ResponseResult;
+import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.param.CreateJobParam;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.sql.SQLException;
@@ -25,10 +21,25 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("${url.cloud-api.prefix}${url.cloud-api.version}/wayline/workspaces")
-public class FlightTaskController {
+public class WaylineJobApiController {
 
     @Autowired
     private IWaylineJobService waylineJobService;
+
+    /**
+     * Paginate through all jobs in this workspace.
+     * @param page
+     * @param pageSize
+     * @param workspaceId
+     * @return
+     */
+    @GetMapping("/{workspace_id}/jobs")
+    public ResponseResult<PaginationData<WaylineJobDTO>> getJobs(@RequestParam(defaultValue = "1") Long page,
+            @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
+            @PathVariable(name = "workspace_id") String workspaceId) {
+        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize);
+        return ResponseResult.success(data);
+    }
 
     /**
      * Create a wayline task for the Dock.

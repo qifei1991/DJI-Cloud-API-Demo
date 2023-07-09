@@ -1,8 +1,10 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.io.file.FileNameUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.WaylineFileClient;
 import com.dji.sample.common.model.Pagination;
 import com.dji.sample.common.model.PaginationData;
 import com.dji.sample.component.oss.model.OssConfiguration;
@@ -26,7 +28,6 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -53,6 +54,8 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
 
     @Autowired
     private OssServiceContext ossService;
+    @Autowired
+    private WaylineFileClient waylineFileClient;
 
     @Override
     public PaginationData<WaylineFileDTO> getWaylinesByParam(String workspaceId, WaylineQueryParam param) {
@@ -116,6 +119,11 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             }
         }
         int insertId = mapper.insert(file);
+
+        // 新建的航线信息上报无人机管理系统
+        Optional<WaylineFileDTO> waylineOpt = this.getWaylineByWaylineId(workspaceId, file.getWaylineId());
+        this.waylineFileClient.reportWaylineImport(waylineOpt);
+
         return insertId > 0 ? file.getId() : insertId;
     }
 
@@ -220,7 +228,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                 return Optional.of(WaylineFileDTO.builder()
                         .droneModelKey(String.format("%s-%s-%s", DeviceDomainEnum.SUB_DEVICE.getVal(), type, subType))
                         .payloadModelKeys(List.of(String.format("%s-%s-%s",DeviceDomainEnum.PAYLOAD.getVal(), payloadType, payloadSubType)))
-                        .objectKey(OssConfiguration.objectDirPrefix + File.separator + filename)
+                        .objectKey(OssConfiguration.objectDirPrefix + FileNameUtil.UNIX_SEPARATOR + filename)
                         .name(filename.substring(0, filename.lastIndexOf(WAYLINE_FILE_SUFFIX)))
                         .sign(DigestUtils.md5DigestAsHex(file.getInputStream()))
                         .templateTypes(List.of(WaylineTemplateTypeEnum.find(templateType).map(WaylineTemplateTypeEnum::getVal).orElse(-1)))
@@ -253,6 +261,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                 .username(entity.getUsername())
                 .objectKey(entity.getObjectKey())
                 .sign(entity.getSign())
+                .createTime(entity.getCreateTime())
                 .updateTime(entity.getUpdateTime())
                 .waylineId(entity.getWaylineId())
                 .build();

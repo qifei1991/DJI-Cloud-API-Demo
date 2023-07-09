@@ -39,5 +39,6 @@ public class WaylineFileDTO {
     @JsonProperty("user_name")
     private String username;
 
+    private Long createTime;
     private Long updateTime;
 }
