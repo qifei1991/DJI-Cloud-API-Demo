@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Set;
 
 import static com.dji.sample.component.AuthInterceptor.TOKEN_CLAIM;
@@ -55,9 +56,16 @@ public class WaylineJobController {
      */
     @GetMapping("/{workspace_id}/jobs")
     public ResponseResult<PaginationData<WaylineJobDTO>> getJobs(@RequestParam(defaultValue = "1") Long page,
-                     @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
-                     @PathVariable(name = "workspace_id") String workspaceId) {
-        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize);
+            @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
+            @PathVariable(name = "workspace_id") String workspaceId,
+            @RequestParam(name = "dock_sn", required = false) String dockSn,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "task_type", required = false) Integer taskType,
+            @RequestParam(name = "status", required = false) List<Integer> status,
+            @RequestParam(name = "begin_time", required = false) Long beginTime,
+            @RequestParam(name = "end_time", required = false) Long endTime) {
+        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize,
+                dockSn, name, taskType, status, beginTime, endTime);
         return ResponseResult.success(data);
     }
 

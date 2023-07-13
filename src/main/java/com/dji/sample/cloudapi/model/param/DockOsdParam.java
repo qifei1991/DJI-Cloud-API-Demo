@@ -38,6 +38,14 @@ public class DockOsdParam {
      */
     private Integer supplementLightState;
     /**
+     * 网络类型，{"1":"4G","2":"以太网"}
+     */
+    private Integer networkType;
+    /**
+     * 网络质量，{"0":"差","1":"中","2":"好"}
+     */
+    private Integer networkQuality;
+    /**
      * 网络速率kb/s
      */
     private Float networkRate;
@@ -88,4 +96,41 @@ public class DockOsdParam {
 
     private Long time;
 
+    /**
+     * 降雨量, {"0":"无雨","1":"小雨","2":"中雨","3":"大雨"}
+     */
+    private Integer rainfall;
+    /**
+     * 风速, {"min":"-1.4E-45","max":"3.4028235E38","unit":"m/s","unitName":"米每秒","step":"0.1"}
+     */
+    private Float windSpeed;
+    /**
+     * 环境温度, {"min":"-1.4E-45","max":"3.4028235E38","unit":"°C","unitName":"摄氏度","step":"0.1"}
+     */
+    private Float environmentTemperature;
+    /**
+     * 舱内温度, {"min":"-1.4E-45","max":"3.4028235E38","unit":"°C","unitName":"摄氏度","step":"0.1"}
+     */
+    private Float temperature;
+    /**
+     * 舱内湿度, {"min":"0","max":"100","unit":"%RH","unitName":"相对湿度","step":"0.1"}
+     */
+    private Integer humidity;
+    /**
+     * 机场累计作业次数
+     */
+    private Integer jobNumber;
+    /**
+     * 存储
+     */
+    private Long storageTotal;
+    private Long storageUsed;
+    /**
+     * {"0":"未连接","1":"连接中","2":"已连接"}
+     */
+    private Integer drcState;
+    /**
+     * 媒体文件，待上传数量
+     */
+    private Integer remainUpload;
 }

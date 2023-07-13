@@ -15,10 +15,7 @@ public final class RedisConst {
 
     public static final String DELIMITER = ":";
 
-    /**
-     * modify by fei·Q on 2022/4/21, 防止服务停掉1分钟后设备上线信息清除掉问题
-     */
-    public static final Integer DEVICE_ALIVE_SECOND = 60 * 30;
+    public static final Integer DEVICE_ALIVE_SECOND = 60;
 
     public static final Integer WEBSOCKET_ALIVE_SECOND = 60 * 60 * 24;
 

@@ -6,6 +6,7 @@ import com.dji.sample.cloudapi.model.param.*;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
+import com.dji.sample.manage.model.enums.DockDrcStateEnum;
 import com.dji.sample.manage.model.receiver.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -103,7 +105,10 @@ public class DeviceOsdStateClient extends AbstractClient {
 
     @Async("asyncThreadPool")
     public void reportDockOsdInfo(OsdDockReceiver data, String sn) {
-        this.applicationJsonPost(ClientUri.URI_OSD_STATE, DockOsdParam.builder()
+        if (Objects.isNull(data.getLongitude()) || Objects.isNull(data.getModeCode())) {
+            return;
+        }
+        DockOsdParam.DockOsdParamBuilder builder = DockOsdParam.builder()
                 .sn(sn)
                 .longitude(data.getLongitude())
                 .latitude(data.getLatitude())
@@ -111,25 +116,41 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .coverState(data.getCoverState())
                 .putterState(data.getPutterState())
                 .supplementLightState(data.getSupplementLightState())
-                .networkRate(Optional.ofNullable(data.getNetworkState()).map(NetworkStateReceiver::getRate).orElse(null))
                 .droneInDock(data.getDroneInDock())
                 .activationTime(data.getActivationTime())
                 .batteryStoreMode(data.getBatteryStoreMode())
                 .alarmState(data.getAlarmState())
-                .droneBatteryPercent(
-                        Optional.ofNullable(data.getDroneChargeState()).map(DroneChargeStateReceiver::getCapacityPercent).orElse(null))
-                .droneBatteryState(Optional.ofNullable(data.getDroneChargeState()).map(DroneChargeStateReceiver::getState).orElse(null))
-                .droneBatteryMaintenanceState(Optional.ofNullable(data.getDroneBatteryMaintenanceInfo())
-                        .map(DroneBatteryMaintenanceInfoReceiver::getMaintenanceState)
-                        .orElse(null))
-                .droneBatteryMaintenanceTimeLeft(Optional.ofNullable(data.getDroneBatteryMaintenanceInfo())
-                        .map(DroneBatteryMaintenanceInfoReceiver::getMaintenanceTimeLeft)
-                        .orElse(null))
-                .backupBatterySwitch(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getBatterySwitch).orElse(null))
-                .backupBatteryVoltage(Optional.ofNullable(data.getBackupBattery()).map(BackupBatteryReceiver::getVoltage).orElse(null))
+                .rainfall(data.getRainfall())
+                .windSpeed(data.getWindSpeed())
+                .environmentTemperature(data.getEnvironmentTemperature())
+                .temperature(data.getTemperature())
+                .humidity(data.getHumidity())
+                .jobNumber(data.getJobNumber())
+                .storageTotal(data.getStorage().getTotal())
+                .storageUsed(data.getStorage().getUsed())
                 .emergencyStopState(Optional.ofNullable(data.getEmergencyStopState()).map(x -> x ? 1 : 0).orElse(0))
                 .time(System.currentTimeMillis())
-                .build(), DeviceCategory.DOCK.getCode());
+                .drcState(Optional.ofNullable(data.getDrcState()).map(DockDrcStateEnum::getVal).orElse(0))
+                .remainUpload(Optional.ofNullable(data.getMediaFileDetail()).map(
+                        DockMediaFileDetailReceiver::getRemainUpload).orElse(null));
+        Optional.ofNullable(data.getNetworkState()).ifPresent(x -> {
+            builder.networkType(x.getType());
+            builder.networkRate(x.getRate());
+            builder.networkQuality(x.getQuality());
+        });
+        Optional.ofNullable(data.getDroneChargeState()).ifPresent(x -> {
+            builder.droneBatteryPercent(x.getCapacityPercent());
+            builder.droneBatteryState(x.getState());
+        });
+        Optional.ofNullable(data.getDroneBatteryMaintenanceInfo()).ifPresent(x -> {
+            builder.droneBatteryMaintenanceState(x.getMaintenanceState());
+            builder.droneBatteryMaintenanceTimeLeft(x.getMaintenanceTimeLeft());
+        });
+        Optional.ofNullable(data.getBackupBattery()).ifPresent(x -> {
+            builder.backupBatterySwitch(x.getBatterySwitch());
+            builder.backupBatteryVoltage(x.getVoltage());
+        });
+        this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.DOCK.getCode());
     }
 
     @Async("asyncThreadPool")

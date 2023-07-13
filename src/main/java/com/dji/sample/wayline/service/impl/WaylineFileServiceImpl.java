@@ -1,6 +1,8 @@
 package com.dji.sample.wayline.service.impl;
 
 import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -65,7 +67,8 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                 new LambdaQueryWrapper<WaylineFileEntity>()
                         .eq(WaylineFileEntity::getWorkspaceId, workspaceId)
                         .eq(param.isFavorited(), WaylineFileEntity::getFavorited, param.isFavorited())
-                        .and(param.getTemplateType() != null, wrapper ->  {
+                        .like(StrUtil.isNotBlank(param.getName()), WaylineFileEntity::getName, param.getName())
+                        .and(ArrayUtil.isNotEmpty(param.getTemplateType()), wrapper ->  {
                                 for (Integer type : param.getTemplateType()) {
                                     wrapper.like(WaylineFileEntity::getTemplateTypes, type).or();
                                 }

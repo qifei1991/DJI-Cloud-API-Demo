@@ -44,10 +44,13 @@ public class WaylineController {
             @RequestParam(required = false, defaultValue = "1") Integer page,
             @RequestParam(name = "page_size", defaultValue = "10") Integer pageSize,
             @RequestParam(name = "template_type", required = false) Integer[] templateType,
+            @RequestParam(required = false) String name,
             @PathVariable(name = "workspace_id") String workspaceId) {
+
         WaylineQueryParam param = WaylineQueryParam.builder()
                 .favorited(favorited)
                 .page(page)
+                .name(name)
                 .pageSize(pageSize)
                 .orderBy(orderBy)
                 .templateType(templateType)

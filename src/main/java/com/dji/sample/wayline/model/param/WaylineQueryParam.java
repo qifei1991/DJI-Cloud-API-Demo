@@ -18,6 +18,8 @@ public class WaylineQueryParam {
 
     private boolean favorited;
 
+    private String name;
+
     @Builder.Default
     private int page = 1;
 

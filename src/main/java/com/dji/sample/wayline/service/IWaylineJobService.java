@@ -112,7 +112,8 @@ public interface IWaylineJobService {
      * @param pageSize
      * @return
      */
-    PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize);
+    PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize, String dockSn,
+            String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime);
 
     /**
      * Process to get interface data of flight mission resources.
@@ -142,4 +143,6 @@ public interface IWaylineJobService {
      * @return
      */
     WaylineJobStatusEnum getWaylineState(String dockSn);
+
+    List<WaylineJobDTO> getRemainingJobs(String workspaceId);
 }

@@ -1,5 +1,7 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -402,11 +404,18 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
-    public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize) {
+    public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize,
+            String dockSn, String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime) {
         Page<WaylineJobEntity> pageData = mapper.selectPage(
-                new Page<WaylineJobEntity>(page, pageSize),
+                new Page<>(page, pageSize),
                 new LambdaQueryWrapper<WaylineJobEntity>()
                         .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(StrUtil.isNotBlank(dockSn), WaylineJobEntity::getDockSn, dockSn)
+                        .like(StrUtil.isNotBlank(name), WaylineJobEntity::getName, name)
+                        .in(CollUtil.isNotEmpty(status), WaylineJobEntity::getStatus, status)
+                        .eq(Objects.nonNull(taskType), WaylineJobEntity::getTaskType, taskType)
+                        .ge(Objects.nonNull(beginTime), WaylineJobEntity::getExecuteTime, beginTime)
+                        .le(Objects.nonNull(endTime), WaylineJobEntity::getExecuteTime, endTime)
                         .orderByDesc(WaylineJobEntity::getId));
         List<WaylineJobDTO> records = pageData.getRecords()
                 .stream()
@@ -414,6 +423,19 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .collect(Collectors.toList());
 
         return new PaginationData<WaylineJobDTO>(records, new Pagination(pageData));
+    }
+
+    @Override
+    public List<WaylineJobDTO> getRemainingJobs(String workspaceId) {
+        return mapper.selectList(
+                        new LambdaQueryWrapper<WaylineJobEntity>()
+                                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                                .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.PENDING)
+                                .le(WaylineJobEntity::getExecuteTime,
+                                        LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()))
+                .stream()
+                .map(this::entity2Dto)
+                .collect(Collectors.toList());
     }
 
     @Override

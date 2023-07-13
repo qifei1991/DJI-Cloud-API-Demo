@@ -36,8 +36,15 @@ public class WaylineJobApiController {
     @GetMapping("/{workspace_id}/jobs")
     public ResponseResult<PaginationData<WaylineJobDTO>> getJobs(@RequestParam(defaultValue = "1") Long page,
             @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
-            @PathVariable(name = "workspace_id") String workspaceId) {
-        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize);
+            @PathVariable(name = "workspace_id") String workspaceId,
+            @RequestParam(name = "dock_sn", required = false) String dockSn,
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "task_type", required = false) Integer taskType,
+            @RequestParam(name = "status", required = false) List<Integer> status,
+            @RequestParam(name = "begin_time", required = false) Long beginTime,
+            @RequestParam(name = "end_time", required = false) Long endTime) {
+        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize,
+                dockSn, name, taskType, status, beginTime, endTime);
         return ResponseResult.success(data);
     }
 
@@ -81,5 +88,10 @@ public class WaylineJobApiController {
             @PathVariable(name = "job_id") String jobId) {
         waylineJobService.uploadMediaHighestPriority(workspaceId, jobId);
         return ResponseResult.success();
+    }
+
+    @GetMapping("/{workspace_id}/jobs/remaining")
+    public ResponseResult<List<WaylineJobDTO>> getRemainingJobs(@PathVariable(name = "workspace_id") String workspaceId) {
+        return ResponseResult.success(this.waylineJobService.getRemainingJobs(workspaceId));
     }
 }
