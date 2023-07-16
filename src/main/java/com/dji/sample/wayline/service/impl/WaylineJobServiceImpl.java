@@ -426,6 +426,15 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
+    public Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn) {
+        return Optional.ofNullable(this.entity2Dto(mapper.selectOne(new LambdaQueryWrapper<WaylineJobEntity>()
+                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                .eq(WaylineJobEntity::getDockSn, dockSn)
+                .in(WaylineJobEntity::getStatus, WaylineJobStatusEnum.IN_PROGRESS)
+                .orderByDesc(WaylineJobEntity::getCreateTime))));
+    }
+
+    @Override
     public List<WaylineJobDTO> getRemainingJobs(String workspaceId) {
         return mapper.selectList(
                         new LambdaQueryWrapper<WaylineJobEntity>()

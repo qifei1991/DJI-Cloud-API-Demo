@@ -51,7 +51,7 @@ public class RestTemplateConfig {
     }
 
     public HttpClient httpClient() {
-        log.info("HttpPoolProperties: [{}]" + this.httpPoolProperties.toString());
+        log.info("HttpPoolProperties: " + this.httpPoolProperties.toString());
 
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(
                 RegistryBuilder.<ConnectionSocketFactory>create()

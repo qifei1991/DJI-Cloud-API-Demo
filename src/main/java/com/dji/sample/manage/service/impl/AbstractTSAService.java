@@ -11,6 +11,7 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.dto.TelemetryDTO;
 import com.dji.sample.manage.model.enums.UserTypeEnum;
 import com.dji.sample.manage.service.ITSAService;
+import com.dji.sample.wayline.service.IWaylineJobService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,6 +34,8 @@ public abstract class AbstractTSAService implements ITSAService {
 
     @Autowired
     protected DeviceOsdStateClient deviceOsdStateClient;
+    @Autowired
+    protected IWaylineJobService waylineJobService;
 
     public AbstractTSAService(AbstractTSAService tsaService) {
         this.tsaService = tsaService;

@@ -470,7 +470,6 @@ public class DeviceServiceImpl implements IDeviceService {
                     .getValueWithWorkspaceAndUserType(
                             device.getWorkspaceId(), UserTypeEnum.WEB.getVal());
 
-
             tsaService.handleOSD(receiver, device, webSessions, wsMessage);
 
         } catch (IOException e) {

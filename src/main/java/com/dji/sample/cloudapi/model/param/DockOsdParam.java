@@ -133,4 +133,34 @@ public class DockOsdParam {
      * 媒体文件，待上传数量
      */
     private Integer remainUpload;
+    /**
+     * 市电电压, {"min":"-2147483648","max":"2147483647","unit":"V","unitName":"伏特","step":"1"}
+     */
+    private Integer electricSupplyVoltage;
+    /**
+     * 工作电压, {"min":"-2147483648","max":"2147483647","unit":"mV","unitName":"毫伏","step":"1"}
+     */
+    private Integer workingVoltage;
+    /**
+     * 工作电流, {"min":"-1.4E-45","max":"3.4028235E38","unit":"mA","unitName":"毫安","step":"0.1"}
+     */
+    private Integer workingCurrent;
+
+    /**
+     * 机场空调状态, 机场空调工作状态信息，一个时刻仅存在一种工作模式，不能同时存在多个模式;
+     * <pre>
+     * {
+     *  "0":"空闲模式（无制冷、制热、除湿等）","1":"制冷模式","2":"制热模式","3":"除湿模式","4":"制冷退出模式",
+     *  "5":"制热退出模式","6":"除湿退出模式","7":"制冷准备模式","8":"制热准备模式","9":"除湿准备模式"
+     *  }
+     *  </pre>
+     */
+    private Integer airConditionerMode;
+    /**
+     * 剩余需要等待的可切换时间, {"unit":"秒"};
+     * <br/>
+     * 模式切换顺序为准备模式、工作（制冷、制热、除湿）模式、退出模式、空闲模式。本属性将上报，可以切换下一个模式指令还需要等待的时间。
+     * 例如当前机场空调在进入制冷模式后，必须制冷5分钟后才可以退出制冷模式，本属性将上报还需要多久退出制冷模式，为0表示随时可退出
+     */
+//    private Integer switchTime;
 }

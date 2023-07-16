@@ -13,6 +13,7 @@ import com.dji.sample.manage.model.dto.TelemetryDeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
 import com.dji.sample.manage.model.receiver.OsdPayloadReceiver;
 import com.dji.sample.manage.model.receiver.OsdSubDeviceReceiver;
+import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -71,7 +73,6 @@ public class DeviceOSDServiceImpl extends AbstractTSAService {
                                 receiverData.getOrDefault(payload.getPayloadIndex(), Map.of()),
                                 OsdPayloadReceiver.class))
                         .collect(Collectors.toList()));
-
             } catch (NullPointerException e) {
                 log.warn("Please remount the payload, or restart the drone. Otherwise the data of the payload will not be received.");
             }
@@ -82,8 +83,11 @@ public class DeviceOSDServiceImpl extends AbstractTSAService {
             sendMessageService.sendBatch(webSessions, wsMessage);
             this.pushTelemetryData(device.getWorkspaceId(), data, device.getDeviceSn());
 
-            // report device osd status
-            this.deviceOsdStateClient.reportDroneOsdInfo(data, device.getDeviceSn());
+            // Report drone osd status.
+            // 根据网关SN查询是否是机场飞行任务, 赋值作业ID
+            Optional<WaylineJobDTO> jobOpt = this.waylineJobService.getDockExecutingJob(device.getWorkspaceId(),
+                    receiver.getGateway());
+            this.deviceOsdStateClient.reportDroneOsdInfo(data, device.getDeviceSn(), jobOpt);
         }
         tsaService.handleOSD(receiver, device, webSessions, wsMessage);
     }

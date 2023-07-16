@@ -15,7 +15,7 @@ public final class RedisConst {
 
     public static final String DELIMITER = ":";
 
-    public static final Integer DEVICE_ALIVE_SECOND = 60;
+    public static final Integer DEVICE_ALIVE_SECOND = 60*30;
 
     public static final Integer WEBSOCKET_ALIVE_SECOND = 60 * 60 * 24;
 

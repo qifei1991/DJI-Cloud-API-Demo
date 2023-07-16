@@ -94,4 +94,10 @@ public class WaylineJobApiController {
     public ResponseResult<List<WaylineJobDTO>> getRemainingJobs(@PathVariable(name = "workspace_id") String workspaceId) {
         return ResponseResult.success(this.waylineJobService.getRemainingJobs(workspaceId));
     }
+
+    @GetMapping("/{workspace_id}/jobs/executing/{dock_sn}")
+    public ResponseResult<WaylineJobDTO> getDockExecutingJob(@PathVariable("workspace_id") String workspaceId,
+            @PathVariable("dock_sn") String dockSn) {
+        return ResponseResult.success(this.waylineJobService.getDockExecutingJob(workspaceId, dockSn).orElse(null));
+    }
 }

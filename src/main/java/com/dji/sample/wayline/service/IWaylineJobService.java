@@ -144,5 +144,18 @@ public interface IWaylineJobService {
      */
     WaylineJobStatusEnum getWaylineState(String dockSn);
 
+    /**
+     * Query the remained wayline job in workspace.
+     * @param workspaceId 工作空间
+     * @return List<WaylineJobDTO>
+     */
     List<WaylineJobDTO> getRemainingJobs(String workspaceId);
+    /**
+     * Query the wayline job in executing status of the dock.
+     *
+     * @param workspaceId 工作空间
+     * @param dockSn      机场SN
+     * @return WaylineJobDTO
+     */
+    Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn);
 }
