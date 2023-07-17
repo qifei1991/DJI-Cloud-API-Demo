@@ -204,7 +204,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         }
         // format: {workspace_id}:{dock_sn}:{job_id}
         WaylineJobKey jobKey = jobKeyOpt.get();
-        log.info("Check the prepared tasks of the wayline. {}", jobKey.toString());
+        log.info("Check the prepared tasks of the wayline. {}", jobKey);
 
         WaylineJobDTO job = WaylineJobDTO.builder()
                 .jobId(jobKey.getJobId())

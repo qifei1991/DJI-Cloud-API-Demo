@@ -173,10 +173,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 long endTime = taskPeriod.size() > 1 && Objects.nonNull(taskPeriod.get(1)) ?
                         LocalDateTime.of(date, LocalTime.ofInstant(Instant.ofEpochSecond(taskPeriod.get(1)), ZoneId.systemDefault()))
                                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : beginTime;
-                if (WaylineTaskTypeEnum.IMMEDIATE != param.getTaskType() && endTime < System.currentTimeMillis()) {
+                if (WaylineTaskTypeEnum.IMMEDIATE != param.getTaskType() && endTime < (System.currentTimeMillis() / 1000)) {
                     return ResponseResult.error("The task has expired.");
                 }
-                Optional<WaylineJobDTO> waylineJobOpt = this.createWaylineJob(param, customClaim.getWorkspaceId(), customClaim.getUsername(), beginTime, endTime);
+                Optional<WaylineJobDTO> waylineJobOpt = this.createWaylineJob(param, customClaim.getWorkspaceId(),
+                        customClaim.getUsername(), beginTime, endTime);
                 if (waylineJobOpt.isEmpty()) {
                     return ResponseResult.error("Failed to create wayline job.");
                 }
@@ -414,8 +415,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                         .like(StrUtil.isNotBlank(name), WaylineJobEntity::getName, name)
                         .in(CollUtil.isNotEmpty(status), WaylineJobEntity::getStatus, status)
                         .eq(Objects.nonNull(taskType), WaylineJobEntity::getTaskType, taskType)
-                        .ge(Objects.nonNull(beginTime), WaylineJobEntity::getExecuteTime, beginTime)
-                        .le(Objects.nonNull(endTime), WaylineJobEntity::getExecuteTime, endTime)
+                        .ge(Objects.nonNull(beginTime), WaylineJobEntity::getBeginTime, beginTime)
+                        .le(Objects.nonNull(endTime), WaylineJobEntity::getBeginTime, endTime)
                         .orderByDesc(WaylineJobEntity::getId));
         List<WaylineJobDTO> records = pageData.getRecords()
                 .stream()
