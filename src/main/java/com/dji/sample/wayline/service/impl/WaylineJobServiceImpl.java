@@ -417,7 +417,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                         .eq(Objects.nonNull(taskType), WaylineJobEntity::getTaskType, taskType)
                         .ge(Objects.nonNull(beginTime), WaylineJobEntity::getBeginTime, beginTime)
                         .le(Objects.nonNull(endTime), WaylineJobEntity::getBeginTime, endTime)
-                        .orderByDesc(WaylineJobEntity::getId));
+                        .orderByDesc(WaylineJobEntity::getUpdateTime));
         List<WaylineJobDTO> records = pageData.getRecords()
                 .stream()
                 .map(this::entity2Dto)
@@ -431,18 +431,16 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         return Optional.ofNullable(this.entity2Dto(mapper.selectOne(new LambdaQueryWrapper<WaylineJobEntity>()
                 .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
                 .eq(WaylineJobEntity::getDockSn, dockSn)
-                .in(WaylineJobEntity::getStatus, WaylineJobStatusEnum.IN_PROGRESS)
+                .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.IN_PROGRESS.getVal())
                 .orderByDesc(WaylineJobEntity::getCreateTime))));
     }
 
     @Override
     public List<WaylineJobDTO> getRemainingJobs(String workspaceId) {
-        return mapper.selectList(
-                        new LambdaQueryWrapper<WaylineJobEntity>()
-                                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
-                                .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.PENDING)
-                                .le(WaylineJobEntity::getExecuteTime,
-                                        LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()))
+        return mapper.selectList(new LambdaQueryWrapper<WaylineJobEntity>()
+                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.PENDING.getVal())
+                        .ge(WaylineJobEntity::getBeginTime, System.currentTimeMillis()))
                 .stream()
                 .map(this::entity2Dto)
                 .collect(Collectors.toList());

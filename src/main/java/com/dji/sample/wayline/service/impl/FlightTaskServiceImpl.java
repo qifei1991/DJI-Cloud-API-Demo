@@ -251,9 +251,13 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         // Determine whether the conditional task or the scheduled task has expired.
         if (waylineJobOpt.isEmpty()) {
             waylineJobOpt = waylineJobService.getJobByJobId(jobKey.getWorkspaceId(), jobKey.getJobId());
-            if (waylineJobOpt.isEmpty() || waylineJobOpt.get().getEndTime().isBefore(LocalDateTime.now())) {
+            // 如果结束时间大于开始时间，说明是任务执行有时效（一段时间内执行，超过不执行）
+            if (waylineJobOpt.isEmpty() ||
+                    (waylineJobOpt.get().getEndTime().isAfter(waylineJobOpt.get().getBeginTime())
+                            && waylineJobOpt.get().getEndTime().isBefore(LocalDateTime.now()))) {
                 job.setCode(CommonErrorEnum.REDIS_DATA_NOT_FOUND.getErrorCode());
                 waylineJobService.updateJob(job);
+                waylineRedisService.removePreparedWaylineJob(jobKey);
                 return Optional.empty();
             }
         }
