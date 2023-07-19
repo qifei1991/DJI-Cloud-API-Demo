@@ -3,6 +3,7 @@ package com.dji.sample.cloudapi.client;
 import cn.hutool.core.util.StrUtil;
 import com.dji.sample.cloudapi.model.enums.DeviceCategory;
 import com.dji.sample.cloudapi.model.param.*;
+import com.dji.sample.cloudapi.util.ApiUtil;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -91,12 +93,14 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .altitude(data.getHeight())
                 .battery(data.getBattery().getCapacityPercent())
                 .aircraftDirection(data.getAttitudeHead())
+                .aircraftCourse(Optional.ofNullable(data.getAttitudeHead()).map(ApiUtil::course2direction).orElse(null))
                 .aircraftPitch(data.getAttitudePitch())
                 .aircraftRoll(data.getAttitudeRoll())
                 .aircraftYaw(data.getAttitudeHead())
                 .homeDistance(data.getHomeDistance())
                 .time(System.currentTimeMillis())
                 .trackId(data.getTrackId());
+
         // obtain main gimbal(the index of 0) osd information.
         Optional.ofNullable(data.getPayloads())
                 .flatMap(payloads -> payloads.parallelStream()
@@ -114,6 +118,9 @@ public class DeviceOsdStateClient extends AbstractClient {
 
     @Async("asyncThreadPool")
     public void reportDockOsdInfo(OsdDockReceiver data, String sn) {
+        if (Objects.isNull(data.getModeCode()) && Objects.isNull(data.getJobNumber())) {
+            return;
+        }
         DockOsdParam.DockOsdParamBuilder builder = DockOsdParam.builder()
                 .sn(sn)
                 .longitude(data.getLongitude())
@@ -165,4 +172,5 @@ public class DeviceOsdStateClient extends AbstractClient {
                 .time(System.currentTimeMillis())
                 .build(), DeviceCategory.RC.getCode());
     }
+
 }

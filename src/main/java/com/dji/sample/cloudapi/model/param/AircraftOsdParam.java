@@ -28,7 +28,7 @@ public class AircraftOsdParam {
     private Double altitude;
     private Integer battery;
     private Float aircraftDirection;
-    private Double aircraftCourse;
+    private String aircraftCourse;
     private Double aircraftPitch;
     private Double aircraftRoll;
     private Float aircraftYaw;
