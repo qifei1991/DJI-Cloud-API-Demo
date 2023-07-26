@@ -20,7 +20,7 @@
 		<maven.test.skip>true</maven.test.skip>
 
 		<mybatis-plus.version>3.4.2</mybatis-plus.version>
-		<druid.version>1.2.6</druid.version>
+		<druid.version>1.2.9</druid.version>
 		<jwt.version>3.12.1</jwt.version>
 		<mqtt.version>5.5.5</mqtt.version>
 		<minio.version>8.3.7</minio.version>
@@ -210,7 +210,7 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<!--!!!【注意】本地调试一定要TM把下面玩意屏蔽掉,只有打包时候需要-->
-					<!-- <exclude>application*.yml</exclude> -->
+					<exclude>application*.yml</exclude>
 				</excludes>
 			</resource>
 		</resources>

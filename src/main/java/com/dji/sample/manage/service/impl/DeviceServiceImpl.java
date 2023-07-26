@@ -238,13 +238,14 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void subscribeTopicOnline(String sn) {
-        String[] subscribedTopic = topicService.getSubscribedTopic();
+        // 注释下面代码，防止机场意外掉线后无法重新上线的问题, modify by Qfei.
+        /*String[] subscribedTopic = topicService.getSubscribedTopic();
         for (String s : subscribedTopic) {
             // If you have already subscribed to the topic of the device, you do not need to subscribe again.
             if (s.contains(sn)) {
                 return;
             }
-        }
+        }*/
         String prefix = THING_MODEL_PRE + PRODUCT + sn;
         INIT_TOPICS_SUFFIX.forEach(suffix -> topicService.subscribe(prefix + suffix));
 
