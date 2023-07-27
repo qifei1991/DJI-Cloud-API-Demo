@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.client;
 
+import cn.hutool.core.util.StrUtil;
 import com.dji.sample.cloudapi.model.vo.ResultView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,11 +60,12 @@ public abstract class AbstractClient {
             return new ResultView(ResultView.STATUS.FAIL);
         }
         ResultView result = response.getBody();
-        log.debug("<=== Response: {}", result);
+        String resp = Objects.isNull(result) ? null
+                : result.toString().length() > 200 ? StrUtil.subPre(result.toString(), 200).concat("...") : result.toString();
+        log.debug("<=== Response: {}", resp);
         Assert.notNull(result, "The response is null of access [aircraft-manager].");
         return result;
     }
-
 
     protected String getManagerServerBaseUrl(String uri) {
         return this.url + this.apiPrefix + this.apiVersion + uri;
