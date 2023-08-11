@@ -41,5 +41,7 @@ public class AircraftOsdParam {
     private Double homeDistance;
     private Long time;
 
+    private Integer modeCodeReason;
+
     private String trackId;
 }

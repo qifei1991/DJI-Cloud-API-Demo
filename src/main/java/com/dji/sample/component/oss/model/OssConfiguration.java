@@ -26,6 +26,7 @@ public class OssConfiguration {
      * The protocol needs to be included at the beginning of the address.
      */
     public static String endpoint;
+    public static String extranetEndpoint;
 
     public static String accessKey;
 

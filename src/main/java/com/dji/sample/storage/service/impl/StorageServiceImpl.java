@@ -29,7 +29,7 @@ public class StorageServiceImpl implements IStorageService {
     @Override
     public StsCredentialsDTO getSTSCredentials() {
         return StsCredentialsDTO.builder()
-                .endpoint(OssConfiguration.endpoint)
+                .endpoint(OssConfiguration.extranetEndpoint)
                 .bucket(OssConfiguration.bucket)
                 .credentials(ossService.getCredentials())
                 .provider(OssConfiguration.provider)

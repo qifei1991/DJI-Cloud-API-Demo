@@ -19,6 +19,7 @@ import com.dji.sample.wayline.model.entity.WaylineFileEntity;
 import com.dji.sample.wayline.model.enums.WaylineTemplateTypeEnum;
 import com.dji.sample.wayline.model.param.WaylineQueryParam;
 import com.dji.sample.wayline.service.IWaylineFileService;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -47,6 +48,7 @@ import static com.dji.sample.wayline.model.dto.KmzFileProperties.WAYLINE_FILE_SU
  * @version 0.3
  * @date 2021/12/22
  */
+@Slf4j
 @Service
 @Transactional
 public class WaylineFileServiceImpl implements IWaylineFileService {
@@ -239,10 +241,11 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             }
 
         } catch (IOException | DocumentException e) {
-            e.printStackTrace();
+            log.error("Failed to valid the Kmz file.", e);
         }
         return Optional.empty();
     }
+
     /**
      * Convert database entity objects into wayline data transfer object.
      * @param entity
