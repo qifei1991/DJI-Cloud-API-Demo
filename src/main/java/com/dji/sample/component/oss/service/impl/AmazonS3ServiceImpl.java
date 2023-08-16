@@ -18,6 +18,7 @@ import com.dji.sample.component.oss.service.IOssService;
 import com.dji.sample.media.model.CredentialsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.InputStream;
@@ -37,7 +38,8 @@ import java.util.Objects;
 public class AmazonS3ServiceImpl implements IOssService {
 
     private AmazonS3 client;
-    
+    private AmazonS3 extranetClient;
+
     @Override
     public String getOssType() {
         return OssTypeEnum.AWS.getType();
@@ -61,7 +63,7 @@ public class AmazonS3ServiceImpl implements IOssService {
 
     @Override
     public URL getObjectUrl(String bucket, String objectKey) {
-        return client.generatePresignedUrl(bucket, objectKey,
+        return extranetClient.generatePresignedUrl(bucket, objectKey,
                 new Date(System.currentTimeMillis() + OssConfiguration.expire * 1000), HttpMethod.GET);
     }
 
@@ -99,6 +101,14 @@ public class AmazonS3ServiceImpl implements IOssService {
                                 new BasicAWSCredentials(OssConfiguration.accessKey, OssConfiguration.secretKey)))
                 .withRegion(OssConfiguration.region)
                 .build();
+
+        this.extranetClient = !StringUtils.hasText(OssConfiguration.extranetEndpoint)
+                ? this.client
+                : AmazonS3ClientBuilder.standard().withCredentials(
+                            new AWSStaticCredentialsProvider(
+                                    new BasicAWSCredentials(OssConfiguration.accessKey, OssConfiguration.secretKey)))
+                    .withRegion(OssConfiguration.region)
+                    .build();
     }
 
     /**
@@ -120,8 +130,7 @@ public class AmazonS3ServiceImpl implements IOssService {
                 .withAllowedHeaders(List.of(AuthInterceptor.PARAM_TOKEN))
                 .withAllowedMethods(allowedMethods);
 
-        client.setBucketCrossOriginConfiguration(OssConfiguration.bucket,
-                new BucketCrossOriginConfiguration().withRules(rule));
-        
+        client.setBucketCrossOriginConfiguration(OssConfiguration.bucket, new BucketCrossOriginConfiguration().withRules(rule));
+
     }
 }

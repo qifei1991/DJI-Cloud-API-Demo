@@ -21,7 +21,7 @@ CREATE TABLE `logs_file` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `file_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'uuid',
   `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The name of the file in the bucket.',
-  `size` int NOT NULL DEFAULT '0' COMMENT 'file size',
+  `size` bigint NOT NULL DEFAULT '0' COMMENT 'file size',
   `logs_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The logs_id in the manage_device_logs table.',
   `device_sn` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The sn of the device.',
   `fingerprint` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'file fingerprint',

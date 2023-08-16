@@ -6,17 +6,20 @@ import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.component.oss.service.impl.OssServiceContext;
 import com.dji.sample.media.model.StsCredentialsDTO;
 import com.dji.sample.storage.service.IStorageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author sean
  * @version 0.3
  * @date 2022/3/9
  */
+@Slf4j
 @Service
 public class StorageServiceImpl implements IStorageService {
 
@@ -29,7 +32,7 @@ public class StorageServiceImpl implements IStorageService {
     @Override
     public StsCredentialsDTO getSTSCredentials() {
         return StsCredentialsDTO.builder()
-                .endpoint(OssConfiguration.extranetEndpoint)
+                .endpoint(StringUtils.hasText(OssConfiguration.extranetEndpoint) ? OssConfiguration.extranetEndpoint : OssConfiguration.endpoint)
                 .bucket(OssConfiguration.bucket)
                 .credentials(ossService.getCredentials())
                 .provider(OssConfiguration.provider)

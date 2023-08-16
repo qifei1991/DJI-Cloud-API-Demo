@@ -10,6 +10,7 @@ import io.minio.errors.*;
 import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,7 +30,8 @@ import java.util.Objects;
 public class MinIOServiceImpl implements IOssService {
 
     private MinioClient client;
-    
+    private MinioClient extranetClient;
+
     @Override
     public String getOssType() {
         return OssTypeEnum.MINIO.getType();
@@ -37,14 +39,13 @@ public class MinIOServiceImpl implements IOssService {
 
     @Override
     public CredentialsDTO getCredentials() {
+        String endpoint = StringUtils.hasText(OssConfiguration.extranetEndpoint) ? OssConfiguration.extranetEndpoint : OssConfiguration.endpoint;
         try {
-            AssumeRoleProvider provider = new AssumeRoleProvider(OssConfiguration.endpoint, OssConfiguration.accessKey,
-                    OssConfiguration.secretKey, Math.toIntExact(OssConfiguration.expire),
-                    null, OssConfiguration.region, null, null, null, null);
+            AssumeRoleProvider provider = new AssumeRoleProvider(endpoint, OssConfiguration.accessKey, OssConfiguration.secretKey,
+                    Math.toIntExact(OssConfiguration.expire), null, OssConfiguration.region, null, null, null, null);
             return new CredentialsDTO(provider.fetch(), OssConfiguration.expire);
         } catch (NoSuchAlgorithmException e) {
-            log.debug("Failed to obtain sts.");
-            e.printStackTrace();
+            log.debug("Failed to obtain sts.", e);
         }
         return null;
     }
@@ -53,13 +54,13 @@ public class MinIOServiceImpl implements IOssService {
     public URL getObjectUrl(String bucket, String objectKey) {
         try {
             return new URL(
-                    client.getPresignedObjectUrl(
-                                    GetPresignedObjectUrlArgs.builder()
-                                            .method(Method.GET)
-                                            .bucket(bucket)
-                                            .object(objectKey)
-                                            .expiry(Math.toIntExact(OssConfiguration.expire))
-                                            .build()));
+                    this.extranetClient.getPresignedObjectUrl(
+                            GetPresignedObjectUrlArgs.builder()
+                                    .method(Method.GET)
+                                    .bucket(bucket)
+                                    .object(objectKey)
+                                    .expiry(Math.toIntExact(OssConfiguration.expire))
+                                    .build()));
         } catch (ErrorResponseException | InsufficientDataException | InternalException |
                 InvalidKeyException | InvalidResponseException | IOException |
                 NoSuchAlgorithmException | XmlParserException | ServerException e) {
@@ -72,8 +73,7 @@ public class MinIOServiceImpl implements IOssService {
         try {
             client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(objectKey).build());
         } catch (MinioException | NoSuchAlgorithmException | IOException | InvalidKeyException e) {
-            log.error("Failed to delete file.");
-            e.printStackTrace();
+            log.error("Failed to delete file.", e);
             return false;
         }
         return true;
@@ -84,8 +84,9 @@ public class MinIOServiceImpl implements IOssService {
         try {
             GetObjectResponse object = client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectKey).build());
             return new ByteArrayInputStream(object.readAllBytes());
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            e.printStackTrace();
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException |
+                 IOException | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("Failed to get file.", e);
         }
         return InputStream.nullInputStream();
     }
@@ -102,8 +103,7 @@ public class MinIOServiceImpl implements IOssService {
                         PutObjectArgs.builder().bucket(bucket).object(objectKey).stream(input, input.available(), 0).build());
                 log.info("Upload File: {}", response.etag());
             } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException ex) {
-                log.error("Failed to upload File {}.", objectKey);
-                ex.printStackTrace();
+                log.error("Failed to upload File {}.", objectKey, e);
             }
         }
     }
@@ -118,5 +118,12 @@ public class MinIOServiceImpl implements IOssService {
                 .credentials(OssConfiguration.accessKey, OssConfiguration.secretKey)
                 .region(OssConfiguration.region)
                 .build();
+
+        this.extranetClient = !StringUtils.hasText(OssConfiguration.extranetEndpoint) ? this.client
+                : MinioClient.builder()
+                    .endpoint(OssConfiguration.extranetEndpoint)
+                    .credentials(OssConfiguration.accessKey, OssConfiguration.secretKey)
+                    .region(OssConfiguration.region)
+                    .build();
     }
 }

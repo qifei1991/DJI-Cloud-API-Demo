@@ -49,6 +49,7 @@ public class HuaweiObsServiceImpl implements IOssService {
 
     private SecurityKeyBean securityKey;
     private ObsClient obsClient;
+    private ObsClient extranetObsClient;
 
     @Override
     public String getOssType() {
@@ -74,7 +75,7 @@ public class HuaweiObsServiceImpl implements IOssService {
             throw new OSSException("The object does not exist.");
         }
         try {
-            return new URL(this.obsClient.createTemporarySignature(new TemporarySignatureRequest(HttpMethodEnum.GET, bucket, objectKey,
+            return new URL(this.extranetObsClient.createTemporarySignature(new TemporarySignatureRequest(HttpMethodEnum.GET, bucket, objectKey,
                             null, OssConfiguration.expire, new Date())).getSignedUrl());
         } catch (MalformedURLException e) {
             throw new RuntimeException("The file does not exist on the OssConfiguration.");
@@ -109,7 +110,11 @@ public class HuaweiObsServiceImpl implements IOssService {
         if (Objects.nonNull(this.obsClient)) {
             return;
         }
+
         this.obsClient = new ObsClient(OssConfiguration.accessKey, OssConfiguration.secretKey, OssConfiguration.endpoint);
+
+        this.extranetObsClient = !StringUtils.hasText(OssConfiguration.extranetEndpoint) ? this.obsClient
+                : new ObsClient(OssConfiguration.accessKey, OssConfiguration.secretKey, OssConfiguration.extranetEndpoint);
     }
 
     private SecurityKeyBean getSecurityKey() {

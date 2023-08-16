@@ -26,6 +26,9 @@ public class OssConfiguration {
      * The protocol needs to be included at the beginning of the address.
      */
     public static String endpoint;
+    /**
+     * 外网地址
+     */
     public static String extranetEndpoint;
 
     public static String accessKey;
@@ -54,6 +57,10 @@ public class OssConfiguration {
 
     public void setEndpoint(String endpoint) {
         OssConfiguration.endpoint = endpoint;
+    }
+
+    public void setExtranetEndpoint(String extranetEndpoint) {
+        OssConfiguration.extranetEndpoint = extranetEndpoint;
     }
 
     public void setAccessKey(String accessKey) {
