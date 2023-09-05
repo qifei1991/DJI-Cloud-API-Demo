@@ -27,7 +27,7 @@ public enum PayloadCommandsEnum {
 
     GIMBAL_RESET("gimbal_reset", GimbalResetImpl.class);
 
-    String cmd;
+    private final String cmd;
 
     Class<? extends PayloadCommandsHandler> clazz;
 

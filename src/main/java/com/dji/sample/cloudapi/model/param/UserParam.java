@@ -8,6 +8,7 @@ import lombok.Data;
  */
 @Data
 public class UserParam {
+    private Integer userId;
     private String username;
     private Integer userType = 1;
 }

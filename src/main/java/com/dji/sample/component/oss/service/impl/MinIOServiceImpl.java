@@ -39,9 +39,8 @@ public class MinIOServiceImpl implements IOssService {
 
     @Override
     public CredentialsDTO getCredentials() {
-        String endpoint = StringUtils.hasText(OssConfiguration.extranetEndpoint) ? OssConfiguration.extranetEndpoint : OssConfiguration.endpoint;
         try {
-            AssumeRoleProvider provider = new AssumeRoleProvider(endpoint, OssConfiguration.accessKey, OssConfiguration.secretKey,
+            AssumeRoleProvider provider = new AssumeRoleProvider(OssConfiguration.endpoint, OssConfiguration.accessKey, OssConfiguration.secretKey,
                     Math.toIntExact(OssConfiguration.expire), null, OssConfiguration.region, null, null, null, null);
             return new CredentialsDTO(provider.fetch(), OssConfiguration.expire);
         } catch (NoSuchAlgorithmException e) {

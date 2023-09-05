@@ -11,6 +11,12 @@ import org.hibernate.validator.constraints.Range;
  */
 @Data
 public class DrcConnectParam {
+    /**
+     * The id of the account.
+     */
+    private String userId;
+
+    private String username;
 
     private String clientId;
 

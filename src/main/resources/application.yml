@@ -9,12 +9,15 @@ spring:
     druid:
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://cloud_api_sample_mysql:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+      url: jdbc:mysql://192.168.20.186:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+#      url: jdbc:mysql://192.168.1.230:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+      #      url: jdbc:mysql://192.168.1.202:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
       username: root
-      password: root
-#      url: jdbc:mysql://192.168.1.16:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
-#      username: dlwy
-#      password: dlwy
+#      password: root
+      password: mysql@20.186
+#      url: jdbc:mysql://124.70.0.52:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+#      username: root
+#      password: wx@2023
       keep-alive: true  #连接存活配置，防止长时间不操作系统首次点击数据库查询慢的问题；
       initial-size: 10
       min-idle: 10
@@ -32,25 +35,16 @@ spring:
       pool-prepared-statements: true
       max-open-prepared-statements: 20
       max-pool-prepared-statement-per-connection-size: 20
-      filters: stat,wall,slf4j # 配置监控统计拦截的filters, 去掉后监控界面sql无法统计, 'wall'用于防火墙
+      filters: wall,slf4j # 配置监控统计拦截的filters, 去掉后监控界面sql无法统计, 'wall'用于防火墙
       aop-patterns: com.springboot.service.* # Spring监控AOP切入点，如com.forestar.xxx.service.*,配置多个英文逗号分隔;好像没鸟用
-      connection-properties: ruid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000 # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+#      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000 # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
       use-global-data-source-stat: true # 合并多个DruidDataSource的监控数据
       # WebStatFilter配置
       web-stat-filter:
         enabled: false
-        url-pattern: /* # 添加过滤规则
-        exclusions: '*.js,*.gif,*.jpg,*.bmp,*.png,*.css,*.ico,/druid/*' # 忽略过滤的格式
       # StatViewServlet配置
       stat-view-servlet:
         enabled: false
-        url-pattern: /druid/* # 访问路径为/druid时，跳转到StatViewServlet
-        reset-enable: false # 是否能够重置数据
-        # 需要账号密码才能访问控制台
-        login-username: admin
-        login-password: admin
-        # allow: 127.0.0.1 # IP白名单
-        # deny: 192.168.1.218 #　IP黑名单（共同存在时，deny优先于allow）
       # 配置StatFilter
       filter:
         stat:
@@ -61,11 +55,11 @@ spring:
         usePingMethod: false
 
   redis:
-    host: cloud_api_sample_redis
+    host: 192.168.20.186
     port: 6379
-    database: 0
+    database: 1
     username: # if you enable
-    password:
+    password: redis_186
     lettuce:
       pool:
         max-active: 8
@@ -78,7 +72,7 @@ spring:
       max-request-size: 2GB
 
 jwt:
-  issuer: DJI
+  issuer: MapzoneUavUser
   subject: CloudApiSample
   secret: CloudApiSample
   age: 86400
@@ -88,18 +82,20 @@ mqtt:
   # BASIC parameters are required.
   BASIC:
     protocol: MQTT # @see com.dji.sample.component.mqtt.model.MqttProtocolEnum
-    host: Please enter your ip.
+    host: 192.168.20.186 #Please enter your ip. # 192.168.1.1
+#    host: 124.70.0.52 #Please enter your ip. # 192.168.1.1
     port: 1883
     username: JavaServer
-    password: 123456
-    client-id: 123456
+    password: emqx@wrj
+#    password: emqx_219
+    client-id: CloudService-17 # 123456
     # If the protocol is ws/wss, this value is required.
     path:
     # Topics that need to be subscribed when initially connecting to mqtt, multiple topics are divided by ",".
     inbound-topic: sys/product/+/status,thing/product/+/requests
   DRC:
     protocol: WS # @see com.dji.sample.component.mqtt.model.MqttProtocolEnum
-    host: Please enter your ip.
+    host: 192.168.1.230 #Please enter your ip.
     port: 8083
     path: /mqtt
 
@@ -135,18 +131,18 @@ aircraft-manager-server:
   workspace-id: e3dea0f5-37f2-4d79-ae58-490af3228069
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
-oss:
-  enable: false
-  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
-  endpoint: https://oss-cn-hangzhou.aliyuncs.com
-  access-key: Please enter your access key.
-  secret-key: Please enter your secret key.
-  expire: 3600
-  region: Please enter your oss region. # cn-hangzhou
-  role-session-name: cloudApi
-  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
-  bucket: Please enter your bucket name.
-  object-dir-prefix: Please enter a folder name.
+#oss:
+#  enable: true
+#  provider: ali # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+#  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+#  access-key: LTAI5tKJ5pyzUi4f82xvotic # Please enter your access key.
+#  secret-key: cK86NSwguGqZ25QHonv1MI5j9wBwLT # Please enter your secret key.
+#  expire: 3600
+#  region: cn-hangzhou # Please enter your oss region. # cn-hangzhou
+#  role-session-name: cloudApi
+#  role-arn: acs:ram::1387195511836853:role/ramossrole # Please enter your role arn. # acs:ram::123456789:role/stsrole
+#  bucket: aircraft-resource # Please enter your bucket name.
+#  object-dir-prefix: test # Please enter a folder name.
 
 #oss:
 #  enable: true
@@ -164,9 +160,17 @@ oss:
 oss:
   enable: true
   provider: minio
-  endpoint: http://192.168.1.202:9000
+#  access-key: minio-wrj
+#  secret-key: minio@230
+#  endpoint: http://192.168.1.230:9000
+#  access-key: dlwyminio
+#  secret-key: dlwy2021
+#  endpoint: http://192.168.1.200:9000
+#  extranet-endpoint: http://123.125.92.18:9000
   access-key: minioadmin
-  secret-key: minioadmin
+  secret-key: minioadmin@186
+  endpoint: http://192.168.20.186:9000
+  extranet-endpoint: http://121.36.85.75:9000
   bucket: aircraft-resource
   expire: 3600
   region: us-east-1
@@ -178,7 +182,7 @@ oss:
 #  endpoint: https://obs.cn-north-4.myhuaweicloud.com
 #  access-key: MWY2L4ECVSNCHIZ1Z6Z1.
 #  secret-key: 0itqHxcD9OMoA2IkKtGw9rLpJzIskLfL802XSUCj.
-#  expire: 3600
+#  expire: 3600s
 #  region: cn-north-4
 #  role-session-name: CloudApi
 #  role-arn: wrj-obs/Dlwy+Wrj2022/Hw77360206 # IAM用户信息（user_name/user_password/domainName）

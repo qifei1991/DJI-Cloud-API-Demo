@@ -46,14 +46,15 @@ public class DockOSDServiceImpl extends AbstractTSAService {
 
             String key = RedisConst.OSD_PREFIX + device.getDeviceSn();
             OsdDockReceiver redisData = (OsdDockReceiver) RedisOpsUtils.get(key);
+
+            // Dock osd report.
+            this.deviceOsdStateClient.reportDockOsdInfo(data, device.getDeviceSn());
+
             if (Objects.nonNull(data.getModeCode())) {
                 if (Objects.nonNull(redisData)) {
                     data.setDrcState(redisData.getDrcState());
                 }
                 RedisOpsUtils.setWithExpire(key, data, RedisConst.DEVICE_ALIVE_SECOND);
-
-                this.deviceOsdStateClient.reportDockOsdInfo(data, device.getDeviceSn());
-
                 return;
             }
 
@@ -61,8 +62,7 @@ public class DockOSDServiceImpl extends AbstractTSAService {
                 redisData.setDrcState(data.getDrcState());
                 RedisOpsUtils.setWithExpire(key, redisData, RedisConst.DEVICE_ALIVE_SECOND);
             }
-
-            this.deviceOsdStateClient.reportDockOsdInfo(data, device.getDeviceSn());
         }
     }
+
 }

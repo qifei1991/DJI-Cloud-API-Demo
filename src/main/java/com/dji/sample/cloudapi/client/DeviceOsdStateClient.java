@@ -1,10 +1,14 @@
 package com.dji.sample.cloudapi.client;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.util.StrUtil;
 import com.dji.sample.cloudapi.model.enums.DeviceCategory;
 import com.dji.sample.cloudapi.model.param.*;
 import com.dji.sample.cloudapi.util.ApiUtil;
 import com.dji.sample.cloudapi.util.ClientUri;
+import com.dji.sample.component.redis.RedisConst;
+import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
 import com.dji.sample.manage.model.enums.DockDrcStateEnum;
@@ -117,8 +121,12 @@ public class DeviceOsdStateClient extends AbstractClient {
     }
 
     @Async("asyncThreadPool")
-    public void reportDockOsdInfo(OsdDockReceiver data, String sn) {
-        if (Objects.isNull(data.getModeCode()) && Objects.isNull(data.getJobNumber())) {
+    public void reportDockOsdInfo(OsdDockReceiver receiver, String sn) {
+
+        OsdDockReceiver data = (OsdDockReceiver) RedisOpsUtils.get(RedisConst.OSD_PREFIX + sn);
+        BeanUtil.copyProperties(receiver, data, CopyOptions.create().setIgnoreNullValue(true));
+
+        if (Objects.isNull(data.getModeCode())) {
             return;
         }
         DockOsdParam.DockOsdParamBuilder builder = DockOsdParam.builder()

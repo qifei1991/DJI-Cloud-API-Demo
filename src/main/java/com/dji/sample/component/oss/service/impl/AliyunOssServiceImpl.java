@@ -18,7 +18,6 @@ import com.dji.sample.component.oss.service.IOssService;
 import com.dji.sample.media.model.CredentialsDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -35,7 +34,6 @@ import java.util.Objects;
 public class AliyunOssServiceImpl implements IOssService {
 
     private OSS ossClient;
-    private OSS extranetOssClient;
 
     @Override
     public String getOssType() {
@@ -60,7 +58,6 @@ public class AliyunOssServiceImpl implements IOssService {
 
         } catch (ClientException e) {
             log.debug("Failed to obtain sts.");
-            e.printStackTrace();
         }
         return null;
     }
@@ -106,9 +103,5 @@ public class AliyunOssServiceImpl implements IOssService {
             return;
         }
         this.ossClient = new OSSClientBuilder().build(OssConfiguration.endpoint, OssConfiguration.accessKey, OssConfiguration.secretKey);
-
-        this.extranetOssClient = !StringUtils.hasText(OssConfiguration.extranetEndpoint)
-                ? this.ossClient
-                : new OSSClientBuilder().build(OssConfiguration.endpoint, OssConfiguration.accessKey, OssConfiguration.secretKey);
     }
 }

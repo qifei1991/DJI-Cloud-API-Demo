@@ -1,6 +1,8 @@
 package com.dji.sample.cloudapi.util;
 
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONUtil;
 import lombok.NoArgsConstructor;
@@ -93,7 +95,8 @@ public class ApiUtil {
             }
         }
 
-
+        DateTime date = DateUtil.date(1693128416782L);
+        log.info("Datetime: " + date);
     }
 
 }
