@@ -1,5 +1,6 @@
 package com.dji.sample.control.service.impl;
 
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.component.mqtt.model.*;
@@ -11,9 +12,7 @@ import com.dji.sample.component.websocket.service.ISendMessageService;
 import com.dji.sample.control.model.dto.FlyToProgressReceiver;
 import com.dji.sample.control.model.dto.ResultNotifyDTO;
 import com.dji.sample.control.model.dto.TakeoffProgressReceiver;
-import com.dji.sample.control.model.enums.DroneAuthorityEnum;
-import com.dji.sample.control.model.enums.DroneControlMethodEnum;
-import com.dji.sample.control.model.enums.RemoteDebugMethodEnum;
+import com.dji.sample.control.model.enums.*;
 import com.dji.sample.control.model.param.*;
 import com.dji.sample.control.service.IControlService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
@@ -31,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -62,6 +62,9 @@ public class ControlServiceImpl implements IControlService {
 
     @Autowired
     private IDevicePayloadService devicePayloadService;
+
+    @Autowired
+    private FlightTaskClient flightTaskClient;
 
     private RemoteDebugHandler checkDebugCondition(String sn, RemoteDebugParam param, RemoteDebugMethodEnum controlMethodEnum) {
         RemoteDebugHandler handler = Objects.nonNull(controlMethodEnum.getClazz()) ?
@@ -169,7 +172,10 @@ public class ControlServiceImpl implements IControlService {
     public ResponseResult flyToPoint(String sn, FlyToPointParam param) {
         checkFlyToCondition(sn);
 
-        param.setFlyToId(UUID.randomUUID().toString());
+        // modify by Qfei, 如果ID有值，直接赋值
+        if (!StringUtils.hasText(param.getFlyToId())) {
+            param.setFlyToId(UUID.randomUUID().toString());
+        }
         ServiceReply reply = messageSenderService.publishServicesTopic(sn, DroneControlMethodEnum.FLY_TO_POINT.getMethod(), param, param.getFlyToId());
         return ResponseResult.CODE_SUCCESS != reply.getResult() ?
                 ResponseResult.error("Flying to the target point failed." + reply.getResult())
@@ -184,6 +190,7 @@ public class ControlServiceImpl implements IControlService {
                 : ResponseResult.success();
     }
 
+    @Override
     @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_FLY_TO_POINT_PROGRESS, outputChannel = ChannelName.OUTBOUND_EVENTS)
     public CommonTopicReceiver handleFlyToPointProgress(CommonTopicReceiver receiver, MessageHeaders headers) {
         String dockSn  = receiver.getGateway();
@@ -195,6 +202,12 @@ public class ControlServiceImpl implements IControlService {
         }
 
         FlyToProgressReceiver eventsReceiver = mapper.convertValue(receiver.getData(), new TypeReference<FlyToProgressReceiver>(){});
+
+        // 判断是否飞行完成
+        if (FlyToStatusEnum.endCheck(eventsReceiver.getStatus())) {
+            this.flightTaskClient.finishFlyTo(dockSn, eventsReceiver);
+        }
+
         webSocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
                 BizCodeEnum.FLY_TO_POINT_PROGRESS.getCode(),
                 ResultNotifyDTO.builder().sn(dockSn)
@@ -215,20 +228,29 @@ public class ControlServiceImpl implements IControlService {
         if (ResponseResult.CODE_SUCCESS != result.getCode()) {
             throw new IllegalArgumentException(result.getMessage());
         }
-
     }
 
     @Override
     public ResponseResult takeoffToPoint(String sn, TakeoffToPointParam param) {
         checkTakeoffCondition(sn);
 
-        param.setFlightId(UUID.randomUUID().toString());
+        // modify by Qfei, 2023-9-10 11:38:49
+        if (!StringUtils.hasText(param.getFlightId())) {
+            param.setFlightId(UUID.randomUUID().toString());
+        }
         ServiceReply reply = messageSenderService.publishServicesTopic(sn, DroneControlMethodEnum.TAKE_OFF_TO_POINT.getMethod(), param, param.getFlightId());
-        return ResponseResult.CODE_SUCCESS != reply.getResult() ?
-                ResponseResult.error("The drone failed to take off. " + reply.getResult())
-                : ResponseResult.success();
+
+        if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
+            return ResponseResult.error("The drone failed to take off. " + reply.getResult());
+        } else {
+            // 一键起飞的时候，创建飞行记录
+            this.flightTaskClient.startTakeoffTo(sn, param);
+
+            return ResponseResult.success();
+        }
     }
 
+    @Override
     @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_TAKE_OFF_TO_POINT_PROGRESS, outputChannel = ChannelName.OUTBOUND_EVENTS)
     public CommonTopicReceiver handleTakeoffToPointProgress(CommonTopicReceiver receiver, MessageHeaders headers) {
         String dockSn  = receiver.getGateway();
@@ -239,6 +261,11 @@ public class ControlServiceImpl implements IControlService {
             return null;
         }
         TakeoffProgressReceiver eventsReceiver = mapper.convertValue(receiver.getData(), new TypeReference<TakeoffProgressReceiver>(){});
+
+        // 判断是否飞行完成
+        if (TakeoffStatusEnum.endCheck(eventsReceiver.getStatus())) {
+            this.flightTaskClient.finishTakeoffTo(dockSn, eventsReceiver);
+        }
 
         webSocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
                 BizCodeEnum.TAKE_OFF_TO_POINT_PROGRESS.getCode(),

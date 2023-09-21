@@ -46,7 +46,7 @@ public class MediaClient extends AbstractClient {
      * @param fileUploadDTO uploaded file information.
      */
     @Async("asyncThreadPool")
-    public void uploadCallback(String jobId, FileUploadDTO fileUploadDTO) {
+    public void uploadCallback(String flightId, FileUploadDTO fileUploadDTO) {
         try {
             String saveName = fileUploadDTO.getObjectKey().substring(fileUploadDTO.getObjectKey().lastIndexOf("/") + 1);
             MediaFileParam.MediaFileParamBuilder builder = MediaFileParam.builder();
@@ -54,7 +54,7 @@ public class MediaClient extends AbstractClient {
                 builder.type(MediaFileType.VIDEO.getCode());
             }
             MediaFileParam fileParam = builder
-                    .sortiesId(jobId)
+                    .sortiesId(flightId)
                     .aircraftSn(fileUploadDTO.getExt().getSn())
                     .filePath(OssConfiguration.objectDirPrefix + CharPool.SLASH + fileUploadDTO.getPath())
                     .fileName(saveName)

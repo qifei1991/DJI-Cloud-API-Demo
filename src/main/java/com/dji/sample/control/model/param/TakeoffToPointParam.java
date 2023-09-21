@@ -46,4 +46,6 @@ public class TakeoffToPointParam {
     @Range(min = 1, max = 15)
     @NotNull
     private Double maxSpeed;
+
+    private String username;
 }

@@ -4,6 +4,9 @@ import cn.hutool.core.date.DateUtil;
 import com.dji.sample.cloudapi.model.enums.WaylineType;
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
 import com.dji.sample.cloudapi.util.ClientUri;
+import com.dji.sample.control.model.dto.FlyToProgressReceiver;
+import com.dji.sample.control.model.dto.TakeoffProgressReceiver;
+import com.dji.sample.control.model.param.TakeoffToPointParam;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
@@ -45,7 +48,7 @@ public class FlightTaskClient extends AbstractClient {
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
                 .build();
-        obtainDroneSn(job, recordParam);
+        obtainDroneSn(job.getDockSn(), recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
     }
 
@@ -62,13 +65,13 @@ public class FlightTaskClient extends AbstractClient {
                 .state(job.getStatus())
                 .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .build();
-        obtainDroneSn(job, recordParam);
+        obtainDroneSn(job.getDockSn(), recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
-    private void obtainDroneSn(WaylineJobDTO job, SortiesRecordParam recordParam) {
+    private void obtainDroneSn(String dockSn, SortiesRecordParam recordParam) {
         // Set the drone sn that shoots the media
-        Optional<DeviceDTO> dockDTO = deviceService.getDeviceBySn(job.getDockSn());
+        Optional<DeviceDTO> dockDTO = deviceService.getDeviceBySn(dockSn);
         dockDTO.ifPresent(deviceDTO -> recordParam.setAircraftSn(deviceDTO.getChildDeviceSn()));
     }
 
@@ -80,6 +83,40 @@ public class FlightTaskClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void flightTaskProgress(String jobId, WaylineTaskProgressReceiver progressReceiver) {
         this.applicationJsonPost(ClientUri.URI_SORTIES_PROGRESS, progressReceiver, jobId);
+    }
+
+    public void startTakeoffTo(String dockSn, TakeoffToPointParam params) {
+        SortiesRecordParam recordParam = SortiesRecordParam.builder()
+                .sortiesId(params.getFlightId())
+                .name(String.format("手控飞行-%d", System.currentTimeMillis()))
+                .state(0)
+                .flightType(WaylineType.Unknown.getFlightType())
+                .startTime(DateUtil.now())
+                .peekHeight(params.getSecurityTakeoffHeight())
+                .userName(params.getUsername())
+                .build();
+        obtainDroneSn(dockSn, recordParam);
+        this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
+    }
+
+    public void finishTakeoffTo(String dockSn, TakeoffProgressReceiver receiver) {
+        SortiesRecordParam recordParam = SortiesRecordParam.builder()
+                .sortiesId(receiver.getFlightId())
+                .state(2)
+                .endTime(DateUtil.now())
+                .build();
+        obtainDroneSn(dockSn, recordParam);
+        this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
+    }
+
+    public void finishFlyTo(String dockSn, FlyToProgressReceiver receiver) {
+        SortiesRecordParam recordParam = SortiesRecordParam.builder()
+                .sortiesId(receiver.getFlyToId())
+                .state(2)
+                .endTime(DateUtil.now())
+                .build();
+        obtainDroneSn(dockSn, recordParam);
+        this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
 }

@@ -110,29 +110,35 @@ public class MediaServiceImpl implements IMediaService {
             return null;
         }
 
-        String jobId = callback.getFile().getExt().getFlightId();
+        String flightId = callback.getFile().getExt().getFlightId();
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(receiver.getGateway());
-        MediaFileCountDTO mediaFileCount = (MediaFileCountDTO) RedisOpsUtils.hashGet(RedisConst.MEDIA_FILE_PREFIX + receiver.getGateway(), jobId);
+        MediaFileCountDTO mediaFileCount = (MediaFileCountDTO) RedisOpsUtils.hashGet(RedisConst.MEDIA_FILE_PREFIX + receiver.getGateway(), flightId);
         // duplicate data
-        if (deviceOpt.isEmpty()
-                || (Objects.nonNull(mediaFileCount) && receiver.getBid().equals(mediaFileCount.getBid())
-                && receiver.getTid().equals(mediaFileCount.getTid()))) {
+        if (deviceOpt.isEmpty() || (Objects.nonNull(mediaFileCount)
+                && receiver.getBid().equals(mediaFileCount.getBid()) && receiver.getTid().equals(mediaFileCount.getTid()))) {
             return receiver;
         }
 
-
         DeviceDTO device = deviceOpt.get();
-        Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(device.getWorkspaceId(), jobId);
+        Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(device.getWorkspaceId(), flightId);
+        Boolean isSave;
+        // handle the plan flight media file.
         if (jobOpt.isPresent()) {
-            boolean isSave = parseMediaFile(callback, jobOpt.get());
-            if (!isSave) {
-                log.error("Failed to save the file to the database, please check the data manually.");
-                return null;
-            }
+            callback.getFile().getExt().setSn(device.getChildDeviceSn());
+            isSave = parseMediaFile(callback, jobOpt.get());
+        } else {
+            // handle the manual flight media file, modify by Qfei, 2023-9-13 14:45:45.
+            isSave = parseMediaFile(callback, device.getWorkspaceId(), flightId);
+        }
+        if (!isSave) {
+            log.error("Failed to save the file to the database, please check the data manually.");
+            return null;
         }
 
-        notifyUploadedCount(mediaFileCount, receiver, jobId, device);
+        if (Objects.nonNull(mediaFileCount)) {
+            notifyUploadedCount(mediaFileCount, receiver, flightId, device);
+        }
         return receiver;
     }
 
@@ -144,9 +150,9 @@ public class MediaServiceImpl implements IMediaService {
      */
     private void notifyUploadedCount(MediaFileCountDTO mediaFileCount, CommonTopicReceiver receiver, String jobId, DeviceDTO dock) {
         // Do not notify when files that do not belong to the route are uploaded.
-        if (Objects.isNull(mediaFileCount)) {
+        /*if (Objects.isNull(mediaFileCount)) {
             return;
-        }
+        }*/
         mediaFileCount.setBid(receiver.getBid());
         mediaFileCount.setTid(receiver.getTid());
         mediaFileCount.setUploadedCount(mediaFileCount.getUploadedCount() + 1);
@@ -177,10 +183,21 @@ public class MediaServiceImpl implements IMediaService {
         this.mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
     }
 
+    private Boolean parseMediaFile(FileUploadCallback callback, String workspaceId, String flightId) {
+
+        // set path
+        String objectKey = callback.getFile().getObjectKey();
+        callback.getFile().setPath(objectKey.substring(objectKey.indexOf("/") + 1, objectKey.lastIndexOf("/")));
+
+        Integer integer = fileService.saveFile(workspaceId, callback.getFile());
+
+        // add by Qfei, File-upload callback.
+        this.mediaClient.uploadCallback(flightId, callback.getFile());
+
+        return integer > 0;
+    }
+
     private Boolean parseMediaFile(FileUploadCallback callback, WaylineJobDTO job) {
-        // Set the drone sn that shoots the media
-        Optional<DeviceDTO> dockDTO = deviceService.getDeviceBySn(job.getDockSn());
-        dockDTO.ifPresent(dock -> callback.getFile().getExt().setSn(dock.getChildDeviceSn()));
 
         // set path
         String objectKey = callback.getFile().getObjectKey();

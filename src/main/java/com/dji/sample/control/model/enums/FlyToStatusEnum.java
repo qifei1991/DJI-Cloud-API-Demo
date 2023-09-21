@@ -3,6 +3,7 @@ package com.dji.sample.control.model.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author sean
@@ -35,5 +36,9 @@ public enum FlyToStatusEnum {
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static FlyToStatusEnum find(String status) {
         return Arrays.stream(values()).filter(statusEnum -> statusEnum.status.equals(status)).findAny().get();
+    }
+
+    public static boolean endCheck(FlyToStatusEnum statusEnum) {
+        return List.of(WAYLINE_OK, WAYLINE_CANCEL).contains(statusEnum);
     }
 }

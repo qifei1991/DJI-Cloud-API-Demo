@@ -22,6 +22,11 @@ public class DockOsdParam {
     private Double longitude;
     private Double latitude;
     /**
+     * 椭球高度
+     */
+    private Double height;
+
+    /**
      * 机场状态，{"0":"空闲中","1":"现场调试","2":"远程调试","3":"固件升级中","4":"作业中"}
      */
     private DockModeCodeEnum modelCode;

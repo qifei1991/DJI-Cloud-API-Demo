@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -126,13 +125,11 @@ public class DeviceOsdStateClient extends AbstractClient {
         OsdDockReceiver data = (OsdDockReceiver) RedisOpsUtils.get(RedisConst.OSD_PREFIX + sn);
         BeanUtil.copyProperties(receiver, data, CopyOptions.create().setIgnoreNullValue(true));
 
-        if (Objects.isNull(data.getModeCode())) {
-            return;
-        }
         DockOsdParam.DockOsdParamBuilder builder = DockOsdParam.builder()
                 .sn(sn)
                 .longitude(data.getLongitude())
                 .latitude(data.getLatitude())
+                .height(data.getHeight())
                 .modelCode(data.getModeCode())
                 .coverState(data.getCoverState())
                 .putterState(data.getPutterState())
