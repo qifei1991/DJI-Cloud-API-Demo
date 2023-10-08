@@ -138,6 +138,14 @@ public class MediaServiceImpl implements IMediaService {
 
         if (Objects.nonNull(mediaFileCount)) {
             notifyUploadedCount(mediaFileCount, receiver, flightId, device);
+        } else {
+            // add by Qfei, 手动飞行媒体文件上传.
+            mediaFileCount = MediaFileCountDTO.builder()
+                    .bid(receiver.getBid())
+                    .tid(receiver.getTid())
+                    .mediaCount(0)
+                    .build();
+            this.mediaClient.reportMediaUploadProgress(flightId, mediaFileCount);
         }
         return receiver;
     }
