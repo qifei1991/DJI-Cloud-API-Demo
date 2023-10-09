@@ -121,16 +121,13 @@ public class MediaServiceImpl implements IMediaService {
         }
 
         DeviceDTO device = deviceOpt.get();
+        callback.getFile().getExt().setSn(device.getChildDeviceSn());
         Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(device.getWorkspaceId(), flightId);
-        Boolean isSave;
+
         // handle the plan flight media file.
-        if (jobOpt.isPresent()) {
-            callback.getFile().getExt().setSn(device.getChildDeviceSn());
-            isSave = parseMediaFile(callback, jobOpt.get());
-        } else {
-            // handle the manual flight media file, modify by Qfei, 2023-9-13 14:45:45.
-            isSave = parseMediaFile(callback, device.getWorkspaceId(), flightId);
-        }
+        Boolean isSave = jobOpt.map(waylineJobDTO -> parseMediaFile(callback, waylineJobDTO))
+                // handle the manual flight media file, modify by Qfei, 2023-9-13 14:45:45.
+                .orElseGet(() -> parseMediaFile(callback, device.getWorkspaceId(), flightId));
         if (!isSave) {
             log.error("Failed to save the file to the database, please check the data manually.");
             return null;
