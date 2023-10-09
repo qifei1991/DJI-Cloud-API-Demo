@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.client;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.dji.sample.cloudapi.model.enums.WaylineType;
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -88,7 +90,7 @@ public class FlightTaskClient extends AbstractClient {
     public void startTakeoffTo(String dockSn, TakeoffToPointParam params) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(params.getFlightId())
-                .name(String.format("手控飞行-%d", System.currentTimeMillis()))
+                .name(String.format("手控飞行-%s", DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_PATTERN)))
                 .state(0)
                 .flightType(WaylineType.Unknown.getFlightType())
                 .startTime(DateUtil.now())
