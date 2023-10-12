@@ -146,6 +146,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         jobEntity.setParentId(parentId);
 
         if (continuable) {
+            jobEntity.setName(jobEntity.getName() + "_续飞");
             long beginTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             jobEntity.setBeginTime(beginTime);
             jobEntity.setEndTime(beginTime);
