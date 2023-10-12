@@ -38,6 +38,7 @@ public class MqttTopicServiceImpl implements IMqttTopicService {
         adapter.removeTopic(topic);
     }
 
+    @Override
     public String[] getSubscribedTopic() {
         return adapter.getTopic();
     }

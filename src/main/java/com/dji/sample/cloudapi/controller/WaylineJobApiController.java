@@ -4,13 +4,14 @@ import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.common.model.PaginationData;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.enums.WaylineTaskStatusEnum;
 import com.dji.sample.wayline.model.param.CreateJobParam;
+import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -53,11 +54,10 @@ public class WaylineJobApiController {
      * @param param
      * @param workspaceId
      * @return
-     * @throws SQLException
      */
     @PostMapping("/{workspace_id}/jobs")
     public ResponseResult publishCreateJob(@Valid @RequestBody CreateJobParam param,
-            @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
+            @PathVariable(name = "workspace_id") String workspaceId) {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);
         customClaim.setUsername(param.getUsername());
@@ -99,5 +99,17 @@ public class WaylineJobApiController {
     public ResponseResult<WaylineJobDTO> getDockExecutingJob(@PathVariable("workspace_id") String workspaceId,
             @PathVariable("dock_sn") String dockSn) {
         return ResponseResult.success(this.waylineJobService.getDockExecutingJob(workspaceId, dockSn).orElse(null));
+    }
+
+    @PutMapping("/{workspace_id}/jobs/{job_id}")
+    public ResponseResult updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
+            @PathVariable(name = "job_id") String jobId,
+            @Valid @RequestBody UpdateJobParam param) {
+
+        if (param.getStatus() == WaylineTaskStatusEnum.BREAK_POINT_CONTINUE) {
+            return waylineJobService.breakPointContinueFlight(workspaceId, jobId);
+        }
+        waylineJobService.updateJobStatus(workspaceId, jobId, param);
+        return ResponseResult.success();
     }
 }

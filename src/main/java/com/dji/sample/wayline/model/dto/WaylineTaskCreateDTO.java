@@ -35,4 +35,6 @@ public class WaylineTaskCreateDTO {
     private WaylineTaskReadyConditionDTO readyConditions;
 
     private WaylineTaskExecutableConditionDTO executableConditions;
+
+    private WaylineTaskBreakPoint breakPoint;
 }

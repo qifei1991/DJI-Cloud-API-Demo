@@ -5,6 +5,7 @@ import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineJobKey;
+import com.dji.sample.wayline.model.dto.WaylineTaskBreakPointReceiver;
 import com.dji.sample.wayline.model.dto.WaylineTaskProgressReceiver;
 import com.dji.sample.wayline.service.IWaylineRedisService;
 import org.springframework.stereotype.Service;
@@ -114,4 +115,20 @@ public class WaylineRedisServiceImpl implements IWaylineRedisService {
     public Boolean removePreparedWaylineJob(WaylineJobKey jobKey) {
         return RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_PREPARED, jobKey.getKey());
     }
+
+    @Override
+    public void setBreakPointReceiver(String jobId, WaylineTaskBreakPointReceiver breakPointReceiver) {
+        RedisOpsUtils.set(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId, breakPointReceiver);
+    }
+
+    @Override
+    public Optional<WaylineTaskBreakPointReceiver> getBreakPointReceiver(String jobId) {
+        return Optional.ofNullable((WaylineTaskBreakPointReceiver) RedisOpsUtils.get(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId));
+    }
+
+    @Override
+    public Boolean delBreakPointReceiver(String jobId) {
+        return RedisOpsUtils.del(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId);
+    }
+
 }

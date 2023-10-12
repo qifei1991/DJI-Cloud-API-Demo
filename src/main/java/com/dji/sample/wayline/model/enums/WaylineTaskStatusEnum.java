@@ -9,7 +9,19 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum WaylineTaskStatusEnum {
 
-    PAUSE, RESUME;
+    /**
+     * 暂停
+     */
+    PAUSE,
+    /**
+     * 恢复
+     */
+    RESUME,
+    /**
+     * 断点续飞
+     * modify by Qfei at 2023-10-10 14:40:39
+     */
+    BREAK_POINT_CONTINUE;
 
     @JsonValue
     public int getVal() {

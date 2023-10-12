@@ -6,7 +6,6 @@ import com.dji.sample.wayline.model.param.WaylineQueryParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +38,7 @@ public interface IWaylineFileService {
      * @param waylineId
      * @return
      */
-    URL getObjectUrl(String workspaceId, String waylineId) throws SQLException;
+    URL getObjectUrl(String workspaceId, String waylineId);
 
     /**
      * Save the basic information of the wayline file.

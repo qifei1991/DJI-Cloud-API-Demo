@@ -4,6 +4,7 @@ import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.common.model.PaginationData;
 import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.enums.WaylineTaskStatusEnum;
 import com.dji.sample.wayline.model.param.CreateJobParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sample.wayline.service.IWaylineJobService;
@@ -74,11 +75,10 @@ public class WaylineJobController {
      * @param jobIds
      * @param workspaceId
      * @return
-     * @throws SQLException
      */
     @DeleteMapping("/{workspace_id}/jobs")
     public ResponseResult publishCancelJob(@RequestParam(name = "job_id") Set<String> jobIds,
-                                     @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
+                                     @PathVariable(name = "workspace_id") String workspaceId) {
         waylineJobService.cancelFlightTask(workspaceId, jobIds);
         return ResponseResult.success();
     }
@@ -100,6 +100,10 @@ public class WaylineJobController {
     public ResponseResult updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
                                           @PathVariable(name = "job_id") String jobId,
                                           @Valid @RequestBody UpdateJobParam param) {
+
+        if (param.getStatus() == WaylineTaskStatusEnum.BREAK_POINT_CONTINUE) {
+            return waylineJobService.breakPointContinueFlight(workspaceId, jobId);
+        }
         waylineJobService.updateJobStatus(workspaceId, jobId, param);
         return ResponseResult.success();
     }

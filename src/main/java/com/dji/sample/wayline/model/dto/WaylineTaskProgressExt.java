@@ -17,4 +17,6 @@ public class WaylineTaskProgressExt {
     private String flightId;
 
     private String trackId;
+
+    private WaylineTaskBreakPointReceiver breakPoint;
 }

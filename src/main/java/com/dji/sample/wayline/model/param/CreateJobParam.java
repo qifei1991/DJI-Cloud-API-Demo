@@ -54,4 +54,9 @@ public class CreateJobParam {
     private List<Long> taskDays;
 
     private List<List<Long>> taskPeriods;
+
+    /**
+     * 能否断点续飞
+     */
+    private Boolean continuable;
 }

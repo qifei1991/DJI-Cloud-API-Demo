@@ -44,13 +44,11 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -108,6 +106,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (Objects.isNull(param)) {
             return Optional.empty();
         }
+        String jobId = UUID.randomUUID().toString();
         // Immediate tasks, allocating time on the backend.
         WaylineJobEntity jobEntity = WaylineJobEntity.builder()
                 .name(param.getName())
@@ -115,7 +114,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .fileId(param.getFileId())
                 .username(username)
                 .workspaceId(workspaceId)
-                .jobId(UUID.randomUUID().toString())
+                .jobId(jobId)
                 .beginTime(beginTime)
                 .endTime(endTime)
                 .status(WaylineJobStatusEnum.PENDING.getVal())
@@ -124,13 +123,16 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .outOfControlAction(param.getOutOfControlAction())
                 .rthAltitude(param.getRthAltitude())
                 .mediaCount(0)
+                // modify by Qfei, 2023-10-10 18:56:22, 新建的任务，将jobId作为groupId.
+                .groupId(jobId)
+                .continuable(param.getContinuable())
                 .build();
 
         return insertWaylineJob(jobEntity);
     }
 
     @Override
-    public Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId) {
+    public Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId, Boolean continuable) {
         Optional<WaylineJobDTO> parentJobOpt = this.getJobByJobId(workspaceId, parentId);
         if (parentJobOpt.isEmpty()) {
             return Optional.empty();
@@ -142,6 +144,13 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         jobEntity.setExecuteTime(null);
         jobEntity.setStatus(WaylineJobStatusEnum.PENDING.getVal());
         jobEntity.setParentId(parentId);
+
+        if (continuable) {
+            long beginTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            jobEntity.setBeginTime(beginTime);
+            jobEntity.setEndTime(beginTime);
+            jobEntity.setMediaCount(0);
+        }
 
         return this.insertWaylineJob(jobEntity);
     }
@@ -160,7 +169,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
-    public ResponseResult publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException {
+    public ResponseResult publishFlightTask(CreateJobParam param, CustomClaim customClaim) {
         fillImmediateTime(param);
 
         param.getTaskDays().sort((a, b) -> (int) (a - b));
@@ -216,25 +225,25 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         }
     }
 
-    public ResponseResult publishOneFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    @Override
+    public ResponseResult publishOneFlightTask(WaylineJobDTO waylineJob) {
 
         boolean isSuccess = this.prepareFlightTask(waylineJob);
         if (!isSuccess) {
-            return ResponseResult.error("Failed to prepare job.");
+            return ResponseResult.error("飞行任务下发准备失败.");
         }
 
         // Issue an immediate task execution command.
         if (WaylineTaskTypeEnum.IMMEDIATE == waylineJob.getTaskType()) {
             boolean isExecuted = executeFlightTask(waylineJob.getWorkspaceId(), waylineJob.getJobId());
             if (!isExecuted) {
-                return ResponseResult.error("Failed to execute job.");
+                return ResponseResult.error("飞行任务执行失败.");
             }
         }
-
         return ResponseResult.success();
     }
 
-    private Boolean prepareFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    private Boolean prepareFlightTask(WaylineJobDTO waylineJob) {
 
         boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
         if (!isOnline) {
@@ -244,7 +253,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         // get wayline file
         Optional<WaylineFileDTO> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
         if (waylineFile.isEmpty()) {
-            throw new SQLException("Wayline file doesn't exist.");
+            throw new RuntimeException("Wayline file doesn't exist.");
         }
 
         // get file url
@@ -265,10 +274,15 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
         if (WaylineTaskTypeEnum.CONDITION == waylineJob.getTaskType()) {
             if (Objects.isNull(waylineJob.getConditions())) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("当前任务无法获取执行的条件");
             }
             flightTask.setReadyConditions(waylineJob.getConditions().getReadyConditions());
             flightTask.setExecutableConditions(waylineJob.getConditions().getExecutableConditions());
+        }
+
+        // modify by Qfei, 2023-10-11 10:31:44
+        if (waylineJob.getContinuable() && StringUtils.hasText(waylineJob.getParentId())) {
+            flightTask.setBreakPoint(waylineJob.getBreakPoint());
         }
 
         ServiceReply serviceReply = messageSender.publishServicesTopic(
@@ -292,12 +306,12 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         // get job
         Optional<WaylineJobDTO> waylineJob = this.getJobByJobId(workspaceId, jobId);
         if (waylineJob.isEmpty()) {
-            throw new IllegalArgumentException("Job doesn't exist.");
+            throw new IllegalArgumentException("飞行任务不存在.");
         }
 
         boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.get().getDockSn());
         if (!isOnline) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线状态，执行失败.");
         }
 
         WaylineJobDTO job = waylineJob.get();
@@ -350,9 +364,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .collect(Collectors.groupingBy(WaylineJobDTO::getDockSn,
                         Collectors.mapping(WaylineJobDTO::getJobId, Collectors.toList())));
         dockJobs.forEach((dockSn, idList) -> this.publishCancelTask(workspaceId, dockSn, idList));
-
     }
 
+    @Override
     public void publishCancelTask(String workspaceId, String dockSn, List<String> jobIds) {
         boolean isOnline = deviceRedisService.checkDeviceOnline(dockSn);
         if (!isOnline) {
@@ -374,9 +388,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                     .completedTime(LocalDateTime.now())
                     .build());
         }
-
     }
 
+    @Override
     public List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, WaylineJobStatusEnum status) {
         return mapper.selectList(
                 new LambdaQueryWrapper<WaylineJobEntity>()
@@ -448,7 +462,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     @Override
     @ServiceActivator(inputChannel = ChannelName.INBOUND_REQUESTS_FLIGHT_TASK_RESOURCE_GET, outputChannel = ChannelName.OUTBOUND)
-    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+//    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void flightTaskResourceGet(CommonTopicReceiver receiver, MessageHeaders headers) {
         Map<String, String> jobIdMap = objectMapper.convertValue(receiver.getData(), new TypeReference<Map<String, String>>() {});
         String jobId = jobIdMap.get(MapKeyConst.FLIGHT_ID);
@@ -493,7 +507,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                             .build())
                     .build()));
 
-        } catch (SQLException | NullPointerException e) {
+        } catch (NullPointerException e) {
             e.printStackTrace();
             builder.data(RequestsReply.error(CommonErrorEnum.ILLEGAL_ARGUMENT));
             messageSender.publish(topic, builder.build());
@@ -555,6 +569,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .rthAltitude(dto.getRthAltitude())
                 .outOfControlAction(dto.getOutOfControlAction())
                 .parentId(dto.getParentId())
+                .groupId(dto.getGroupId())
+                .continuable(dto.getContinuable())
                 .build();
     }
 
@@ -569,7 +585,6 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (statusEnum.getEnd() || WaylineJobStatusEnum.PENDING == statusEnum) {
             throw new RuntimeException("The wayline job status does not match, and the operation cannot be performed.");
         }
-
         switch (param.getStatus()) {
             case PAUSE:
                 pauseJob(workspaceId, waylineJob.getDockSn(), jobId, statusEnum);
@@ -577,10 +592,53 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
             case RESUME:
                 resumeJob(workspaceId, waylineJob.getDockSn(), jobId, statusEnum);
                 break;
+            default:
+                throw new IllegalArgumentException("更新任务失败");
         }
-
     }
 
+    @Override
+    public ResponseResult breakPointContinueFlight(String workspaceId, String jobId) {
+
+        Optional<WaylineTaskBreakPointReceiver> breakPointReceiver = waylineRedisService.getBreakPointReceiver(jobId);
+        if (breakPointReceiver.isEmpty()) {
+            return ResponseResult.error("无法获取航线断点信息，无法继续飞行。");
+        }
+        Optional<WaylineJobDTO> waylineJob = createWaylineJobByParent(workspaceId, jobId, true);
+        if (waylineJob.isEmpty()) {
+            return ResponseResult.error("创建断点飞行任务失败。");
+        }
+
+        if (!this.prepareFlightTask(waylineJob.get())) {
+            deleteJob(workspaceId, jobId);
+            return ResponseResult.error("飞行任务下发失败。");
+        }
+        // Issue an immediate task execution command.
+        if (!executeFlightTask(waylineJob.get().getWorkspaceId(), waylineJob.get().getJobId())) {
+            // 断点续飞任务如果失败,删除重新从父节点下发继续飞行的任务
+            deleteJob(workspaceId, jobId);
+            return ResponseResult.error("飞行任务执行失败。");
+        }
+        // 执行成功，需要将父节点任务执行状态修改为ok
+        this.updateJob(WaylineJobDTO.builder()
+                .workspaceId(workspaceId)
+                .jobId(waylineJob.get().getParentId())
+                .status(WaylineJobStatusEnum.SUCCESS.getVal())
+                .completedTime(LocalDateTime.now())
+                .build());
+
+        return ResponseResult.success();
+    }
+
+    private void deleteJob(String workspaceId, String jobId) {
+        this.mapper.delete(
+                new LambdaQueryWrapper<WaylineJobEntity>()
+                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(WaylineJobEntity::getJobId, jobId));
+    }
+
+
+    @Override
     public WaylineJobStatusEnum getWaylineState(String dockSn) {
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty() || !StringUtils.hasText(dockOpt.get().getChildDeviceSn())) {
@@ -674,7 +732,10 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .waylineType(WaylineTemplateTypeEnum.find(entity.getWaylineType()))
                 .rthAltitude(entity.getRthAltitude())
                 .outOfControlAction(entity.getOutOfControlAction())
-                .mediaCount(entity.getMediaCount());
+                .mediaCount(entity.getMediaCount())
+                .parentId(entity.getParentId())
+                .groupId(entity.getGroupId())
+                .continuable(entity.getContinuable());
 
         if (Objects.nonNull(entity.getEndTime())) {
             builder.endTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getEndTime()), ZoneId.systemDefault()));
@@ -687,6 +748,18 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                     .orElse(null));
         }
 
+        // modify by Qfei, 2023-10-11 09:50:15
+        if (StringUtils.hasText(entity.getParentId()) && entity.getContinuable()) {
+            Optional<WaylineTaskBreakPointReceiver> breakPointReceiver = waylineRedisService.getBreakPointReceiver(entity.getParentId());
+            breakPointReceiver.ifPresent(x -> builder.breakPoint(
+                    WaylineTaskBreakPoint.builder()
+                            .index(x.getIndex())
+                            .state(x.getState())
+                            .progress(x.getProgress())
+                            .waylineId(x.getWaylineId())
+                            .build()));
+        }
+
         if (entity.getMediaCount() == 0) {
             return builder.build();
         }
@@ -697,7 +770,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         Object mediaFileCount = RedisOpsUtils.hashGet(countKey, entity.getJobId());
         if (Objects.nonNull(mediaFileCount)) {
             builder.uploadedCount(((MediaFileCountDTO) mediaFileCount).getUploadedCount())
-                    .uploading(RedisOpsUtils.checkExist(key) && entity.getJobId().equals(((MediaFileCountDTO)RedisOpsUtils.get(key)).getJobId()));
+                   .uploading(RedisOpsUtils.checkExist(key) && entity.getJobId().equals(((MediaFileCountDTO)RedisOpsUtils.get(key)).getJobId()));
             return builder.build();
         }
 

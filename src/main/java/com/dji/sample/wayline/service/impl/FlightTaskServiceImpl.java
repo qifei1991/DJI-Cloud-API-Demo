@@ -15,6 +15,7 @@ import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineJobKey;
+import com.dji.sample.wayline.model.dto.WaylineTaskProgressExt;
 import com.dji.sample.wayline.model.dto.WaylineTaskProgressReceiver;
 import com.dji.sample.wayline.model.enums.WaylineJobStatusEnum;
 import com.dji.sample.wayline.model.enums.WaylineTaskTypeEnum;
@@ -96,7 +97,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         }
 
         if (statusEnum.getEnd()) {
-            handleEndStatus(receiver, statusEnum, output.getExt().getMediaCount(), eventsReceiver.getResult(), deviceOpt.get());
+            handleEndStatus(receiver, statusEnum, eventsReceiver, deviceOpt.get());
         }
 
         websocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
@@ -108,13 +109,15 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         return receiver;
     }
 
-    private void handleEndStatus(CommonTopicReceiver receiver, EventsResultStatusEnum statusEnum, int mediaCount, int code, DeviceDTO dock) {
+    private void handleEndStatus(CommonTopicReceiver receiver, EventsResultStatusEnum statusEnum,
+            EventsReceiver<WaylineTaskProgressReceiver> eventReceiver, DeviceDTO dock) {
 
+        WaylineTaskProgressExt ext = eventReceiver.getOutput().getExt();
         WaylineJobDTO job = WaylineJobDTO.builder()
                 .jobId(receiver.getBid())
                 .status(WaylineJobStatusEnum.SUCCESS.getVal())
                 .completedTime(LocalDateTime.now())
-                .mediaCount(mediaCount)
+                .mediaCount(ext.getMediaCount())
                 .build();
 
         // record the update of the media count.
@@ -124,7 +127,10 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         }
 
         if (EventsResultStatusEnum.OK != statusEnum) {
-            job.setCode(code);
+            log.info("Job status: {}, break point: {}", statusEnum.getDesc(), ext.getBreakPoint());
+            this.waylineRedisService.setBreakPointReceiver(receiver.getBid(), ext.getBreakPoint());
+
+            job.setCode(eventReceiver.getResult());
             job.setStatus(WaylineJobStatusEnum.FAILED.getVal());
         }
 
@@ -135,7 +141,17 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         waylineRedisService.delPausedWaylineJob(receiver.getBid());
         waylineRedisService.delBlockedWaylineJobId(receiver.getGateway());
 
+        Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(dock.getWorkspaceId(), receiver.getBid());
+
         // add by Qfei, report flight task end.
+        jobDTO.ifPresent(x -> {
+            // 如果执行的断点续飞任务，将Redis中存储的断点信息删除
+            if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
+                waylineRedisService.delBreakPointReceiver(x.getParentId());
+            }
+
+            job.setContinuable(x.getContinuable());
+        });
         this.flightTaskClient.flightTaskCompleted(job);
     }
 
@@ -275,9 +291,9 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
             return;
         }
 
-        Optional<WaylineJobDTO> childJobOpt = waylineJobService.createWaylineJobByParent(jobKey.getWorkspaceId(), jobKey.getJobId());
+        Optional<WaylineJobDTO> childJobOpt = waylineJobService.createWaylineJobByParent(jobKey.getWorkspaceId(), jobKey.getJobId(), false);
         if (childJobOpt.isEmpty()) {
-            log.error("Failed to create wayline job.");
+            log.error("Failed to create condition wayline job.");
             return;
         }
 

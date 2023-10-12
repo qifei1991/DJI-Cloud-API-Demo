@@ -37,9 +37,10 @@ public interface IWaylineJobService {
      * Create a sub-task based on the information of the parent task.
      * @param workspaceId
      * @param parentId
+     * @param continuable 是否断点续传类型
      * @return
      */
-    Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId);
+    Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId, Boolean continuable);
 
     /**
      * Issue wayline mission to the dock.
@@ -47,7 +48,7 @@ public interface IWaylineJobService {
      * @param customClaim   user info
      * @return
      */
-    ResponseResult publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException;
+    ResponseResult publishFlightTask(CreateJobParam param, CustomClaim customClaim);
 
     /**
      * Issue wayline mission to the dock.
@@ -55,7 +56,7 @@ public interface IWaylineJobService {
      * @return
      * @throws SQLException
      */
-    ResponseResult publishOneFlightTask(WaylineJobDTO waylineJob) throws SQLException;
+    ResponseResult publishOneFlightTask(WaylineJobDTO waylineJob);
 
     /**
      * Execute the task immediately.
@@ -136,6 +137,14 @@ public interface IWaylineJobService {
      * @param param
      */
     void updateJobStatus(String workspaceId, String jobId, UpdateJobParam param);
+
+    /**
+     * 断点续飞
+     * @param workspaceId 工作空间ID
+     * @param jobId 任务ID
+     * @return ResponseResult
+     */
+    ResponseResult breakPointContinueFlight(String workspaceId, String jobId);
 
     /**
      * Query the wayline execution status of the dock.

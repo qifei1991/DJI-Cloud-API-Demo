@@ -162,9 +162,6 @@ public class RedisOpsUtils {
      * @param value
      */
     public static void listRPush(String key, Object... value) {
-        if (value.length == 0) {
-            return;
-        }
         for (Object val : value) {
             redisTemplate.opsForList().rightPush(key, val);
         }

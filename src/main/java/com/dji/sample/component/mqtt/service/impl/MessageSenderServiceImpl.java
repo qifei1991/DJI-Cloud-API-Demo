@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,24 +32,27 @@ public class MessageSenderServiceImpl implements IMessageSenderService {
     @Autowired
     private ObjectMapper mapper;
 
+    @Override
     public void publish(String topic, CommonTopicResponse response) {
         this.publish(topic, 1, response);
     }
 
+    @Override
     public void publish(String topic, int qos, CommonTopicResponse response) {
         try {
-            log.info("send topic: {}, payload: {}", topic, response.toString());
+            log.info("send topic: {}, payload: {}", topic, new String(mapper.writeValueAsBytes(response), StandardCharsets.UTF_8));
             messageGateway.publish(topic, mapper.writeValueAsBytes(response), qos);
         } catch (JsonProcessingException e) {
-            log.info("Failed to publish the message. {}", response.toString());
-            e.printStackTrace();
+            log.error("Failed to publish the message. {}", response, e);
         }
     }
 
+    @Override
     public <T> T publishWithReply(Class<T> clazz, String topic, CommonTopicResponse response) {
         return this.publishWithReply(clazz, topic, response, 2);
     }
 
+    @Override
     public <T> T publishWithReply(Class<T> clazz, String topic, CommonTopicResponse response, int retryTime) {
         AtomicInteger time = new AtomicInteger(0);
         // Retry three times

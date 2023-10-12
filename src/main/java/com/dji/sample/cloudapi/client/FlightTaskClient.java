@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -41,6 +42,10 @@ public class FlightTaskClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void startFlightTask(WaylineJobDTO job) {
+        // 断点续飞的任务，不生成飞行记录
+        if (StringUtils.hasText(job.getParentId()) && job.getContinuable()) {
+            return;
+        }
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
                 .name(job.getJobName())
@@ -60,8 +65,10 @@ public class FlightTaskClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void flightTaskCompleted(WaylineJobDTO job) {
+
+        String sortiesId = job.getContinuable() ? job.getGroupId() : job.getJobId();
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
-                .sortiesId(job.getJobId())
+                .sortiesId(sortiesId)
                 .name(job.getJobName())
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())

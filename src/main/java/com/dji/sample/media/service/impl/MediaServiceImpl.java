@@ -211,7 +211,8 @@ public class MediaServiceImpl implements IMediaService {
         Integer integer = fileService.saveFile(job.getWorkspaceId(), callback.getFile());
 
         // add by Qfei, File-upload callback.
-        this.mediaClient.uploadCallback(job.getJobId(), callback.getFile());
+        String flightId = job.getContinuable() ? job.getGroupId() : job.getJobId();
+        this.mediaClient.uploadCallback(flightId, callback.getFile());
 
         return integer > 0;
     }

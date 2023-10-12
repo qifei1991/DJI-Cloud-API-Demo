@@ -67,4 +67,10 @@ public class WaylineJobDTO {
     private WaylineTaskConditionDTO conditions;
 
     private String parentId;
+
+    private String groupId;
+
+    private Boolean continuable;
+
+    private WaylineTaskBreakPoint breakPoint;
 }

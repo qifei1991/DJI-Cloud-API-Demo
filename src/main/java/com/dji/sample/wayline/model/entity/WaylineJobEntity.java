@@ -82,4 +82,13 @@ public class WaylineJobEntity implements Serializable {
 
     @TableField("parent_id")
     private String parentId;
+
+    @TableField("group_id")
+    private String groupId;
+
+    /**
+     * 能否断点续飞
+     */
+    @TableField("continuable")
+    private Boolean continuable;
 }

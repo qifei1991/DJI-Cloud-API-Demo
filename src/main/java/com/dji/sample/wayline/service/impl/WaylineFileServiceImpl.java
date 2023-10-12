@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -98,10 +97,10 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     }
 
     @Override
-    public URL getObjectUrl(String workspaceId, String waylineId) throws SQLException {
+    public URL getObjectUrl(String workspaceId, String waylineId) {
         Optional<WaylineFileDTO> waylineOpt = this.getWaylineByWaylineId(workspaceId, waylineId);
         if (waylineOpt.isEmpty()) {
-            throw new SQLException(waylineId + " does not exist.");
+            throw new IllegalArgumentException(waylineId + " does not exist.");
         }
         return ossService.getObjectUrl(OssConfiguration.bucket, waylineOpt.get().getObjectKey());
     }

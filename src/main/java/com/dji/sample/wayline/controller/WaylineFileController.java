@@ -7,6 +7,7 @@ import com.dji.sample.wayline.model.dto.WaylineFileDTO;
 import com.dji.sample.wayline.model.dto.WaylineFileUploadDTO;
 import com.dji.sample.wayline.model.param.WaylineQueryParam;
 import com.dji.sample.wayline.service.IWaylineFileService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +26,7 @@ import static com.dji.sample.component.AuthInterceptor.TOKEN_CLAIM;
  * @version 0.3
  * @date 2021/12/22
  */
+@Slf4j
 @RestController
 @RequestMapping("${url.wayline.prefix}${url.wayline.version}/workspaces")
 public class WaylineFileController {
@@ -75,9 +76,8 @@ public class WaylineFileController {
         try {
             URL url = waylineFileService.getObjectUrl(workspaceId, waylineId);
             response.sendRedirect(url.toString());
-
-        } catch (IOException | SQLException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            log.error("Error getting wayline file.", e);
         }
     }
 

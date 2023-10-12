@@ -3,6 +3,7 @@ package com.dji.sample.wayline.service;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineJobKey;
+import com.dji.sample.wayline.model.dto.WaylineTaskBreakPointReceiver;
 import com.dji.sample.wayline.model.dto.WaylineTaskProgressReceiver;
 
 import java.util.Optional;
@@ -123,4 +124,25 @@ public interface IWaylineRedisService {
      * @return
      */
     Boolean removePreparedWaylineJob(WaylineJobKey jobKey);
+
+    /**
+     * 保存航线任务断点信息到Redis中
+     * @param jobId 任务ID
+     * @param breakPointReceiver 断点信息对象
+     */
+    void setBreakPointReceiver(String jobId, WaylineTaskBreakPointReceiver breakPointReceiver);
+
+    /**
+     * 获取Redis中保存的任务断点信息
+     * @param jobId 任务ID
+     * @return 航线飞行进度的断点信息
+     */
+    Optional<WaylineTaskBreakPointReceiver> getBreakPointReceiver(String jobId);
+
+    /**
+     * 删除Redis中保存的任务断点信息
+     * @param jobId 任务ID
+     * @return 是否删除
+     */
+    Boolean delBreakPointReceiver(String jobId);
 }
