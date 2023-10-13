@@ -7,6 +7,7 @@ import com.dji.sample.cloudapi.model.enums.DeviceCategory;
 import com.dji.sample.cloudapi.model.param.*;
 import com.dji.sample.cloudapi.util.ApiUtil;
 import com.dji.sample.cloudapi.util.ClientUri;
+import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.manage.model.dto.DeviceDTO;
@@ -16,7 +17,8 @@ import com.dji.sample.manage.model.receiver.DockMediaFileDetailReceiver;
 import com.dji.sample.manage.model.receiver.OsdDockReceiver;
 import com.dji.sample.manage.model.receiver.OsdGatewayReceiver;
 import com.dji.sample.manage.model.receiver.OsdSubDeviceReceiver;
-import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.dto.WaylineTaskProgressReceiver;
+import com.dji.sample.wayline.service.IWaylineRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -38,6 +40,8 @@ import java.util.Optional;
 @EnableAsync
 @RequiredArgsConstructor
 public class DeviceOsdStateClient extends AbstractClient {
+
+    private final IWaylineRedisService waylineRedisService;
 
     @Async("asyncThreadPool")
     public void reportOnline(Optional<DeviceDTO> deviceDTOOptional) {
@@ -78,12 +82,16 @@ public class DeviceOsdStateClient extends AbstractClient {
 
     /**
      * Report the OSD information of drone.
-     * @param data OSD data of MQTT received.
-     * @param deviceSn drone SN
-     * @param jobOpt 飞行任务对象
+     *
+     * @param data     OSD data of MQTT received.
+     * @param deviceSn Drone SN
+     * @param dockSn Dock SN
      */
     @Async("asyncThreadPool")
-    public void reportDroneOsdInfo(OsdSubDeviceReceiver data, String deviceSn, Optional<WaylineJobDTO> jobOpt) {
+    public void reportDroneOsdInfo(OsdSubDeviceReceiver data, String deviceSn, String dockSn) {
+
+        // 根据网关SN查询是否是机场飞行任务, 赋值作业ID
+        Optional<EventsReceiver<WaylineTaskProgressReceiver>> runningJobOpt = waylineRedisService.getRunningWaylineJob(dockSn);
         AircraftOsdParam.AircraftOsdParamBuilder builder = AircraftOsdParam.builder()
                 .sn(deviceSn)
                 .firmwareVersion(data.getFirmwareVersion())
@@ -114,7 +122,7 @@ public class DeviceOsdStateClient extends AbstractClient {
                         .gimbalRoll(mainPayload.getGimbalRoll())
                         .gimbalYaw(mainPayload.getGimbalYaw()));
 
-        jobOpt.ifPresent(x -> builder.sortiesId(x.getJobId()));
+        runningJobOpt.ifPresent(x -> builder.sortiesId(x.getBid()));
 
         this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
     }

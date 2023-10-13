@@ -151,6 +151,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
             }
 
             job.setContinuable(x.getContinuable());
+            job.setGroupId(x.getGroupId());
         });
         this.flightTaskClient.flightTaskCompleted(job);
     }

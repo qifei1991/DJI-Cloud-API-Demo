@@ -46,4 +46,9 @@ public class SortiesRecordParam {
      * 执行人
      */
     private String userName;
+
+    /**
+     * 针对一个飞行数据多次飞行完成情况
+     */
+    private String groupId;
 }

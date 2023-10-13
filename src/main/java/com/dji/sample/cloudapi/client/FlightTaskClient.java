@@ -54,6 +54,7 @@ public class FlightTaskClient extends AbstractClient {
                 .flightType(WaylineType.getWaylineType(job.getWaylineType().getVal()).getFlightType())
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
+                .groupId(job.getGroupId())
                 .build();
         obtainDroneSn(job.getDockSn(), recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -66,13 +67,13 @@ public class FlightTaskClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void flightTaskCompleted(WaylineJobDTO job) {
 
-        String sortiesId = job.getContinuable() ? job.getGroupId() : job.getJobId();
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
-                .sortiesId(sortiesId)
+                .sortiesId(job.getJobId())
                 .name(job.getJobName())
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())
                 .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
+                .groupId(job.getGroupId())
                 .build();
         obtainDroneSn(job.getDockSn(), recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);

@@ -145,7 +145,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         jobEntity.setStatus(WaylineJobStatusEnum.PENDING.getVal());
         jobEntity.setParentId(parentId);
 
-        if (continuable) {
+        // 断点续飞
+        if (Boolean.TRUE.equals(continuable)) {
             jobEntity.setName(jobEntity.getName() + "_续飞");
             long beginTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             jobEntity.setBeginTime(beginTime);
@@ -625,7 +626,6 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .workspaceId(workspaceId)
                 .jobId(waylineJob.get().getParentId())
                 .status(WaylineJobStatusEnum.SUCCESS.getVal())
-                .completedTime(LocalDateTime.now())
                 .build());
 
         return ResponseResult.success();
