@@ -69,11 +69,11 @@ public class FlightTaskClient extends AbstractClient {
 
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
+                .groupId(job.getGroupId())
                 .name(job.getJobName())
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())
                 .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
-                .groupId(job.getGroupId())
                 .build();
         obtainDroneSn(job.getDockSn(), recordParam);
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
@@ -98,6 +98,7 @@ public class FlightTaskClient extends AbstractClient {
     public void startTakeoffTo(String dockSn, TakeoffToPointParam params) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(params.getFlightId())
+                .groupId(params.getFlightId())
                 .name(String.format("手控飞行-%s", DateUtil.format(LocalDateTime.now(), DatePattern.PURE_DATETIME_PATTERN)))
                 .state(0)
                 .flightType(WaylineType.Unknown.getFlightType())
@@ -112,6 +113,7 @@ public class FlightTaskClient extends AbstractClient {
     public void finishTakeoffTo(String dockSn, TakeoffProgressReceiver receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlightId())
+                .groupId(receiver.getFlightId())
                 .state(2)
                 .endTime(DateUtil.now())
                 .build();
@@ -122,6 +124,7 @@ public class FlightTaskClient extends AbstractClient {
     public void finishFlyTo(String dockSn, FlyToProgressReceiver receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlyToId())
+                .groupId(receiver.getFlyToId())
                 .state(2)
                 .endTime(DateUtil.now())
                 .build();

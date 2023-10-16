@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,7 +39,7 @@ public class MessageSenderServiceImpl implements IMessageSenderService {
     @Override
     public void publish(String topic, int qos, CommonTopicResponse response) {
         try {
-            log.info("send topic: {}, payload: {}", topic, new String(mapper.writeValueAsBytes(response), StandardCharsets.UTF_8));
+            log.info("send topic: {}, payload: {}", topic, response.toString());
             messageGateway.publish(topic, mapper.writeValueAsBytes(response), qos);
         } catch (JsonProcessingException e) {
             log.error("Failed to publish the message. {}", response, e);

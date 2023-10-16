@@ -249,13 +249,13 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
         boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
         if (!isOnline) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线，任务下发失败。");
         }
 
         // get wayline file
         Optional<WaylineFileDTO> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
         if (waylineFile.isEmpty()) {
-            throw new RuntimeException("Wayline file doesn't exist.");
+            throw new RuntimeException("无法获取飞行任务的航线文件，请查证。");
         }
 
         // get file url
@@ -276,7 +276,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
         if (WaylineTaskTypeEnum.CONDITION == waylineJob.getTaskType()) {
             if (Objects.isNull(waylineJob.getConditions())) {
-                throw new IllegalArgumentException("当前任务无法获取执行的条件");
+                throw new IllegalArgumentException("无法获取当前飞行任务的可执行条件。");
             }
             flightTask.setReadyConditions(waylineJob.getConditions().getReadyConditions());
             flightTask.setExecutableConditions(waylineJob.getConditions().getExecutableConditions());
