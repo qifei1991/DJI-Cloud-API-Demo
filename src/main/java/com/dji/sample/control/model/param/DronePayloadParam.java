@@ -4,6 +4,7 @@ import com.dji.sample.control.model.enums.CameraModeEnum;
 import com.dji.sample.control.model.enums.CameraTypeEnum;
 import com.dji.sample.control.model.enums.GimbalResetModeEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
@@ -14,8 +15,9 @@ import javax.validation.constraints.Pattern;
  * @version 1.4
  * @date 2023/3/1
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class DronePayloadParam {
+public class DronePayloadParam extends AuthorityBaseParam {
 
     @Pattern(regexp = "\\d+-\\d+-\\d+")
     @NotNull

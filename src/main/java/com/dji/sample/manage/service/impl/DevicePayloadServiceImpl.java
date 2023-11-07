@@ -204,14 +204,18 @@ public class DevicePayloadServiceImpl implements IDevicePayloadService {
 
     @Override
     public Boolean checkAuthorityPayload(String deviceSn, String payloadIndex) {
-        return deviceRedisService.getDeviceOnline(deviceSn).flatMap(device ->
-                Optional.of(DeviceDomainEnum.SUB_DEVICE.getVal() == device.getDomain()
-                        && !CollectionUtils.isEmpty(device.getPayloadsList())
-                        && ControlSourceEnum.A.getControlSource()
-                        .equals(device.getPayloadsList().stream()
-                                .filter(payload -> payloadIndex.equals(payload.getPayloadIndex()))
-                                .map(DevicePayloadDTO::getControlSource).findAny()
-                                .orElse(ControlSourceEnum.B.getControlSource())))).orElse(true);
+        return deviceRedisService.getDeviceOnline(deviceSn)
+                .flatMap(device -> Optional.of(
+                        DeviceDomainEnum.SUB_DEVICE.getVal() == device.getDomain()
+                                && !CollectionUtils.isEmpty(device.getPayloadsList())
+                                && ControlSourceEnum.A.getControlSource().equals(
+                                    device.getPayloadsList()
+                                            .stream()
+                                            .filter(payload -> payloadIndex.equals(payload.getPayloadIndex()))
+                                            .map(DevicePayloadDTO::getControlSource)
+                                            .findAny()
+                                            .orElse(ControlSourceEnum.B.getControlSource()))))
+                .orElse(true);
 
     }
 

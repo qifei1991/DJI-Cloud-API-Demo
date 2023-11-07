@@ -64,4 +64,6 @@ public final class RedisConst {
     public static final String DRONE_CONTROL_PREFiX = "control_source" + DELIMITER;
 
     public static final String WAYLINE_JOB_BREAKPOINT_PREFIX = "wayline_job_breakpoint" + DELIMITER;
+
+    public static final String DRC_AUTHORITY_PREFIX = DRC_PREFIX  + "authority" + DELIMITER;
 }

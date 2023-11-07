@@ -62,13 +62,31 @@ public interface IControlService {
     CommonTopicReceiver handleTakeoffToPointProgress(CommonTopicReceiver receiver, MessageHeaders headers);
 
     /**
-     * Seize the control authority of the drone or the payload control authority.
-     * @param sn
-     * @param authority
-     * @param param
-     * @return
+     * Check the control authority of the drone or the payload control authority.
+     * @param sn The dock sn.
+     * @param authority The authority device type.
+     * @param param Authority parameter.
+     * @return ResponseResult.
      */
-    ResponseResult seizeAuthority(String sn, DroneAuthorityEnum authority, DronePayloadParam param);
+    ResponseResult checkAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
+
+    /**
+     * Seize the control authority of the drone or the payload control authority.
+     * @param sn The dock sn.
+     * @param authority The authority device type.
+     * @param param Authority parameter.
+     * @return ResponseResult.
+     */
+    ResponseResult seizeAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
+
+    /**
+     * Release the control authority of the drone or the payload control authority.
+     * @param sn The dock sn.
+     * @param authority The authority device type.
+     * @param param Authority parameter.
+     * @return ResponseResult.
+     */
+    ResponseResult releaseAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
 
     /**
      * Control the payload of the drone.

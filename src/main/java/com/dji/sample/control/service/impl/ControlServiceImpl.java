@@ -1,5 +1,6 @@
 package com.dji.sample.control.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.ResponseResult;
@@ -16,9 +17,10 @@ import com.dji.sample.control.model.enums.*;
 import com.dji.sample.control.model.param.*;
 import com.dji.sample.control.service.IControlService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
-import com.dji.sample.manage.model.enums.DeviceModeCodeEnum;
-import com.dji.sample.manage.model.enums.DockModeCodeEnum;
-import com.dji.sample.manage.model.enums.UserTypeEnum;
+import com.dji.sample.manage.model.dto.DevicePayloadDTO;
+import com.dji.sample.manage.model.enums.*;
+import com.dji.sample.manage.model.receiver.OsdDockReceiver;
+import com.dji.sample.manage.model.receiver.OsdSubDeviceReceiver;
 import com.dji.sample.manage.service.IDevicePayloadService;
 import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.manage.service.IDeviceService;
@@ -30,10 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -279,17 +283,98 @@ public class ControlServiceImpl implements IControlService {
     }
 
     @Override
-    public ResponseResult seizeAuthority(String sn, DroneAuthorityEnum authority, DronePayloadParam param) {
+    public ResponseResult checkAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param) {
+        Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(sn);
+        if (dockOpt.isEmpty()) {
+            return ResponseResult.error(DrcAuthorityErrorEnum.DOCK_DISCONNECTED);
+        }
+
+        String key = RedisConst.DRC_AUTHORITY_PREFIX + sn + RedisConst.DELIMITER + authority.getVal();
+        Object id = RedisOpsUtils.hashGet(key, param.getId());
+        // 如果当前用户在控制列表中，直接返回true
+        if (Objects.nonNull(id)) {
+            return ResponseResult.success(true);
+        }
+
+        switch (authority) {
+            case FLIGHT:
+                return dockOpt.map(gateway -> {
+                    if (DeviceDomainEnum.DOCK.getVal() != gateway.getDomain() && DeviceDomainEnum.GATEWAY.getVal() != gateway.getDomain()) {
+                        return ResponseResult.error(CommonErrorEnum.ILLEGAL_ARGUMENT);
+                    }
+                    if (ControlSourceEnum.B.getControlSource().equals(gateway.getControlSource())) {
+                        return ResponseResult.error(DrcAuthorityErrorEnum.DRONE_CONTROL_B);
+                    }
+                    Set<Object> controlUsers = RedisOpsUtils.hashKeys(key);
+                    if (CollUtil.isNotEmpty(controlUsers)) {
+                        String osdKey = RedisConst.OSD_PREFIX + gateway.getDeviceSn();
+                        OsdDockReceiver osdData = (OsdDockReceiver) RedisOpsUtils.get(osdKey);
+                        if (DockModeCodeEnum.WORKING == osdData.getModeCode() || osdData.getDrcState() == DockDrcStateEnum.CONNECTING) {
+                            return ResponseResult.error(DrcAuthorityErrorEnum.DRONE_CONTROLLING);
+                        }
+                        return ResponseResult.error(DrcAuthorityErrorEnum.DRONE_CONTROLLED_RECENT);
+                    }
+                    return ResponseResult.success(true);
+                }).orElse(ResponseResult.success(true));
+            case PAYLOAD:
+                Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(dockOpt.get().getChildDeviceSn());
+                return deviceOpt.map(device -> {
+                    if (CollectionUtils.isEmpty(device.getPayloadsList())) {
+                        return ResponseResult.error(DrcAuthorityErrorEnum.PAYLOAD_MISSING);
+                    }
+                    Optional<DevicePayloadDTO> devicePayloadOpt = device.getPayloadsList()
+                            .stream()
+                            .filter(payload -> ((DronePayloadParam) param).getPayloadIndex().equals(payload.getPayloadIndex()))
+                            .findAny();
+                    if (devicePayloadOpt.isEmpty()) {
+                        return ResponseResult.error(DrcAuthorityErrorEnum.PAYLOAD_CANNOT_GET);
+                    }
+                    if (ControlSourceEnum.B.getControlSource().equals(devicePayloadOpt.get().getControlSource())) {
+                        return ResponseResult.error(DrcAuthorityErrorEnum.PAYLOAD_CONTROL_B);
+                    }
+                    Set<Object> controlUsers = RedisOpsUtils.hashKeys(key);
+                    if (CollUtil.isNotEmpty(controlUsers)) {
+                        String osdKey = RedisConst.OSD_PREFIX + device.getDeviceSn();
+                        OsdSubDeviceReceiver subDeviceOsdData = (OsdSubDeviceReceiver) RedisOpsUtils.get(osdKey);
+                        if (subDeviceOsdData.getModeCode().getVal() > DeviceModeCodeEnum.IDLE.getVal()
+                                && subDeviceOsdData.getModeCode().getVal() < DeviceModeCodeEnum.RETURN_AUTO.getVal()) {
+                            return ResponseResult.error(DrcAuthorityErrorEnum.PAYLOAD_CONTROLLING);
+                        }
+                        return ResponseResult.error(DrcAuthorityErrorEnum.PAYLOAD_CONTROLLED_RECENT);
+                    }
+                    return ResponseResult.success(true);
+                }).orElse(ResponseResult.success(true));
+            default:
+                return ResponseResult.error(CommonErrorEnum.ILLEGAL_ARGUMENT);
+        }
+    }
+
+    @Override
+    public ResponseResult releaseAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param) {
+        String key = RedisConst.DRC_AUTHORITY_PREFIX + sn + RedisConst.DELIMITER + authority.getVal();
+        RedisOpsUtils.hashDel(key, new Object[]{ param.getId() });
+        return ResponseResult.success();
+    }
+
+    @Override
+    public ResponseResult seizeAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param) {
+
+        Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(sn);
+        if (dockOpt.isEmpty()) {
+            return ResponseResult.error(DrcAuthorityErrorEnum.DOCK_DISCONNECTED);
+        }
         String method;
         switch (authority) {
             case FLIGHT:
                 if (deviceService.checkAuthorityFlight(sn)) {
+                    this.saveDrcAuthority(sn, authority, param);
                     return ResponseResult.success();
                 }
                 method = DroneControlMethodEnum.FLIGHT_AUTHORITY_GRAB.getMethod();
                 break;
             case PAYLOAD:
-                if (checkPayloadAuthority(sn, param.getPayloadIndex())) {
+                if (devicePayloadService.checkAuthorityPayload(dockOpt.get().getChildDeviceSn(), ((DronePayloadParam) param).getPayloadIndex())) {
+                    this.saveDrcAuthority(sn, authority, param);
                     return ResponseResult.success();
                 }
                 method = DroneControlMethodEnum.PAYLOAD_AUTHORITY_GRAB.getMethod();
@@ -298,19 +383,23 @@ public class ControlServiceImpl implements IControlService {
                 return ResponseResult.error(CommonErrorEnum.ILLEGAL_ARGUMENT);
         }
         ServiceReply serviceReply = messageSenderService.publishServicesTopic(sn, method, param);
-        return ResponseResult.CODE_SUCCESS != serviceReply.getResult() ?
-                ResponseResult.error(serviceReply.getResult(), "Method: " + method + " Error Code:" + serviceReply.getResult())
-                : ResponseResult.success();
-    }
 
-    private Boolean checkPayloadAuthority(String sn, String payloadIndex) {
-        Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(sn);
-        if (dockOpt.isEmpty()) {
-            throw new RuntimeException("The dock is offline, please restart the dock.");
+        log.info("Authority_reply: " + serviceReply);
+        if (ResponseResult.CODE_SUCCESS == serviceReply.getResult()) {
+            this.saveDrcAuthority(sn, authority, param);
+            return ResponseResult.success();
         }
-        return devicePayloadService.checkAuthorityPayload(dockOpt.get().getChildDeviceSn(), payloadIndex);
+        return ResponseResult.error(serviceReply.getResult(), "获取控制权失败, Method: " + method + " Error Code:" + serviceReply.getResult());
     }
 
+    private void saveDrcAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param) {
+        if (Objects.nonNull(param)) {
+            String key = RedisConst.DRC_AUTHORITY_PREFIX + sn + RedisConst.DELIMITER + authority.getVal();
+            log.info("Authority key: " + key);
+            RedisOpsUtils.hashSet(key, param.getId(), param.getUsername());
+            RedisOpsUtils.expireKey(key, RedisConst.DRC_MODE_ALIVE_SECOND);
+        }
+    }
 
     @Override
     public ResponseResult payloadCommands(PayloadCommandsParam param) throws Exception {

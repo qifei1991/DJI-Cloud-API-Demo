@@ -45,9 +45,25 @@ public class DockApiController {
         return controlService.takeoffToPoint(sn, param);
     }
 
+    @PostMapping("/{sn}/payload/commands")
+    public ResponseResult payloadCommands(@PathVariable String sn, @Valid @RequestBody PayloadCommandsParam param) throws Exception {
+        param.setSn(sn);
+        return controlService.payloadCommands(param);
+    }
+
+    @PostMapping("/{sn}/authority-check/flight")
+    public ResponseResult checkFlightAuthority(@PathVariable String sn, @RequestBody AuthorityBaseParam param) {
+        return controlService.checkAuthority(sn, DroneAuthorityEnum.FLIGHT, param);
+    }
+
+    @PostMapping("/{sn}/authority-check/payload")
+    public ResponseResult checkPayloadAuthority(@PathVariable String sn, @Valid @RequestBody DronePayloadParam param) {
+        return controlService.checkAuthority(sn, DroneAuthorityEnum.PAYLOAD, param);
+    }
+
     @PostMapping("/{sn}/authority/flight")
-    public ResponseResult seizeFlightAuthority(@PathVariable String sn) {
-        return controlService.seizeAuthority(sn, DroneAuthorityEnum.FLIGHT, null);
+    public ResponseResult seizeFlightAuthority(@PathVariable String sn, @RequestBody(required = false) AuthorityBaseParam param) {
+        return controlService.seizeAuthority(sn, DroneAuthorityEnum.FLIGHT, param);
     }
 
     @PostMapping("/{sn}/authority/payload")
@@ -55,9 +71,13 @@ public class DockApiController {
         return controlService.seizeAuthority(sn, DroneAuthorityEnum.PAYLOAD, param);
     }
 
-    @PostMapping("/{sn}/payload/commands")
-    public ResponseResult payloadCommands(@PathVariable String sn, @Valid @RequestBody PayloadCommandsParam param) throws Exception {
-        param.setSn(sn);
-        return controlService.payloadCommands(param);
+    @PostMapping("/{sn}/authority-release/flight")
+    public ResponseResult releaseFlightAuthority(@PathVariable String sn, @RequestBody AuthorityBaseParam param) {
+        return controlService.releaseAuthority(sn, DroneAuthorityEnum.FLIGHT, param);
+    }
+
+    @PostMapping("/{sn}/authority-release/payload")
+    public ResponseResult releasePayloadAuthority(@PathVariable String sn, @Valid @RequestBody DronePayloadParam param) {
+        return controlService.releaseAuthority(sn, DroneAuthorityEnum.PAYLOAD, param);
     }
 }

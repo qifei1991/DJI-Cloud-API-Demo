@@ -58,8 +58,8 @@ public abstract class PayloadCommandsHandler {
     }
 
     private void checkAuthority(String deviceSn) {
-        boolean hasAuthority = SpringBeanUtils.getBean(IDevicePayloadService.class)
-                .checkAuthorityPayload(deviceSn, param.getPayloadIndex());
+        boolean hasAuthority = SpringBeanUtils.getBean(IDevicePayloadService.class).checkAuthorityPayload(deviceSn,
+                param.getPayloadIndex());
         if (!hasAuthority) {
             throw new RuntimeException("The device does not have payload control authority.");
         }

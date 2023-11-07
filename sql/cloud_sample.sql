@@ -463,6 +463,8 @@ CREATE TABLE `wayline_job` (
   `create_time` bigint NOT NULL,
   `update_time` bigint NOT NULL,
   `parent_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+    `group_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL comment '飞行组，飞行记录ID',
+    `continuable` tinyint(1) NOT NULL COMMENT '能否断点续飞',
   PRIMARY KEY (`id`),
   UNIQUE KEY `job_id_UNIQUE` (`job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Wayline mission information of the dock.';
