@@ -87,14 +87,14 @@ public class ControlServiceImpl implements IControlService {
     public ResponseResult controlDockDebug(String sn, String serviceIdentifier, RemoteDebugParam param) {
         RemoteDebugMethodEnum controlMethodEnum = RemoteDebugMethodEnum.find(serviceIdentifier);
         if (RemoteDebugMethodEnum.UNKNOWN == controlMethodEnum) {
-            return ResponseResult.error("The " + serviceIdentifier + " method does not exist.");
+            return ResponseResult.error("调试方法[" + serviceIdentifier + "]不存在.");
         }
 
         RemoteDebugHandler data = checkDebugCondition(sn, param, controlMethodEnum);
 
         boolean isExist = deviceRedisService.checkDeviceOnline(sn);
         if (!isExist) {
-            return ResponseResult.error("The dock is offline.");
+            return ResponseResult.error("机场离线.");
         }
         String bid = UUID.randomUUID().toString();
         ServiceReply serviceReply = messageSenderService.publishServicesTopic(sn, serviceIdentifier, data, bid);
@@ -182,7 +182,7 @@ public class ControlServiceImpl implements IControlService {
         }
         ServiceReply reply = messageSenderService.publishServicesTopic(sn, DroneControlMethodEnum.FLY_TO_POINT.getMethod(), param, param.getFlyToId());
         return ResponseResult.CODE_SUCCESS != reply.getResult() ?
-                ResponseResult.error("Flying to the target point failed." + reply.getResult())
+                ResponseResult.error("飞机飞向目标点失败." + reply.getResult())
                 : ResponseResult.success();
     }
 
@@ -190,7 +190,7 @@ public class ControlServiceImpl implements IControlService {
     public ResponseResult flyToPointStop(String sn) {
         ServiceReply reply = messageSenderService.publishServicesTopic(sn, DroneControlMethodEnum.FLY_TO_POINT_STOP.getMethod(), null);
         return ResponseResult.CODE_SUCCESS != reply.getResult() ?
-                ResponseResult.error("The drone flying to the target point failed to stop. " + reply.getResult())
+                ResponseResult.error("飞机停止飞向目标点失败. " + reply.getResult())
                 : ResponseResult.success();
     }
 
@@ -225,7 +225,7 @@ public class ControlServiceImpl implements IControlService {
     private void checkTakeoffCondition(String dockSn) {
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty() || DockModeCodeEnum.IDLE != deviceService.getDockMode(dockSn)) {
-            throw new RuntimeException("The current state does not support takeoff.");
+            throw new RuntimeException("机场当前状态不支持起飞.");
         }
 
         ResponseResult result = seizeAuthority(dockSn, DroneAuthorityEnum.FLIGHT, null);
@@ -245,7 +245,7 @@ public class ControlServiceImpl implements IControlService {
         ServiceReply reply = messageSenderService.publishServicesTopic(sn, DroneControlMethodEnum.TAKE_OFF_TO_POINT.getMethod(), param, param.getFlightId());
 
         if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
-            return ResponseResult.error("The drone failed to take off. " + reply.getResult());
+            return ResponseResult.error("飞行器起飞失败. " + reply.getResult());
         } else {
             // 一键起飞的时候，创建飞行记录
             this.flightTaskClient.startTakeoffTo(sn, param);

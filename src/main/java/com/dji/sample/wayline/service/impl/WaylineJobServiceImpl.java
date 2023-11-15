@@ -1,8 +1,9 @@
 package com.dji.sample.wayline.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dji.sample.cloudapi.client.FlightTaskClient;
@@ -39,6 +40,8 @@ import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.reflection.DefaultReflectorFactory;
+import org.apache.ibatis.reflection.MetaClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.mqtt.support.MqttHeaders;
@@ -358,7 +361,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         // Check if the task status is correct.
         boolean isErr = !jobIds.removeAll(waylineJobIds) || !jobIds.isEmpty() ;
         if (isErr) {
-            throw new IllegalArgumentException("These tasks have an incorrect status and cannot be canceled. " + Arrays.toString(jobIds.toArray()));
+            List<WaylineJobDTO> cannotCancelJobs = getJobsByConditions(workspaceId, jobIds, null);
+            throw new IllegalArgumentException("以下任务的状态不支持取消，请排除后重新操作！" + Arrays.toString(cannotCancelJobs.stream().map(WaylineJobDTO::getJobName).toArray()));
         }
 
         // Group job id by dock sn.
@@ -372,14 +376,14 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     public void publishCancelTask(String workspaceId, String dockSn, List<String> jobIds) {
         boolean isOnline = deviceRedisService.checkDeviceOnline(dockSn);
         if (!isOnline) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线!");
         }
 
         ServiceReply serviceReply = messageSender.publishServicesTopic(
                 dockSn, WaylineMethodEnum.FLIGHT_TASK_CANCEL.getMethod(), Map.of(MapKeyConst.FLIGHT_IDS, jobIds));
         if (ResponseResult.CODE_SUCCESS != serviceReply.getResult()) {
             log.info("Cancel job ====> Error code: {}", serviceReply.getResult());
-            throw new RuntimeException("Failed to cancel the wayline job of " + dockSn);
+            throw new RuntimeException("取消飞行计划失败");
         }
 
         for (String jobId : jobIds) {
@@ -421,19 +425,25 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
-    public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize,
-            String dockSn, String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime) {
-        Page<WaylineJobEntity> pageData = mapper.selectPage(
-                new Page<>(page, pageSize),
-                new LambdaQueryWrapper<WaylineJobEntity>()
-                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
-                        .eq(StrUtil.isNotBlank(dockSn), WaylineJobEntity::getDockSn, dockSn)
-                        .like(StrUtil.isNotBlank(name), WaylineJobEntity::getName, name)
-                        .in(CollUtil.isNotEmpty(status), WaylineJobEntity::getStatus, status)
-                        .eq(Objects.nonNull(taskType), WaylineJobEntity::getTaskType, taskType)
-                        .ge(Objects.nonNull(beginTime), WaylineJobEntity::getBeginTime, beginTime)
-                        .le(Objects.nonNull(endTime), WaylineJobEntity::getBeginTime, endTime)
-                        .orderByDesc(WaylineJobEntity::getUpdateTime));
+    public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize, String dockSn,
+            String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime, String orderField, String isAsc) {
+
+        MetaClass metaClass = MetaClass.forClass(WaylineJobEntity.class, new DefaultReflectorFactory());
+        LambdaQueryWrapper<WaylineJobEntity> lambdaQueryWrapper = new QueryWrapper<WaylineJobEntity>()
+                .orderBy(StringUtils.hasText(orderField) && metaClass.hasGetter(orderField), Boolean.getBoolean(isAsc), orderField)
+                .lambda()
+                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                .eq(CharSequenceUtil.isNotBlank(dockSn), WaylineJobEntity::getDockSn, dockSn)
+                .like(CharSequenceUtil.isNotBlank(name), WaylineJobEntity::getName, name)
+                .in(CollUtil.isNotEmpty(status), WaylineJobEntity::getStatus, status)
+                .eq(Objects.nonNull(taskType), WaylineJobEntity::getTaskType, taskType)
+                .ge(Objects.nonNull(beginTime), WaylineJobEntity::getBeginTime, beginTime)
+                .le(Objects.nonNull(endTime), WaylineJobEntity::getBeginTime, endTime);
+        if (!StringUtils.hasText(orderField)) {
+            lambdaQueryWrapper.orderByDesc(WaylineJobEntity::getBeginTime);
+        }
+
+        Page<WaylineJobEntity> pageData = mapper.selectPage(new Page<>(page, pageSize), lambdaQueryWrapper);
         List<WaylineJobDTO> records = pageData.getRecords()
                 .stream()
                 .map(this::entity2Dto)

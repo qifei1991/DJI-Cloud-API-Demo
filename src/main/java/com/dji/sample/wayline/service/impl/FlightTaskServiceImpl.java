@@ -294,7 +294,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
 
         Optional<WaylineJobDTO> childJobOpt = waylineJobService.createWaylineJobByParent(jobKey.getWorkspaceId(), jobKey.getJobId(), false);
         if (childJobOpt.isEmpty()) {
-            log.error("Failed to create condition wayline job.");
+            log.error("条件飞行任务重新创建失败!");
             return;
         }
 
@@ -302,7 +302,7 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         newJob.setBeginTime(LocalDateTime.now().plusSeconds(RedisConst.WAYLINE_JOB_BLOCK_TIME));
         boolean isAdd = waylineRedisService.addPreparedWaylineJob(newJob);
         if (!isAdd) {
-            log.error("Failed to create wayline job. {}", newJob.getJobId());
+            log.error("创建航线任务失败. {}", newJob.getJobId());
             return;
         }
 

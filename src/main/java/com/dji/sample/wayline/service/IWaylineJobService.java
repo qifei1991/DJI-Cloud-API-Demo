@@ -114,7 +114,7 @@ public interface IWaylineJobService {
      * @return
      */
     PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize, String dockSn,
-            String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime);
+            String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime, String orderField, String isAsc);
 
     /**
      * Process to get interface data of flight mission resources.

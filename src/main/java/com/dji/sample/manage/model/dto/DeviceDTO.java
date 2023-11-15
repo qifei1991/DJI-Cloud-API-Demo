@@ -43,6 +43,10 @@ public class DeviceDTO {
 
     private Boolean status;
 
+    private Integer modeCode;
+    private Double longitude;
+    private Double latitude;
+
     private Boolean boundStatus;
 
     private LocalDateTime loginTime;

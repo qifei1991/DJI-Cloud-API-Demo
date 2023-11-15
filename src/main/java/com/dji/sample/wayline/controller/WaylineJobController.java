@@ -66,7 +66,7 @@ public class WaylineJobController {
             @RequestParam(name = "begin_time", required = false) Long beginTime,
             @RequestParam(name = "end_time", required = false) Long endTime) {
         PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize,
-                dockSn, name, taskType, status, beginTime, endTime);
+                dockSn, name, taskType, status, beginTime, endTime, null, null);
         return ResponseResult.success(data);
     }
 

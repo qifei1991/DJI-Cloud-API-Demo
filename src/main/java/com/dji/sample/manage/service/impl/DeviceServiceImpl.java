@@ -2,6 +2,7 @@ package com.dji.sample.manage.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dji.sample.cloudapi.client.DeviceOsdStateClient;
 import com.dji.sample.common.error.CommonErrorEnum;
@@ -294,7 +295,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public List<DeviceDTO> getDevicesByParams(DeviceQueryParam param) {
         return mapper.selectList(
-                new LambdaQueryWrapper<DeviceEntity>()
+                Wrappers.lambdaQuery(DeviceEntity.class)
                         .eq(StringUtils.hasText(param.getDeviceSn()),
                                 DeviceEntity::getDeviceSn, param.getDeviceSn())
                         .eq(param.getDeviceType() != null,
@@ -311,8 +312,7 @@ public class DeviceServiceImpl implements IDeviceService {
                         .eq(StringUtils.hasText(param.getWorkspaceId()),
                                 DeviceEntity::getWorkspaceId, param.getWorkspaceId())
                         .eq(param.getBoundStatus() != null, DeviceEntity::getBoundStatus, param.getBoundStatus())
-                        .orderBy(param.isOrderBy(),
-                                param.isAsc(), DeviceEntity::getId))
+                        .orderBy(param.isOrderBy(), param.isAsc(), DeviceEntity::getId))
                 .stream()
                 .map(this::deviceEntityConvertToDTO)
                 .collect(Collectors.toList());
@@ -337,7 +337,16 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void spliceDeviceTopo(DeviceDTO gateway) {
 
-        gateway.setStatus(deviceRedisService.checkDeviceOnline(gateway.getDeviceSn()));
+        Boolean dockOnline = deviceRedisService.checkDeviceOnline(gateway.getDeviceSn());
+        gateway.setStatus(dockOnline);
+        if (dockOnline) {
+            gateway.setModeCode(this.getDockMode(gateway.getDeviceSn()).getVal());
+            Optional<OsdDockReceiver> dockOsd = deviceRedisService.getDeviceOsd(gateway.getDeviceSn(), OsdDockReceiver.class);
+            dockOsd.ifPresent(x -> {
+                gateway.setLongitude(x.getLongitude());
+                gateway.setLatitude(x.getLatitude());
+            });
+        }
 
         // sub device
         if (!StringUtils.hasText(gateway.getChildDeviceSn())) {
@@ -345,7 +354,16 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         DeviceDTO subDevice = getDevicesByParams(DeviceQueryParam.builder().deviceSn(gateway.getChildDeviceSn()).build()).get(0);
-        subDevice.setStatus(deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn()));
+        Boolean subDeviceOnline = deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn());
+        subDevice.setStatus(subDeviceOnline);
+        if (subDeviceOnline) {
+            subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getVal());
+            Optional<OsdSubDeviceReceiver> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdSubDeviceReceiver.class);
+            subDeviceOsd.ifPresent(x -> {
+                subDevice.setLongitude(x.getLongitude());
+                subDevice.setLatitude(x.getLatitude());
+            });
+        }
         gateway.setChildren(subDevice);
 
         // payloads
@@ -815,10 +833,9 @@ public class DeviceServiceImpl implements IDeviceService {
         });
         Optional<DeviceEntity> dockOpt = this.saveDevice(dockEntityOpt.get());
 
-        bindResult.add(dockOpt.isPresent() ?
-                ErrorInfoReply.success(dock.getSn()) :
-                    new ErrorInfoReply(dock.getSn(),
-                            CommonErrorEnum.DEVICE_BINDING_FAILED.getErrorCode()));
+        bindResult.add(dockOpt.isPresent()
+                ? ErrorInfoReply.success(dock.getSn())
+                : new ErrorInfoReply(dock.getSn(), CommonErrorEnum.DEVICE_BINDING_FAILED.getErrorCode()));
 
         String topic = headers.get(MqttHeaders.RECEIVED_TOPIC) + _REPLY_SUF;
         messageSender.publish(topic,
@@ -918,12 +935,12 @@ public class DeviceServiceImpl implements IDeviceService {
     public ResponseResult createDeviceOtaJob(String workspaceId, List<DeviceFirmwareUpgradeDTO> upgradeDTOS) {
         List<DeviceOtaCreateParam> deviceOtaFirmwares = deviceFirmwareService.getDeviceOtaFirmware(workspaceId, upgradeDTOS);
         if (deviceOtaFirmwares.isEmpty()) {
-            return ResponseResult.error();
+            return ResponseResult.error("无法获取固件更新版本信息!");
         }
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(deviceOtaFirmwares.get(0).getSn());
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("Device is offline.");
+            throw new RuntimeException("设备离线, 请稍候重试!");
         }
         DeviceDTO device = deviceOpt.get();
         String gatewaySn = DeviceDomainEnum.DOCK.getVal() == device.getDomain() ? device.getDeviceSn() : device.getParentSn();
@@ -934,13 +951,13 @@ public class DeviceServiceImpl implements IDeviceService {
         ServiceReply serviceReply = messageSender.publishServicesTopic(
                 gatewaySn, FirmwareMethodEnum.OTA_CREATE.getMethod(), Map.of(MapKeyConst.DEVICES, deviceOtaFirmwares), bid);
         if (serviceReply.getResult() != ResponseResult.CODE_SUCCESS) {
-            return ResponseResult.error(serviceReply.getResult(), "Firmware Error Code: " + serviceReply.getResult());
+            return ResponseResult.error(serviceReply.getResult(), "固件升级失败，错误码: " + serviceReply.getResult());
         }
 
         // Record the device state that needs to be updated.
         deviceOtaFirmwares.forEach(deviceOta -> deviceRedisService.setFirmwareUpgrading(deviceOta.getSn(),
-                EventsReceiver.<EventsOutputProgressReceiver<FirmwareProgressExtReceiver>>builder()
-                        .bid(bid).sn(deviceOta.getSn()).build()));
+                EventsReceiver.<EventsOutputProgressReceiver<FirmwareProgressExtReceiver>>builder().bid(bid).sn(
+                        deviceOta.getSn()).build()));
         return ResponseResult.success();
     }
 
@@ -951,16 +968,16 @@ public class DeviceServiceImpl implements IDeviceService {
     private void checkOtaConditions(String dockSn) {
         Optional<OsdDockReceiver> deviceOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDockReceiver.class);
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线, 请稍候重试!");
         }
         boolean emergencyStopState = deviceOpt.get().getEmergencyStopState();
         if (emergencyStopState) {
-            throw new RuntimeException("The emergency stop button of the dock is pressed and can't be upgraded.");
+            throw new RuntimeException("急停按钮按下，不能升级.");
         }
 
         DockModeCodeEnum dockMode = this.getDockMode(dockSn);
         if (DockModeCodeEnum.IDLE != dockMode) {
-            throw new RuntimeException("The current status of the dock can't be upgraded.");
+            throw new RuntimeException("机场当前状态不能升级.");
         }
     }
 
@@ -968,13 +985,13 @@ public class DeviceServiceImpl implements IDeviceService {
     public void devicePropertySet(String workspaceId, String dockSn, DeviceSetPropertyEnum propertyEnum, JsonNode param) {
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty()) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线, 请稍候重试!");
         }
         String childSn = dockOpt.get().getChildDeviceSn();
         boolean deviceOnline = deviceRedisService.checkDeviceOnline(childSn);
         Optional<OsdSubDeviceReceiver> osdOpt = deviceRedisService.getDeviceOsd(childSn, OsdSubDeviceReceiver.class);
         if (!deviceOnline || osdOpt.isEmpty()) {
-            throw new RuntimeException("Device is offline.");
+            throw new RuntimeException("飞行器离线, 请稍后重试!");
         }
 
         // Make sure the data is valid.
@@ -1026,7 +1043,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         SetReply setReply = objectMapper.convertValue(reply, SetReply.class);
         if (SetReplyStatusResultEnum.SUCCESS.getVal() != setReply.getResult()) {
-            throw new RuntimeException("Failed to set " + value.getKey() + "; Error Code: " + setReply.getResult());
+            throw new RuntimeException("设备属性[" + value.getKey() + "]设置失败; 错误码: " + setReply.getResult());
         }
 
     }
