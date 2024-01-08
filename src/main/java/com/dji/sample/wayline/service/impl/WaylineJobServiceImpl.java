@@ -2,6 +2,8 @@ package com.dji.sample.wayline.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ClassUtil;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -40,8 +42,6 @@ import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.reflection.DefaultReflectorFactory;
-import org.apache.ibatis.reflection.MetaClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.mqtt.support.MqttHeaders;
@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.time.*;
 import java.util.*;
@@ -128,7 +129,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .mediaCount(0)
                 // modify by Qfei, 2023-10-10 18:56:22, 新建的任务，将jobId作为groupId.
                 .groupId(jobId)
-                .continuable(param.getContinuable())
+                .continuable(Objects.nonNull(param.getContinuable()) ? param.getContinuable() : Boolean.FALSE)
                 .build();
 
         return insertWaylineJob(jobEntity);
@@ -428,9 +429,15 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize, String dockSn,
             String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime, String orderField, String isAsc) {
 
-        MetaClass metaClass = MetaClass.forClass(WaylineJobEntity.class, new DefaultReflectorFactory());
-        LambdaQueryWrapper<WaylineJobEntity> lambdaQueryWrapper = new QueryWrapper<WaylineJobEntity>()
-                .orderBy(StringUtils.hasText(orderField) && metaClass.hasGetter(orderField), Boolean.getBoolean(isAsc), orderField)
+        Field field = ClassUtil.getDeclaredField(WaylineJobEntity.class, orderField);
+        QueryWrapper<WaylineJobEntity> queryWrapper = new QueryWrapper<>();
+        if (Objects.nonNull(field)) {
+            TableField annotation = field.getAnnotation(TableField.class);
+            boolean notExit = Objects.nonNull(annotation) && !annotation.exist();
+            String columnName = Objects.isNull(annotation) || !StringUtils.hasText(annotation.value()) ? field.getName() : annotation.value();
+            queryWrapper.orderBy(!notExit, Boolean.getBoolean(isAsc), columnName);
+        }
+        LambdaQueryWrapper<WaylineJobEntity> lambdaQueryWrapper = queryWrapper
                 .lambda()
                 .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
                 .eq(CharSequenceUtil.isNotBlank(dockSn), WaylineJobEntity::getDockSn, dockSn)
@@ -797,4 +804,5 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                         .uploadedCount(uploadedSize).build());
         return builder.build();
     }
+
 }

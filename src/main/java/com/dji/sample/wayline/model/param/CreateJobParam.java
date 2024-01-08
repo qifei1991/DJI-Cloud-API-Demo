@@ -58,5 +58,5 @@ public class CreateJobParam {
     /**
      * 能否断点续飞
      */
-    private Boolean continuable;
+    private Boolean continuable = false;
 }

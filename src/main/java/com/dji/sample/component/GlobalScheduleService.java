@@ -6,8 +6,6 @@ import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.DeviceDomainEnum;
 import com.dji.sample.manage.service.IDeviceService;
-import com.dji.sample.wayline.service.IWaylineJobService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -31,10 +29,6 @@ public class GlobalScheduleService {
     @Autowired
     private IMqttTopicService topicService;
 
-    @Autowired
-    private IWaylineJobService waylineJobService;
-    @Autowired
-    private ObjectMapper mapper;
     /**
      * Check the status of the devices every 30 seconds. It is recommended to use cache.
      */

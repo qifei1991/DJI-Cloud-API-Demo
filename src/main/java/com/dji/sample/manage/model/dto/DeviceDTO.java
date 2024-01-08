@@ -46,6 +46,8 @@ public class DeviceDTO {
     private Integer modeCode;
     private Double longitude;
     private Double latitude;
+    private Float attitudeHead;
+    private Integer droneInDock;
 
     private Boolean boundStatus;
 

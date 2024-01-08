@@ -175,12 +175,15 @@ public class DeviceServiceImpl implements IDeviceService {
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(deviceSn);
         Optional<DeviceDTO> gatewayOpt = deviceRedisService.getDeviceOnline(deviceGateway.getSn());
 
+        log.info("- [设备上线]判断设备是否在线，dock: {}, subDevice: {}.", gatewayOpt.isPresent(), deviceOpt.isPresent());
         if (deviceOpt.isPresent() && gatewayOpt.isPresent()) {
             DeviceDTO device = DeviceDTO.builder().loginTime(LocalDateTime.now()).deviceSn(deviceSn).build();
             DeviceDTO gateway = DeviceDTO.builder()
                     .loginTime(LocalDateTime.now())
                     .deviceSn(deviceGateway.getSn())
-                    .childDeviceSn(deviceSn).build();
+                    .childDeviceSn(deviceSn)
+                    .build();
+            log.info("- [设备上线]更新机场和飞行器设备信息.");
             this.updateDevice(gateway);
             this.updateDevice(device);
             String workspaceId = deviceOpt.get().getWorkspaceId();
@@ -206,6 +209,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         DeviceEntity gateway = deviceGatewayConvertToDeviceEntity(deviceGateway);
         Optional<DeviceEntity> gatewayEntityOpt = onlineSaveDevice(gateway, deviceSn, null);
+        log.info("- [设备上线]保存机场设备信息，{}.", gatewayEntityOpt);
         if (gatewayEntityOpt.isEmpty()) {
             log.error("Failed to go online, please check the status data or code logic.");
             return false;
@@ -213,6 +217,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         DeviceEntity subDevice = subDeviceConvertToDeviceEntity(deviceGateway.getSubDevices().get(0));
         Optional<DeviceEntity> subDeviceEntityOpt = onlineSaveDevice(subDevice, null, gateway.getDeviceSn());
+        log.info("- [设备上线]保存飞行器设备信息，{}.", subDeviceEntityOpt);
         if (subDeviceEntityOpt.isEmpty()) {
             log.error("Failed to go online, please check the status data or code logic.");
             return false;
@@ -225,15 +230,17 @@ public class DeviceServiceImpl implements IDeviceService {
         if (DeviceDomainEnum.DOCK.getVal() == deviceGateway.getDomain() && !subDevice.getBoundStatus()) {
             // Directly bind the drone of the dock to the same workspace as the dock.
             bindDevice(DeviceDTO.builder().deviceSn(deviceSn).workspaceId(gateway.getWorkspaceId()).build());
+            log.info("- [设备上线]机场绑定新添加的飞行器，{}.", subDeviceEntityOpt);
             subDevice.setWorkspaceId(gateway.getWorkspaceId());
         }
 
+        log.info("- [设备上线]更新设备拓扑结构.");
         // Subscribe to topic related to drone devices.
         this.subscribeTopicOnline(deviceGateway.getSn());
         this.subscribeTopicOnline(deviceSn);
         this.pushDeviceOnlineTopo(subDevice.getWorkspaceId(), deviceGateway.getSn(), deviceSn);
 
-        log.debug("{} online.", subDevice.getDeviceSn());
+        log.info("sub-device {} online.", subDevice.getDeviceSn());
         return true;
     }
 
@@ -343,6 +350,7 @@ public class DeviceServiceImpl implements IDeviceService {
             gateway.setModeCode(this.getDockMode(gateway.getDeviceSn()).getVal());
             Optional<OsdDockReceiver> dockOsd = deviceRedisService.getDeviceOsd(gateway.getDeviceSn(), OsdDockReceiver.class);
             dockOsd.ifPresent(x -> {
+                gateway.setDroneInDock(x.getDroneInDock());
                 gateway.setLongitude(x.getLongitude());
                 gateway.setLatitude(x.getLatitude());
             });
@@ -353,21 +361,25 @@ public class DeviceServiceImpl implements IDeviceService {
             return;
         }
 
-        DeviceDTO subDevice = getDevicesByParams(DeviceQueryParam.builder().deviceSn(gateway.getChildDeviceSn()).build()).get(0);
-        Boolean subDeviceOnline = deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn());
-        subDevice.setStatus(subDeviceOnline);
-        if (subDeviceOnline) {
-            subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getVal());
-            Optional<OsdSubDeviceReceiver> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdSubDeviceReceiver.class);
-            subDeviceOsd.ifPresent(x -> {
-                subDevice.setLongitude(x.getLongitude());
-                subDevice.setLatitude(x.getLatitude());
-            });
-        }
-        gateway.setChildren(subDevice);
+        List<DeviceDTO> subDevices = getDevicesByParams(DeviceQueryParam.builder().deviceSn(gateway.getChildDeviceSn()).build());
+        if (!subDevices.isEmpty()) {
+            DeviceDTO subDevice = subDevices.get(0);
+            Boolean subDeviceOnline = deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn());
+            subDevice.setStatus(subDeviceOnline);
+            if (subDeviceOnline) {
+                subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getVal());
+                Optional<OsdSubDeviceReceiver> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdSubDeviceReceiver.class);
+                subDeviceOsd.ifPresent(x -> {
+                    subDevice.setLongitude(x.getLongitude());
+                    subDevice.setLatitude(x.getLatitude());
+                    subDevice.setAttitudeHead(Objects.isNull(x.getAttitudeHead()) ? 0 : x.getAttitudeHead());
+                });
+            }
+            gateway.setChildren(subDevice);
 
-        // payloads
-        subDevice.setPayloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(gateway.getChildDeviceSn()));
+            // payloads
+            subDevice.setPayloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(gateway.getChildDeviceSn()));
+        }
     }
 
     @Override

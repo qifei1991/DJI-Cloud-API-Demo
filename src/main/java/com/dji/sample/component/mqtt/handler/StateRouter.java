@@ -91,7 +91,7 @@ public class StateRouter {
         // Channel mapping for basic data.
         router.setChannelMapping(DeviceBasicReceiver.class.getName(),
                 ChannelName.INBOUND_STATE_BASIC);
-        // Channel mapping for live streaming capabilities.
+        // Channel mapping for live-streaming capabilities.
         router.setChannelMapping(LiveCapacityReceiver.class.getName(),
                 ChannelName.INBOUND_STATE_CAPACITY);
         router.setChannelMapping(FirmwareVersionReceiver.class.getName(),
