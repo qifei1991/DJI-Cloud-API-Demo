@@ -4,7 +4,6 @@ import com.dji.sample.common.model.ResponseResult;
 import com.dji.sample.component.mqtt.model.MapKeyConst;
 import com.dji.sample.media.model.FileUploadDTO;
 import com.dji.sample.media.service.IMediaService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -64,7 +63,7 @@ public class MediaController {
     @PostMapping("/{workspace_id}/files/tiny-fingerprints")
     public ResponseResult<Map<String, List<String>>> uploadCallback(
                                 @PathVariable(name = "workspace_id") String workspaceId,
-                               @RequestBody Map<String, List<String>> tinyFingerprints) throws JsonProcessingException {
+                               @RequestBody Map<String, List<String>> tinyFingerprints) {
 
         List<String> existingList = mediaService.getExistTinyFingerprints(workspaceId, tinyFingerprints.get(MapKeyConst.TINY_FINGERPRINTS));
         return ResponseResult.success(new ConcurrentHashMap<>(Map.of(MapKeyConst.TINY_FINGERPRINTS, existingList)));

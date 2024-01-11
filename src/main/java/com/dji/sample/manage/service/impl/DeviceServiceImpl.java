@@ -171,6 +171,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public Boolean deviceOnline(StatusGatewayReceiver deviceGateway) {
         String deviceSn = deviceGateway.getSubDevices().get(0).getSn();
+        log.info("- [设备上线]上线设备SN，网关SN: {}, 飞行器SN: {}", deviceGateway.getSn(), deviceSn);
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(deviceSn);
         Optional<DeviceDTO> gatewayOpt = deviceRedisService.getDeviceOnline(deviceGateway.getSn());
@@ -203,6 +204,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 .filter(gateway -> !gateway.getDeviceSn().equals(deviceGateway.getSn()))
                 .findAny()
                 .ifPresent(gateway -> {
+                    log.info("- [设备上线]将绑定当前飞机的其它机场取消绑定，机场SN: " + gateway.getDeviceSn());
                     gateway.setChildDeviceSn("");
                     this.updateDevice(gateway);
                 });
