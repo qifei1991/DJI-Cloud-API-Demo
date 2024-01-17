@@ -17077,6 +17077,17 @@
     "tr": "Düşük görüş. Aracınızı dikkatli uçurun",
     "zh": "环境能见度差，请谨慎飞行"
   },
+  "fpv_tip_0x1A020400_in_the_sky": {
+    "de": "Schlechte Sicht. Mit Vorsicht fliegen",
+    "en": "Low visibility. Fly with caution",
+    "es": "Poca visibilidad. Vuela con cuidado",
+    "fr": "Faible visibilité. Pilotez avec précaution",
+    "ja": "視界不良。慎重に飛行してください",
+    "ko": "가시성 낮음. 비행 시 주의 필요",
+    "ru": "Низкая видимость. Соблюдайте осторожность при полете",
+    "tr": "Düşük görüş. Aracınızı dikkatli uçurun",
+    "zh": "环境能见度差，请谨慎飞行"
+  },
   "fpv_tip_0x1A040001": {
     "de": "Fehler: Energiemodus. Fluggerät neu starten.",
     "en": "Power mode error. Restart aircraft",
@@ -17496,6 +17507,17 @@
     "zh": "上视环境光过暗，上方视觉避障失效，仅红外传感器工作，请谨慎飞行"
   },
   "fpv_tip_0x1A420BC6": {
+    "de": "Horizontales Umgebungslicht zu schwach. Horizontale Hindernisvermeidung nicht verfügbar. Nur Infrarotsensoren verfügbar. Mit Vorsicht fliegen",
+    "en": "Horizontal ambient light too low. Horizontal obstacle avoidance unavailable. Only infrared sensors available. Fly with caution",
+    "es": "Luz ambiental horizontal demasiado débil. Sistema anticolisión horizontal no disponible. Solo están disponibles los sensores de infrarrojos. Vuela con cuidado",
+    "fr": "Éclairage ambiant horizontal trop faible. Évitement d\\'obstacles indisponible. Volez avec précaution",
+    "ja": "水平方向の環境光が十分ではありません。水平方向の障害物回避を利用できません。赤外線センサーのみが使用可能です。慎重に飛行してください",
+    "ko": "수평 주변 조명이 너무 어둡습니다. 수평 장애물 회피를 사용할 수 없습니다. 적외선 센서만 사용할 수 있습니다. 주의해서 비행하세요",
+    "ru": "Слишком низкая яркость окружающего света в горизонтальном направлении. Обход препятствий в горизонтальном направлении недоступен. Доступны только инфракрасные датчики. Будьте внимательны при полете",
+    "tr": "Yatay ortam ışığı çok az. Yatay engel önleyici kullanılamıyor. Sadece kızılötesi sensörler kullanılabiliyor. Dikkatli uçurun",
+    "zh": "水平方向环境光过暗，水平方向视觉避障失效，仅红外传感器工作，请谨慎飞行"
+  },
+  "fpv_tip_0x1A420BC6_in_the_sky": {
     "de": "Horizontales Umgebungslicht zu schwach. Horizontale Hindernisvermeidung nicht verfügbar. Nur Infrarotsensoren verfügbar. Mit Vorsicht fliegen",
     "en": "Horizontal ambient light too low. Horizontal obstacle avoidance unavailable. Only infrared sensors available. Fly with caution",
     "es": "Luz ambiental horizontal demasiado débil. Sistema anticolisión horizontal no disponible. Solo están disponibles los sensores de infrarrojos. Vuela con cuidado",
@@ -23679,6 +23701,17 @@
     "tr": "Gimbal %component_index yükselme ekseni bitiş noktasına ulaştı",
     "zh": "云台%component_index俯仰已达限位"
   },
+  "fpv_tip_0x1D050002_in_the_sky": {
+    "de": "Gimbal  %component_index: Neigungsachsen-Endpunkt erreicht",
+    "en": "Gimbal %component_index pitch axis endpoint reached",
+    "es": "Se ha alcanzado el límite del eje de inclinación del estabilizador %component_index",
+    "fr": "Limite axe vertical de la nacelle  %component_index atteinte",
+    "ja": "ジンバル%component_indexピッチ軸のエンドポイントに達しました",
+    "ko": "짐벌  %component_index 피치 축 엔드포인트 도달",
+    "ru": "Достигнут предел оси наклона стабилизатора  %component_index",
+    "tr": "Gimbal %component_index yükselme ekseni bitiş noktasına ulaştı",
+    "zh": "云台%component_index俯仰已达限位"
+  },
   "fpv_tip_0x1D050003": {
     "de": "Gimbal  %component_index: Gierachsen-Endpunkt erreicht",
     "en": "Gimbal %component_index pan axis endpoint reached",
@@ -24677,6 +24710,17 @@
     "tr": "LTE sinyali zayıf. Dikkatlice uçun.",
     "zh": "LTE 信号弱，请谨慎飞行"
   },
+  "fpv_tip_0x1F0B0025_in_the_sky": {
+    "de": "Schwaches LTE-Signal. Mit Vorsicht fliegen",
+    "en": "LTE signal weak. Fly with caution",
+    "es": "Señal de LTE débil. Vuela con cuidado.",
+    "fr": "Signal LTE faible. Pilotez avec précaution",
+    "ja": "LTE信号 弱。慎重に飛行してください",
+    "ko": "LTE 신호 약함. 비행 시 주의 필요",
+    "ru": "Слабый сигнал LTE. Будьте внимательны при полете",
+    "tr": "LTE sinyali zayıf. Dikkatlice uçun.",
+    "zh": "LTE 信号弱，请谨慎飞行"
+  },
   "fpv_tip_0x1F0B0026": {
     "ar": "",
     "de": "",
@@ -25228,6 +25272,17 @@
     "zh": "上视环境光过暗，上方视觉避障失效，仅红外传感器工作，请谨慎飞行"
   },
   "fpv_tip_0x1a420bc6": {
+    "de": "Horizontales Umgebungslicht zu schwach. Horizontale Hindernisvermeidung nicht verfügbar. Nur Infrarotsensoren verfügbar. Vorsichtig fliegen.",
+    "en": "Horizontal ambient light too low. Horizontal obstacle avoidance unavailable. Only infrared sensors available. Fly with caution",
+    "es": "Luz ambiental horizontal demasiado débil. Sistema anticolisión horizontal no disponible. Solo están disponibles los sensores de infrarrojos. Vuela con cuidado",
+    "fr": "Lumière ambiante horizontale trop faible. Évitement des obstacles horizontaux non disponible. Seuls les capteurs infrarouges sont disponibles. Volez avec prudence",
+    "ja": "水平方向の環境光が十分ではありません。水平方向の障害物回避を利用できません。赤外線センサーのみが利用できます。注意して飛行してください",
+    "ko": "수평 주변 조명이 너무 어둡습니다. 수평 장애물 회피를 사용할 수 없습니다. 적외선 센서만 사용할 수 있습니다. 주의하여 비행하세요.",
+    "ru": "Слишком низкая яркость окружающего света в горизонтальном направлении. Обход препятствий в горизонтальном направлении недоступен. Доступны только инфракрасные датчики. Будьте внимательны при полете",
+    "tr": "",
+    "zh": "水平方向环境光过暗，水平方向视觉避障失效，仅红外传感器工作，请谨慎飞行"
+  },
+  "fpv_tip_0x1F0B0025_in_the_sky": {
     "de": "Horizontales Umgebungslicht zu schwach. Horizontale Hindernisvermeidung nicht verfügbar. Nur Infrarotsensoren verfügbar. Vorsichtig fliegen.",
     "en": "Horizontal ambient light too low. Horizontal obstacle avoidance unavailable. Only infrared sensors available. Fly with caution",
     "es": "Luz ambiental horizontal demasiado débil. Sistema anticolisión horizontal no disponible. Solo están disponibles los sensores de infrarrojos. Vuela con cuidado",

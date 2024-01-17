@@ -1,5 +1,6 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
@@ -286,15 +287,25 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                     .username(file.getUsername())
                     .objectKey(file.getObjectKey())
                     // Separate multiple payload data with ",".
-                    .payloadModelKeys(String.join(",", file.getPayloadModelKeys()))
-                    .templateTypes(file.getTemplateTypes().stream()
+                    .payloadModelKeys(CollUtil.isNotEmpty(file.getPayloadModelKeys())
+                            ? String.join(",", file.getPayloadModelKeys()) : null)
+                    .templateTypes(CollUtil.isNotEmpty(file.getTemplateTypes())
+                            ? file.getTemplateTypes().stream()
                             .map(String::valueOf)
-                            .collect(Collectors.joining(",")))
+                            .collect(Collectors.joining(",")) : null)
                     .favorited(file.getFavorited())
                     .sign(file.getSign())
                     .build();
         }
 
         return builder.build();
+    }
+
+    @Override
+    public Integer updateWaylineFile(String workspaceId, String waylineId, WaylineFileDTO file) {
+
+        return this.mapper.update(this.dtoConvertToEntity(file),
+                new LambdaUpdateWrapper<WaylineFileEntity>().eq(WaylineFileEntity::getWorkspaceId, workspaceId).eq(
+                        WaylineFileEntity::getWaylineId, waylineId));
     }
 }

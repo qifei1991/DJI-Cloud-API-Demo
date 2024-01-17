@@ -141,4 +141,10 @@ public class WaylineController {
         boolean isDel = waylineFileService.deleteByWaylineId(workspaceId, waylineId);
         return isDel ? ResponseResult.success(true) : ResponseResult.error("Failed to delete wayline.");
     }
+
+    @PutMapping("/{workspace_id}/waylines/{wayline_id}")
+    public ResponseResult editWayline(@PathVariable(name = "workspace_id") String workspaceId,
+            @PathVariable(name = "wayline_id") String waylineId, @RequestBody WaylineFileDTO file) {
+        return ResponseResult.success(this.waylineFileService.updateWaylineFile(workspaceId, waylineId, file));
+    }
 }

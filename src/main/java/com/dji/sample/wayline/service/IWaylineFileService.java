@@ -80,4 +80,6 @@ public interface IWaylineFileService {
      * @return
      */
     void importKmzFile(MultipartFile file, String workspaceId, String creator);
+
+    Integer updateWaylineFile(String workspaceId, String waylineId, WaylineFileDTO file);
 }

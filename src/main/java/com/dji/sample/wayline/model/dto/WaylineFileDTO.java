@@ -41,4 +41,6 @@ public class WaylineFileDTO {
 
     private Long createTime;
     private Long updateTime;
+
+    private String remark;
 }
