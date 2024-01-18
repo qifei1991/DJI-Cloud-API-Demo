@@ -58,6 +58,8 @@ public class WaylineJobDTO {
 
     private Integer outOfControlAction;
 
+    private Integer exitWaylineWhenRcLost;
+
     private Integer mediaCount;
 
     private Integer uploadedCount;

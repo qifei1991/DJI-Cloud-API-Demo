@@ -65,6 +65,9 @@ public class WaylineJobEntity implements Serializable {
     @TableField("out_of_control")
     private Integer outOfControlAction;
 
+    @TableField("exit_wayline_when_rc_lost")
+    private Integer exitWaylineWhenRcLost;
+
     @TableField("media_count")
     private Integer mediaCount;
 

@@ -32,6 +32,8 @@ public class WaylineTaskCreateDTO {
 
     private Integer outOfControlAction;
 
+    private Integer exitWaylineWhenRcLost;
+
     private WaylineTaskReadyConditionDTO readyConditions;
 
     private WaylineTaskExecutableConditionDTO executableConditions;

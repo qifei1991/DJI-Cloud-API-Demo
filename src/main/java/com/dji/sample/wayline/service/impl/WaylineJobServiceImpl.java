@@ -125,6 +125,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .taskType(param.getTaskType().getVal())
                 .waylineType(param.getWaylineType().getVal())
                 .outOfControlAction(param.getOutOfControlAction())
+                .exitWaylineWhenRcLost(param.getExitWaylineWhenRcLost())
                 .rthAltitude(param.getRthAltitude())
                 .mediaCount(0)
                 // modify by Qfei, 2023-10-10 18:56:22, 新建的任务，将jobId作为groupId.
@@ -272,6 +273,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .waylineType(waylineJob.getWaylineType())
                 .rthAltitude(waylineJob.getRthAltitude())
                 .outOfControlAction(waylineJob.getOutOfControlAction())
+                .exitWaylineWhenRcLost(waylineJob.getExitWaylineWhenRcLost())
                 .file(WaylineTaskFileDTO.builder()
                         .url(url.toString())
                         .fingerprint(waylineFile.get().getSign())
@@ -550,10 +552,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
             return;
         }
 
-        ServiceReply reply = messageSender.publishServicesTopic(
-                dockSn, MediaMethodEnum.UPLOAD_FLIGHT_TASK_MEDIA_PRIORITIZE.getMethod(), Map.of(MapKeyConst.FLIGHT_ID, jobId));
+        ServiceReply reply = messageSender.publishServicesTopic(dockSn,
+                MediaMethodEnum.UPLOAD_FLIGHT_TASK_MEDIA_PRIORITIZE.getMethod(),
+                Map.of(MapKeyConst.FLIGHT_ID, jobId));
         if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
-            throw new RuntimeException("Failed to set media job upload priority. Error Code: " + reply.getResult());
+            throw new RuntimeException("设置任务媒体文件优先上传失败, 错误码: " + reply.getResult());
         }
     }
 
@@ -587,6 +590,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .username(dto.getUsername())
                 .rthAltitude(dto.getRthAltitude())
                 .outOfControlAction(dto.getOutOfControlAction())
+                .exitWaylineWhenRcLost(dto.getExitWaylineWhenRcLost())
                 .parentId(dto.getParentId())
                 .groupId(dto.getGroupId())
                 .continuable(dto.getContinuable())
@@ -750,6 +754,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .waylineType(WaylineTemplateTypeEnum.find(entity.getWaylineType()))
                 .rthAltitude(entity.getRthAltitude())
                 .outOfControlAction(entity.getOutOfControlAction())
+                .exitWaylineWhenRcLost(entity.getExitWaylineWhenRcLost())
                 .mediaCount(entity.getMediaCount())
                 .parentId(entity.getParentId())
                 .groupId(entity.getGroupId())
