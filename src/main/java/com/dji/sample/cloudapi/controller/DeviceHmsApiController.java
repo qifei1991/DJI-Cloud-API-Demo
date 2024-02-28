@@ -68,16 +68,14 @@ public class DeviceHmsApiController {
 
     /**
      * Get hms messages for batch device.
-     * @param deviceSns SN集合
+     * @param param
      * @return
      */
     @GetMapping("/{workspace_id}/devices/hms/group-by-sn")
-    public ResponseResult<Map<String, List<DeviceHmsDTO>>> getUnreadHmsByDeviceSn(@RequestParam("device_sn") HashSet<String> deviceSns,
+    public ResponseResult<Map<String, List<DeviceHmsDTO>>> getUnreadHmsByDeviceSn(DeviceHmsQueryParam param,
             @PathVariable String workspace_id) {
-        PaginationData<DeviceHmsDTO> paginationData = deviceHmsService.getDeviceHmsByParam(DeviceHmsQueryParam.builder()
-                .deviceSn(deviceSns)
-                .updateTime(0L)
-                .build());
+        param.setUpdateTime(0L);
+        PaginationData<DeviceHmsDTO> paginationData = deviceHmsService.getDeviceHmsByParam(param);
         return ResponseResult.success(paginationData.getList().stream().collect(Collectors.groupingBy(DeviceHmsDTO::getSn)));
     }
 }
