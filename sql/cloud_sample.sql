@@ -465,6 +465,7 @@ CREATE TABLE `wayline_job` (
   `parent_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
     `group_id` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL comment '飞行组，飞行记录ID',
     `continuable` tinyint(1) NOT NULL COMMENT '能否断点续飞',
+    `exit_wayline_when_rc_lost` int NOT NULL default 0 COMMENT '航线失控动作. 0: 继续航线任务; 1: 退出航线任务执行遥控器失控动作;',
   PRIMARY KEY (`id`),
   UNIQUE KEY `job_id_UNIQUE` (`job_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Wayline mission information of the dock.';

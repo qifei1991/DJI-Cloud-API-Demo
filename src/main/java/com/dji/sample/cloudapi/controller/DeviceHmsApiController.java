@@ -6,14 +6,13 @@ import com.dji.sample.manage.model.dto.DeviceHmsDTO;
 import com.dji.sample.manage.model.param.DeviceHmsQueryParam;
 import com.dji.sample.manage.service.IDeviceHmsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 设备Hms API接口
@@ -29,6 +28,19 @@ public class DeviceHmsApiController {
     private final IDeviceHmsService deviceHmsService;
 
     /**
+     * Page to query the hms information of the device.
+     * @param param
+     * @param workspaceId
+     * @return
+     */
+    @GetMapping("/{workspace_id}/devices/hms")
+    public ResponseResult<PaginationData<DeviceHmsDTO>> getHmsInformation(DeviceHmsQueryParam param,
+            @PathVariable("workspace_id") String workspaceId) {
+        PaginationData<DeviceHmsDTO> devices = deviceHmsService.getDeviceHmsByParam(param);
+        return ResponseResult.success(devices);
+    }
+
+    /**
      * Get hms messages for a single device.
      * @param deviceSn
      * @return
@@ -41,5 +53,31 @@ public class DeviceHmsApiController {
                         .updateTime(0L)
                         .build());
         return ResponseResult.success(paginationData.getList());
+    }
+
+    /**
+     * Update unread hms messages to read status.
+     * @param deviceSn
+     * @return
+     */
+    @PutMapping("/{workspace_id}/devices/hms/{device_sn}")
+    public ResponseResult updateReadHmsByDeviceSn(@PathVariable("device_sn") String deviceSn, @PathVariable String workspace_id) {
+        deviceHmsService.updateUnreadHms(deviceSn);
+        return ResponseResult.success();
+    }
+
+    /**
+     * Get hms messages for batch device.
+     * @param deviceSns SN集合
+     * @return
+     */
+    @GetMapping("/{workspace_id}/devices/hms/group-by-sn")
+    public ResponseResult<Map<String, List<DeviceHmsDTO>>> getUnreadHmsByDeviceSn(@RequestParam("device_sn") HashSet<String> deviceSns,
+            @PathVariable String workspace_id) {
+        PaginationData<DeviceHmsDTO> paginationData = deviceHmsService.getDeviceHmsByParam(DeviceHmsQueryParam.builder()
+                .deviceSn(deviceSns)
+                .updateTime(0L)
+                .build());
+        return ResponseResult.success(paginationData.getList().stream().collect(Collectors.groupingBy(DeviceHmsDTO::getSn)));
     }
 }

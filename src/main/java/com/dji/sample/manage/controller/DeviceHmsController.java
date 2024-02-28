@@ -35,9 +35,8 @@ public class DeviceHmsController {
      */
     @GetMapping("/{workspace_id}/devices/hms")
     public ResponseResult<PaginationData<DeviceHmsDTO>> getHmsInformation(DeviceHmsQueryParam param,
-                                                          @PathVariable("workspace_id") String workspaceId) {
+            @PathVariable("workspace_id") String workspaceId) {
         PaginationData<DeviceHmsDTO> devices = deviceHmsService.getDeviceHmsByParam(param);
-
         return ResponseResult.success(devices);
     }
 
@@ -47,7 +46,7 @@ public class DeviceHmsController {
      * @return
      */
     @PutMapping("/{workspace_id}/devices/hms/{device_sn}")
-    public ResponseResult updateReadHmsByDeviceSn(@PathVariable("device_sn") String deviceSn) {
+    public ResponseResult updateReadHmsByDeviceSn(@PathVariable("device_sn") String deviceSn, @PathVariable String workspace_id) {
         deviceHmsService.updateUnreadHms(deviceSn);
         return ResponseResult.success();
     }
@@ -58,7 +57,8 @@ public class DeviceHmsController {
      * @return
      */
     @GetMapping("/{workspace_id}/devices/hms/{device_sn}")
-    public ResponseResult<List<DeviceHmsDTO>> getUnreadHmsByDeviceSn(@PathVariable("device_sn") String deviceSn) {
+    public ResponseResult<List<DeviceHmsDTO>> getUnreadHmsByDeviceSn(@PathVariable("device_sn") String deviceSn,
+            @PathVariable String workspace_id) {
         PaginationData<DeviceHmsDTO> paginationData = deviceHmsService.getDeviceHmsByParam(
                 DeviceHmsQueryParam.builder()
                         .deviceSn(new HashSet<>(Set.of(deviceSn)))
