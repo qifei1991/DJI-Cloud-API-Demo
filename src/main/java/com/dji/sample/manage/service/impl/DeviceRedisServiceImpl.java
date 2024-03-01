@@ -7,6 +7,7 @@ import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.receiver.FirmwareProgressExtReceiver;
 import com.dji.sample.manage.service.IDeviceRedisService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
  * @version 1.4
  * @date 2023/3/21
  */
+@Slf4j
 @Service
 public class DeviceRedisServiceImpl implements IDeviceRedisService {
 
@@ -76,5 +78,18 @@ public class DeviceRedisServiceImpl implements IDeviceRedisService {
     @Override
     public Boolean delHmsKeysBySn(String sn) {
         return RedisOpsUtils.del(RedisConst.HMS_PREFIX + sn);
+    }
+
+    @Override
+    public Boolean delHmsKeysBySnAndHmsKey(String sn, Set<String> hmsKeys) {
+        try {
+            for (String hmsKey : hmsKeys) {
+                RedisOpsUtils.listRemove(RedisConst.HMS_PREFIX + sn, 0, hmsKey);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete Redis Hms Key.", e);
+            return false;
+        }
     }
 }

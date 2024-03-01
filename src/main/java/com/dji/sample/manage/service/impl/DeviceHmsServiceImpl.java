@@ -36,6 +36,7 @@ import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -159,6 +160,23 @@ public class DeviceHmsServiceImpl implements IDeviceHmsService {
                         .eq(DeviceHmsEntity::getUpdateTime, 0L));
         // Delete unread messages cached in redis.
         deviceRedisService.delHmsKeysBySn(deviceSn);
+    }
+
+    @Override
+    public void updateUnreadHmsByHmsKey(String deviceSn, Set<String> hmsKeys) {
+
+        if (CollectionUtils.isEmpty(hmsKeys)) {
+            this.updateUnreadHms(deviceSn);
+            return;
+        }
+
+        mapper.update(DeviceHmsEntity.builder().updateTime(System.currentTimeMillis()).build(),
+                new LambdaUpdateWrapper<DeviceHmsEntity>()
+                        .eq(DeviceHmsEntity::getSn, deviceSn)
+                        .and(wrapper -> hmsKeys.forEach(key -> wrapper.eq(DeviceHmsEntity::getHmsKey, key).or()))
+                        .eq(DeviceHmsEntity::getUpdateTime, 0L));
+        // Delete unread messages cached in redis.
+        deviceRedisService.delHmsKeysBySnAndHmsKey(deviceSn, hmsKeys);
     }
 
     private DeviceHmsDTO entity2Dto(DeviceHmsEntity entity) {

@@ -92,4 +92,6 @@ public interface IDeviceRedisService {
      * @return
      */
     Boolean delHmsKeysBySn(String sn);
+
+    Boolean delHmsKeysBySnAndHmsKey(String sn, Set<String> hmsKeys);
 }
