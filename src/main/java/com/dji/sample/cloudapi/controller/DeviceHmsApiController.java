@@ -62,8 +62,8 @@ public class DeviceHmsApiController {
      */
     @PutMapping("/{workspace_id}/devices/hms/{device_sn}")
     public ResponseResult updateReadHmsByDeviceSn(@PathVariable("device_sn") String deviceSn,
-            @RequestParam(name = "hms_key", required = false) Set<String> hmsKeys, @PathVariable String workspace_id) {
-        deviceHmsService.updateUnreadHmsByHmsKey(deviceSn, hmsKeys);
+            @RequestParam(name = "hms_id", required = false) Set<String> hmsIds, @PathVariable String workspace_id) {
+        deviceHmsService.updateUnreadHmsByHmsKey(deviceSn, hmsIds);
         return ResponseResult.success();
     }
 

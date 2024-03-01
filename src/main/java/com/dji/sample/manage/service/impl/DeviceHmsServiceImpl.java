@@ -163,9 +163,9 @@ public class DeviceHmsServiceImpl implements IDeviceHmsService {
     }
 
     @Override
-    public void updateUnreadHmsByHmsKey(String deviceSn, Set<String> hmsKeys) {
+    public void updateUnreadHmsByHmsKey(String deviceSn, Set<String> hmsIds) {
 
-        if (CollectionUtils.isEmpty(hmsKeys)) {
+        if (CollectionUtils.isEmpty(hmsIds)) {
             this.updateUnreadHms(deviceSn);
             return;
         }
@@ -173,10 +173,8 @@ public class DeviceHmsServiceImpl implements IDeviceHmsService {
         mapper.update(DeviceHmsEntity.builder().updateTime(System.currentTimeMillis()).build(),
                 new LambdaUpdateWrapper<DeviceHmsEntity>()
                         .eq(DeviceHmsEntity::getSn, deviceSn)
-                        .and(wrapper -> hmsKeys.forEach(key -> wrapper.eq(DeviceHmsEntity::getHmsKey, key).or()))
+                        .and(wrapper -> hmsIds.forEach(id -> wrapper.eq(DeviceHmsEntity::getHmsId, id).or()))
                         .eq(DeviceHmsEntity::getUpdateTime, 0L));
-        // Delete unread messages cached in redis.
-        deviceRedisService.delHmsKeysBySnAndHmsKey(deviceSn, hmsKeys);
     }
 
     private DeviceHmsDTO entity2Dto(DeviceHmsEntity entity) {
