@@ -242,7 +242,8 @@ public class ControlServiceImpl implements IControlService {
         if (!StringUtils.hasText(param.getFlightId())) {
             param.setFlightId(UUID.randomUUID().toString());
         }
-        ServiceReply reply = messageSenderService.publishServicesTopic(sn, DroneControlMethodEnum.TAKE_OFF_TO_POINT.getMethod(), param, param.getFlightId());
+        ServiceReply reply = messageSenderService.publishServicesTopic(sn,
+                DroneControlMethodEnum.TAKE_OFF_TO_POINT.getMethod(), param, param.getFlightId());
 
         if (ResponseResult.CODE_SUCCESS != reply.getResult()) {
             return ResponseResult.error("飞行器起飞失败. " + reply.getResult());

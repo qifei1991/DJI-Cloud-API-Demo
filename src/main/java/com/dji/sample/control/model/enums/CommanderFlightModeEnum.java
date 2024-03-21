@@ -7,26 +7,18 @@ import java.util.Arrays;
 
 /**
  * @author sean
- * @version 1.4
- * @date 2023/3/3
+ * @version 1.7
+ * @date 2023/8/7
  */
-public enum CameraModeEnum {
+public enum CommanderFlightModeEnum {
 
-    PHOTO(0),
+    SMART_HEIGHT(0),
 
-    VIDEO(1),
-
-    LOW_LIGHT_INTELLIGENCE(2),
-
-    PANORAMA(3),
-
-    UNSUPPORTED(-1),
-
-    ;
+    SETTING_HEIGHT(1);
 
     private final int mode;
 
-    CameraModeEnum(int mode) {
+    CommanderFlightModeEnum(int mode) {
         this.mode = mode;
     }
 
@@ -36,7 +28,8 @@ public enum CameraModeEnum {
     }
 
     @JsonCreator
-    public static CameraModeEnum find(int mode) {
+    public static CommanderFlightModeEnum find(int mode) {
         return Arrays.stream(values()).filter(modeEnum -> modeEnum.mode == mode).findAny().get();
     }
+
 }

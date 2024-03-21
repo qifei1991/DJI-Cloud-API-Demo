@@ -167,9 +167,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
      * @param param
      */
     private void fillImmediateTime(CreateJobParam param) {
-        if (WaylineTaskTypeEnum.IMMEDIATE != param.getTaskType()) {
-            return;
-        }
+
         long now = System.currentTimeMillis() / 1000;
         param.setTaskDays(Collections.singletonList(now));
         param.setTaskPeriods(Collections.singletonList(Collections.singletonList(now)));
@@ -177,7 +175,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     @Override
     public ResponseResult publishFlightTask(CreateJobParam param, CustomClaim customClaim) {
-        fillImmediateTime(param);
+        if (WaylineTaskTypeEnum.IMMEDIATE == param.getTaskType()) {
+            fillImmediateTime(param);
+        }
 
         param.getTaskDays().sort((a, b) -> (int) (a - b));
         param.getTaskPeriods().sort((a, b) -> (int) (a.get(0) - b.get(0)));
@@ -601,12 +601,12 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     public void updateJobStatus(String workspaceId, String jobId, UpdateJobParam param) {
         Optional<WaylineJobDTO> waylineJobOpt = this.getJobByJobId(workspaceId, jobId);
         if (waylineJobOpt.isEmpty()) {
-            throw new RuntimeException("The job does not exist.");
+            throw new RuntimeException("操作失败，飞行计划不存在。");
         }
         WaylineJobDTO waylineJob = waylineJobOpt.get();
         WaylineJobStatusEnum statusEnum = this.getWaylineState(waylineJob.getDockSn());
         if (statusEnum.getEnd() || WaylineJobStatusEnum.PENDING == statusEnum) {
-            throw new RuntimeException("The wayline job status does not match, and the operation cannot be performed.");
+            throw new RuntimeException("当前飞行计划已结束或处于未执行状态，不能执行当前操作。");
         }
         switch (param.getStatus()) {
             case PAUSE:

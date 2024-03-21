@@ -1,10 +1,17 @@
 package com.dji.sample.control.model.param;
 
+import com.dji.sample.control.model.enums.CommanderFlightModeEnum;
+import com.dji.sample.control.model.enums.CommanderModeLostActionEnum;
+import com.dji.sample.control.model.enums.RthModeEnum;
 import com.dji.sample.manage.model.enums.DroneRcLostActionEnum;
 import com.dji.sample.manage.model.enums.WaylineRcLostActionEnum;
+import com.dji.sample.wayline.model.dto.SimulateMission;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -48,4 +55,17 @@ public class TakeoffToPointParam {
     private Double maxSpeed;
 
     private String username;
+
+    private RthModeEnum rthMode;
+
+    private CommanderModeLostActionEnum commanderModeLostAction;
+
+    private CommanderFlightModeEnum commanderFlightMode;
+
+    @Min(2)
+    @Max(3000)
+    private Float commanderFlightHeight;
+
+    @Valid
+    private SimulateMission simulateMission;
 }
