@@ -1,15 +1,8 @@
 package com.dji.sample.cloudapi.util;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.NumberUtil;
-import cn.hutool.json.JSONUtil;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.*;
-import java.util.List;
 
 /**
  * 工具类
@@ -21,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 public class ApiUtil {
 
-    private static final String[] DIRECTION_DESC = {"正北", "东北", "正东", "东南", "正南", "西南", "正西", "西北"};
+    private static final String[] DIRECTION_DESC = {"正北", "东北", "正东", "东南", "正南", "西南", "正西", "西北", "正北"};
     /**
      * 通过角度计算方向
      * @param course 角度(0~359)
@@ -60,9 +53,9 @@ public class ApiUtil {
 
     public static void main(String[] args) {
 
-//        log.info("方向: {}", ApiUtil.course2direction(-109.1F));
+        log.info("方向: {}", ApiUtil.course2direction(0F));
 
-        String taskDayStr = "[\n" +
+        /*String taskDayStr = "[\n" +
                 "    1692806400,\n" +
                 "    1693411200,\n" +
                 "    1693584000,\n" +
@@ -96,7 +89,7 @@ public class ApiUtil {
         }
 
         DateTime date = DateUtil.date(1693128416782L);
-        log.info("Datetime: " + date);
+        log.info("Datetime: " + date);*/
     }
 
 }
