@@ -21394,7 +21394,33 @@
     "tr": "Kamera ve mercek yapısal parametre kalibrasyonu verileri eşleşmiyor",
     "zh": "镜头与相机内参检校不匹配"
   },
+  "fpv_tip_0x1C000E01_in_the_sky": {
+    "de": "Kalibrierungsparameter von Kamera und Objektiv stimmen nicht überein",
+    "en": "Camera and lens intrinsic parameters calibration data do not match",
+    "es": "Los datos de calibración de los parámetros internos de la cámara y el objetivo no coinciden",
+    "fr": "Données d\\'étalonnage des paramètres intrinsèques de la caméra et de l\\'objectif incohérents",
+    "it": "",
+    "ja": "カメラとレンズの内部パラメーターのキャリブレーションデータが不一致",
+    "ko": "카메라 및 렌즈 내부 매개변수 캘리브레이션 데이터 불일치",
+    "pt": "",
+    "ru": "Параметры калибровки не соответствуют камере или объективу",
+    "tr": "Kamera ve mercek yapısal parametre kalibrasyonu verileri eşleşmiyor",
+    "zh": "镜头与相机内参检校不匹配"
+  },
   "fpv_tip_0x1C000E02": {
+    "de": "Kalibrierungsparameter abgelaufen",
+    "en": "Intrinsic parameters calibration data expired",
+    "es": "Los datos de calibración de los parámetros internos han caducado",
+    "fr": "Données d\\'étalonnage des paramètres intrinsèques de la caméra expirées",
+    "it": "",
+    "ja": "内部パラメーターのキャリブレーションデータが期限切れ",
+    "ko": "내부 매개변수 캘리브레이션 데이터 만료",
+    "pt": "",
+    "ru": "Срок действия данных калибровки внутренних параметров камеры истек",
+    "tr": "Yapısal parametre kalibrasyonu verilerinin süresi doldu",
+    "zh": "内参检校参数过旧"
+  },
+  "fpv_tip_0x1C000E02_in_the_sky": {
     "de": "Kalibrierungsparameter abgelaufen",
     "en": "Intrinsic parameters calibration data expired",
     "es": "Los datos de calibración de los parámetros internos han caducado",
@@ -21451,7 +21477,29 @@
     "tr": "DJI PROSSD kullanım ömrünün sonuna yaklaşıyor. Depolama cihazının yenilenmesi önerilir",
     "zh": "DJI PROSSD读写量即将到达上限，建议更换"
   },
+  "fpv_tip_0x1C001101_in_the_sky": {
+    "de": "Das Ende der Lebensdauer von DJI PROSSD ist bald erreicht. Austausch des Speichergeräts empfohlen.",
+    "en": "DJI PROSSD approaching end of lifespan. Replacing storage device recommended",
+    "es": "DJI PROSSD cerca del final de su vida útil. Se recomienda sustituir el dispositivo de almacenamiento",
+    "fr": "DJI PROSSD bientôt en fin de vie. Remplacement du périphérique de stockage recommandé",
+    "ja": "DJI PROSSDが有効期限に近づいています。ストレージ機器の交換をお勧めします",
+    "ko": "DJI PROSSD가 수명을 거의 다했습니다. 저장 장치 교체를 권장합니다",
+    "ru": "Срок службы DJI PROSSD подходит к концу. Рекомендуется замена устройства хранения",
+    "tr": "DJI PROSSD kullanım ömrünün sonuna yaklaşıyor. Depolama cihazının yenilenmesi önerilir",
+    "zh": "DJI PROSSD读写量即将到达上限，建议更换"
+  },
   "fpv_tip_0x1C001102": {
+    "de": "Das Ende der Lebensdauer von DJI PROSSD ist erreicht. Austausch des Speichergeräts empfohlen",
+    "en": "DJI PROSSD reached end of lifespan. Replacing storage device recommended",
+    "es": "DJI PROSSD ha alcanzado el final de su vida útil. Se recomienda sustituir el dispositivo de almacenamiento",
+    "fr": "DJI PROSSD a atteint sa fin de vie. Remplacement du périphérique de stockage recommandé",
+    "ja": "DJI PROSSDが有効期限に達しました。ストレージ機器の交換をお勧めします",
+    "ko": "DJI PROSSD가 수명을 다했습니다. 저장 장치 교체를 권장합니다",
+    "ru": "Срок службы DJI PROSSD подошел к концу. Рекомендуется замена устройства хранения",
+    "tr": "DJI PROSSD kullanım ömrünün sonuna erişti. Depolama cihazının yenilenmesi önerilir",
+    "zh": "DJI PROSSD读写量已达上限，建议更换"
+  },
+  "fpv_tip_0x1C001102_in_the_sky": {
     "de": "Das Ende der Lebensdauer von DJI PROSSD ist erreicht. Austausch des Speichergeräts empfohlen",
     "en": "DJI PROSSD reached end of lifespan. Replacing storage device recommended",
     "es": "DJI PROSSD ha alcanzado el final de su vida útil. Se recomienda sustituir el dispositivo de almacenamiento",
@@ -21473,7 +21521,29 @@
     "tr": "DJI PROSSD'de saklanan veriler alınamadı. Veri kaybını önlemek için DJI PROSSD'yi biçimlendirmeden önce dosyaları yedekleyin",
     "zh": "获取 DJI PROSSD 存储信息失败，避免存储风险，请备份素材后格式化"
   },
+  "fpv_tip_0x1C001103_in_the_sky": {
+    "de": "In DJI PROSSD gespeicherte Daten konnten nicht abgerufen werden. Sichere die Dateien, bevor du DJI PROSSD formatierst, um Datenverlust zu vermeiden",
+    "en": "Failed to obtain data stored in DJI PROSSD. Back up files before formatting DJI PROSSD to avoid data loss",
+    "es": "Error al obtener los datos almacenados en DJI PROSSD. Para evitar la pérdida de datos, realice una copia de seguridad de los archivos antes de formatear DJI PROSSD",
+    "fr": "Impossible d'obtenir les données stockées dans DJI PROSSD. Sauvegardez les fichiers avant de formater DJI PROSSD pour éviter toute perte de données",
+    "ja": "DJI ProSSDに保存されているデータの取得に失敗しました。データの消失を回避するため、DJI ProSSDをフォーマットする前にファイルをバックアップしてください",
+    "ko": "DJI PROSSD에 저장된 데이터를 가져오지 못했습니다. 데이터 손실을 방지하기 위해 DJI PROSSD를 포맷하기 전에 파일을 백업하세요.",
+    "ru": "Не удалось получить данные из DJI PROSSD. Во избежание потери данных выполните резервное копирование файлов перед форматированием DJI PROSSD",
+    "tr": "DJI PROSSD'de saklanan veriler alınamadı. Veri kaybını önlemek için DJI PROSSD'yi biçimlendirmeden önce dosyaları yedekleyin",
+    "zh": "获取 DJI PROSSD 存储信息失败，避免存储风险，请备份素材后格式化"
+  },
   "fpv_tip_0x1C001201": {
+    "de": "DJI PROSSD zum Starten der Aufnahme verwenden",
+    "en": "Use DJI PROSSD to start recording",
+    "es": "Utilizar DJI PROSSD para iniciar grabación",
+    "fr": "Utiliser DJI PROSSD pour lancer l’enregistrement",
+    "ja": "DJI PROSSDを使用して撮影を開始してください",
+    "ko": "DJI PROSSD를 사용해 녹화를 시작하세요",
+    "ru": "Используйте DJI PROSSD, чтобы начать запись",
+    "tr": "Kayda başlamak için DJI PROSSD'yi kullanın",
+    "zh": "请使用DJI PROSSD以正常使用录像功能"
+  },
+  "fpv_tip_0x1C001201_in_the_sky": {
     "de": "DJI PROSSD zum Starten der Aufnahme verwenden",
     "en": "Use DJI PROSSD to start recording",
     "es": "Utilizar DJI PROSSD para iniciar grabación",
@@ -21495,7 +21565,29 @@
     "tr": "Video, depolama alanına yazılamadı. Kayıt durduruluyor...",
     "zh": "视频写入失败，正在停止录像"
   },
+  "fpv_tip_0x1C001301_in_the_sky": {
+    "de": "Das Video konnte nicht in den Speicher geschrieben werden. Aufnahme wird gestoppt...",
+    "en": "Failed to write video to storage. Stopping recording...",
+    "es": "No se ha podido registrar el video en el almacenamiento. Deteniendo la grabación...",
+    "fr": "Échec de l’écriture de la vidéo dans le stockage. Arrêt de l’enregistrement en cours...",
+    "ja": "ストレージへの動画の書き込みに失敗しました。撮影を停止しています...",
+    "ko": "동영상을 저장 장치에 쓰기하지 못했습니다. 녹화 중단 중...",
+    "ru": "Не удалось записать видео в хранилище. Выполняется остановка записи...",
+    "tr": "Video, depolama alanına yazılamadı. Kayıt durduruluyor...",
+    "zh": "视频写入失败，正在停止录像"
+  },
   "fpv_tip_0x1C001302": {
+    "de": "Niedrige DJI PROSSD-Schreibgeschwindigkeit. Aufnahme wird gestoppt...",
+    "en": "DJI PROSSD write speed low. Stopping recording...",
+    "es": "Baja velocidad de escritura en DJI PROSSD. Deteniendo la grabación...",
+    "fr": "Vitesse d’écriture DJI PROSSD faible. Arrêt de l’enregistrement en cours...",
+    "ja": "DJI PROSSDの書き込みが低速です。撮影を停止しています...",
+    "ko": "DJI PROSSD 쓰기 속도가 낮습니다. 녹화 중단 중...",
+    "ru": "Низкая скорость записи DJI PROSSD. Выполняется остановка записи...",
+    "tr": "DJI PROSSD yazma hızı düşük. Kayıt durduruluyor...",
+    "zh": "DJI PROSSD写入速度慢，正在停止录像"
+  },
+  "fpv_tip_0x1C001302_in_the_sky": {
     "de": "Niedrige DJI PROSSD-Schreibgeschwindigkeit. Aufnahme wird gestoppt...",
     "en": "DJI PROSSD write speed low. Stopping recording...",
     "es": "Baja velocidad de escritura en DJI PROSSD. Deteniendo la grabación...",
@@ -21517,11 +21609,30 @@
     "tr": "DJI PROSSD'de yetersiz depolama alanı. Kayıt durduruluyor...",
     "zh": "DJI PROSSD剩余空间不足，正在停止录像"
   },
+  "fpv_tip_0x1C001303_in_the_sky": {
+    "de": "Unzureichender Speicherplatz auf DJI PROSSD. Aufnahme wird gestoppt...",
+    "en": "Insufficient storage on DJI PROSSD. Stopping recording...",
+    "es": "Almacenamiento insuficiente en DJI PROSSD. Deteniendo la grabación...",
+    "fr": "Stockage insuffisant sur DJI PROSSD. Arrêt de l’enregistrement en cours...",
+    "ja": "DJI PROSSDのストレージが不足しています。撮影を停止しています...",
+    "ko": "DJI PROSSD에 저장 공간이 충분하지 않습니다. 녹화 중단 중...",
+    "ru": "Недостаточно места на DJI PROSSD. Выполняется остановка записи...",
+    "tr": "DJI PROSSD'de yetersiz depolama alanı. Kayıt durduruluyor...",
+    "zh": "DJI PROSSD剩余空间不足，正在停止录像"
+  },
   "fpv_tip_0x1C001306": {
     "en": "System busy. Recording not allowed",
     "zh": "系统业务繁忙，禁止录像"
   },
+  "fpv_tip_0x1C001306_in_the_sky": {
+    "en": "System busy. Recording not allowed",
+    "zh": "系统业务繁忙，禁止录像"
+  },
   "fpv_tip_0x1C001307": {
+    "en": "System not busy. Recording available",
+    "zh": "业务繁忙解除，允许录像"
+  },
+  "fpv_tip_0x1C001307_in_the_sky": {
     "en": "System not busy. Recording available",
     "zh": "业务繁忙解除，允许录像"
   },
