@@ -130,10 +130,10 @@ public class DrcServiceImpl implements IDrcService {
         if (dockOpt.isPresent() && (DockModeCodeEnum.IDLE == dockMode || DockModeCodeEnum.WORKING == dockMode)) {
             Optional<OsdSubDeviceReceiver> deviceOsd = deviceRedisService.getDeviceOsd(dockOpt.get().getChildDeviceSn(), OsdSubDeviceReceiver.class);
             if (deviceOsd.isEmpty() || deviceOsd.get().getElevation() <= 0) {
-                throw new RuntimeException("飞机不在空中，不能控制飞行.");
+                throw new RuntimeException("飞机不在空中，不能进入手动控制飞行模式.");
             }
         } else {
-            throw new RuntimeException("设备当前状态不支持飞行控制.");
+            throw new RuntimeException("当前状态不支持进入手动控制飞行模式.");
         }
 
         ResponseResult result = controlService.seizeAuthority(dockSn, DroneAuthorityEnum.FLIGHT, null);

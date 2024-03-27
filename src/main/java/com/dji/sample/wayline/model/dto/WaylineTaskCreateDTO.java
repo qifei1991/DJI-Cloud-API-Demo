@@ -39,4 +39,6 @@ public class WaylineTaskCreateDTO {
     private WaylineTaskExecutableConditionDTO executableConditions;
 
     private WaylineTaskBreakPoint breakPoint;
+
+    private SimulateMission simulateMission;
 }

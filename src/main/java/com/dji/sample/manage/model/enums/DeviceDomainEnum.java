@@ -15,9 +15,9 @@ public enum DeviceDomainEnum {
 
     SUB_DEVICE(0),
 
-    GATEWAY(2),
-
     PAYLOAD(1),
+
+    GATEWAY(2),
 
     DOCK (3),
 

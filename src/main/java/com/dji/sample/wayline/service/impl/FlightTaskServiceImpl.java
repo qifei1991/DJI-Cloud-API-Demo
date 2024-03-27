@@ -142,7 +142,6 @@ public class FlightTaskServiceImpl implements IFlightTaskService {
         waylineRedisService.delBlockedWaylineJobId(receiver.getGateway());
 
         Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(dock.getWorkspaceId(), receiver.getBid());
-
         // add by Qfei, report flight task end.
         jobDTO.ifPresent(x -> {
             // 如果执行的断点续飞任务，将Redis中存储的断点信息删除
