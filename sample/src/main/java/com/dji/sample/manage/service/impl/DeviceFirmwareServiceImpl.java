@@ -1,5 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
+import cn.hutool.core.text.CharPool;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -212,7 +213,7 @@ public class DeviceFirmwareServiceImpl extends AbstractFirmwareService implement
             }
 
             String firmwareId = UUID.randomUUID().toString();
-            String objectKey = OssConfiguration.objectDirPrefix + File.separator + firmwareId + FirmwareFileProperties.FIRMWARE_FILE_SUFFIX;
+            String objectKey = OssConfiguration.objectDirPrefix + CharPool.SLASH + firmwareId + FirmwareFileProperties.FIRMWARE_FILE_SUFFIX;
 
             ossServiceContext.putObject(OssConfiguration.bucket, objectKey, file.getInputStream());
             log.info("upload success. {}", file.getOriginalFilename());

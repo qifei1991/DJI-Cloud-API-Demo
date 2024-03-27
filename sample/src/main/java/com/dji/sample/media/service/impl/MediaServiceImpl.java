@@ -1,5 +1,6 @@
 package com.dji.sample.media.service.impl;
 
+import com.dji.sample.cloudapi.client.MediaClient;
 import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
 import com.dji.sample.component.websocket.service.IWebSocketMessageService;
@@ -12,6 +13,7 @@ import com.dji.sample.media.model.MediaFileDTO;
 import com.dji.sample.media.service.IFileService;
 import com.dji.sample.media.service.IMediaRedisService;
 import com.dji.sample.media.service.IMediaService;
+import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sdk.cloudapi.media.*;
 import com.dji.sdk.cloudapi.media.api.AbstractMediaService;
@@ -59,6 +61,9 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
 
     @Autowired
     private IMediaRedisService mediaRedisService;
+
+    @Autowired
+    private MediaClient mediaClient;
 
     @Override
     public Boolean fastUpload(String workspaceId, String fingerprint) {
@@ -109,13 +114,15 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
         }
 
         DeviceDTO device = deviceOpt.get();
-        boolean isSave = parseMediaFile(callback, device);
+        Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(device.getWorkspaceId(), jobId);
+        boolean isSave = parseMediaFile(callback, device, jobOpt);
         if (!isSave) {
             log.error("Failed to save the file to the database, please check the data manually.");
             return null;
         }
 
         notifyUploadedCount(mediaFileCount, request, jobId, device);
+
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
     }
 
@@ -149,7 +156,7 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
     }
 
-    private Boolean parseMediaFile(FileUploadCallback callback, DeviceDTO device) {
+    private Boolean parseMediaFile(FileUploadCallback callback, DeviceDTO device, Optional<WaylineJobDTO> jobOpt) {
         MediaUploadCallbackRequest file = convert2callbackRequest(callback.getFile());
         // Set the drone sn that shoots the media
         file.getExt().setSn(device.getChildDeviceSn());
@@ -160,12 +167,29 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
                 .filter(index -> index > 0).map(index -> index++).orElse(0),
                 objectKey.lastIndexOf("/")));
 
-        return fileService.saveFile(device.getWorkspaceId(), file) > 0;
+        Integer saved = fileService.saveFile(device.getWorkspaceId(), file);
+
+        // add by Qfei, File-upload callback.
+        String flightId = jobOpt
+                // 处理计划飞行上传的媒体文件.
+                .map(job -> Boolean.TRUE.equals(job.getContinuable()) ? job.getGroupId() : job.getJobId())
+                // 处理手控飞行上传的媒体文件, modify by Qfei, 2023-9-13 14:45:45.
+                .orElse(callback.getFile().getExt().getFlightId());
+        this.mediaClient.uploadCallback(flightId, file);
+
+        return saved > 0;
     }
 
     private void notifyUploadedCount(MediaFileCountDTO mediaFileCount, TopicEventsRequest<FileUploadCallback> request, String jobId, DeviceDTO dock) {
         // Do not notify when files that do not belong to the route are uploaded.
         if (Objects.isNull(mediaFileCount)) {
+            // add by Qfei, 手动飞行媒体文件上传.
+            mediaFileCount = MediaFileCountDTO.builder()
+                    .bid(request.getBid())
+                    .tid(request.getTid())
+                    .mediaCount(0)
+                    .build();
+            this.mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
             return;
         }
         mediaFileCount.setBid(request.getBid());
@@ -187,6 +211,9 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
 
         webSocketMessageService.sendBatch(dock.getWorkspaceId(), UserTypeEnum.WEB.getVal(),
                 BizCodeEnum.FILE_UPLOAD_CALLBACK.getCode(), mediaFileCount);
+
+        // add by Qfei, 航线计划飞行媒体文件上报.
+        this.mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
     }
 
     private MediaUploadCallbackRequest convert2callbackRequest(FileUploadCallbackFile file) {

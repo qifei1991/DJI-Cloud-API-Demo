@@ -2,6 +2,7 @@ package com.dji.sample.wayline.controller;
 
 import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.enums.WaylineTaskStatusEnum;
 import com.dji.sample.wayline.model.param.CreateJobParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sample.wayline.service.IFlightTaskService;
@@ -61,7 +62,8 @@ public class WaylineJobController {
     public HttpResultResponse<PaginationData<WaylineJobDTO>> getJobs(@RequestParam(defaultValue = "1") Long page,
                                                                      @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
                                                                      @PathVariable(name = "workspace_id") String workspaceId) {
-        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize);
+        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize, null, null,
+                null, null, null, null, null, null);
         return HttpResultResponse.success(data);
     }
 
@@ -95,7 +97,10 @@ public class WaylineJobController {
     @PutMapping("/{workspace_id}/jobs/{job_id}")
     public HttpResultResponse updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
                                               @PathVariable(name = "job_id") String jobId,
-                                              @Valid @RequestBody UpdateJobParam param) {
+                                              @Valid @RequestBody UpdateJobParam param) throws SQLException {
+        if (param.getStatus() == WaylineTaskStatusEnum.BREAK_POINT_CONTINUE) {
+            return flighttaskService.breakPointContinueFlight(workspaceId, jobId);
+        }
         flighttaskService.updateJobStatus(workspaceId, jobId, param);
         return HttpResultResponse.success();
     }

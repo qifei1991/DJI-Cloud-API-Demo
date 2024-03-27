@@ -8,6 +8,7 @@ import com.dji.sdk.cloudapi.wayline.*;
 import com.dji.sdk.cloudapi.wayline.api.IHttpWaylineService;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.PaginationData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +35,7 @@ import static com.dji.sample.component.AuthInterceptor.TOKEN_CLAIM;
  * @version 0.3
  * @date 2021/12/22
  */
+@Slf4j
 @RestController
 public class WaylineFileController implements IHttpWaylineService {
 
@@ -96,9 +98,8 @@ public class WaylineFileController implements IHttpWaylineService {
         try {
             URL url = waylineFileService.getObjectUrl(workspaceId, waylineId);
             rsp.sendRedirect(url.toString());
-
         } catch (IOException | SQLException e) {
-            e.printStackTrace();
+            log.error("Fail to obtain wayline file URL.", e);
         }
     }
 

@@ -1,6 +1,7 @@
 package com.dji.sample.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,6 +34,19 @@ public class GlobalThreadPoolConfiguration {
      */
     @Bean
     public Executor threadPool() {
+        return new ThreadPoolExecutor(corePoolSize,
+                maximumPoolSize, keepAliveTime,
+                TimeUnit.SECONDS, new LinkedBlockingQueue<>(capacity),
+                Executors.defaultThreadFactory(), new ThreadPoolExecutor.DiscardOldestPolicy());
+    }
+
+    /**
+     * Async thread pool
+     * @return ThreadPoolExecutor
+     */
+    @Bean("asyncThreadPool")
+    @ConditionalOnMissingBean(name = "asyncThreadPool")
+    public Executor asyncThreadPool() {
         return new ThreadPoolExecutor(corePoolSize,
                 maximumPoolSize, keepAliveTime,
                 TimeUnit.SECONDS, new LinkedBlockingQueue<>(capacity),

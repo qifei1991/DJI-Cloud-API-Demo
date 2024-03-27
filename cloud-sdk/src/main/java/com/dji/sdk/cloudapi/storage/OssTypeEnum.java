@@ -15,7 +15,9 @@ public enum OssTypeEnum {
 
     AWS("aws"),
 
-    MINIO("minio");
+    MINIO("minio"),
+
+    OBS("obs");
 
     private String type;
 

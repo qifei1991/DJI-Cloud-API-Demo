@@ -1,5 +1,6 @@
 package com.dji.sample.wayline.service.impl;
 
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
@@ -28,6 +29,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -62,9 +64,12 @@ public class SDKWaylineService extends AbstractWaylineService {
     @Autowired
     private IWaylineFileService waylineFileService;
 
+    @Autowired
+    private FlightTaskClient flightTaskClient;
+
     @Override
     public TopicEventsResponse<MqttReply> deviceExitHomingNotify(TopicEventsRequest<DeviceExitHomingNotify> request, MessageHeaders headers) {
-        return super.deviceExitHomingNotify(request, headers);
+        return deviceExitHomingNotify(request, headers);
     }
 
     @Override
@@ -107,14 +112,33 @@ public class SDKWaylineService extends AbstractWaylineService {
             if (FlighttaskStatusEnum.OK != statusEnum) {
                 job.setCode(eventsReceiver.getResult().getCode());
                 job.setStatus(WaylineJobStatusEnum.FAILED.getVal());
+
+                log.info("Job status: {}, break point: {}", statusEnum.getStatus(), output.getExt().getBreakPoint());
+                this.waylineRedisService.setProgressExtBreakPoint(response.getBid(), output.getExt().getBreakPoint());
             }
             waylineJobService.updateJob(job);
             waylineRedisService.delRunningWaylineJob(response.getGateway());
             waylineRedisService.delPausedWaylineJob(response.getBid());
+
+            // add by Qfei, report flight task end.
+            Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(deviceOpt.get().getWorkspaceId(), response.getBid());
+            jobDTO.ifPresent(x -> {
+                // 如果执行的断点续飞任务，将Redis中存储的断点信息删除
+                if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
+                    waylineRedisService.delBreakPointReceiver(x.getParentId());
+                }
+
+                job.setContinuable(x.getContinuable());
+                job.setGroupId(x.getGroupId());
+            });
+            this.flightTaskClient.flightTaskCompleted(job);
         }
 
         webSocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
                 BizCodeEnum.FLIGHT_TASK_PROGRESS.getCode(), eventsReceiver);
+
+        // add by Qfei, report flight task progress.
+        this.flightTaskClient.flightTaskProgress(response.getBid(), output);
 
         return new TopicEventsResponse<>();
     }
@@ -126,12 +150,12 @@ public class SDKWaylineService extends AbstractWaylineService {
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(response.getGateway());
         if (deviceOpt.isEmpty()) {
-            log.error("The device is offline, please try again later.");
+            log.error("机场已离线，请稍候重试。");
             return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.DEVICE_OFFLINE));
         }
         Optional<WaylineJobDTO> waylineJobOpt = waylineJobService.getJobByJobId(deviceOpt.get().getWorkspaceId(), jobId);
         if (waylineJobOpt.isEmpty()) {
-            log.error("The wayline job does not exist.");
+            log.error("航线飞行计划不存在。");
             return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.ILLEGAL_ARGUMENT));
         }
 
@@ -140,7 +164,7 @@ public class SDKWaylineService extends AbstractWaylineService {
         // get wayline file
         Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
         if (waylineFile.isEmpty()) {
-            log.error("The wayline file does not exist.");
+            log.error("获取航线文件失败.");
             return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.ILLEGAL_ARGUMENT));
         }
         // get file url

@@ -7,6 +7,7 @@ import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.cloudapi.wayline.ProgressExtBreakPoint;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -109,4 +110,20 @@ public class WaylineRedisServiceImpl implements IWaylineRedisService {
     public Boolean removePrepareConditionalWaylineJob(ConditionalWaylineJobKey jobKey) {
         return RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_CONDITION_PREPARE, jobKey.getKey());
     }
+
+    @Override
+    public void setProgressExtBreakPoint(String jobId, ProgressExtBreakPoint progressExtBreakPoint) {
+        RedisOpsUtils.set(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId, progressExtBreakPoint);
+    }
+
+    @Override
+    public Optional<ProgressExtBreakPoint> getProgressExtBreakPoint(String jobId) {
+        return Optional.ofNullable((ProgressExtBreakPoint) RedisOpsUtils.get(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId));
+    }
+
+    @Override
+    public Boolean delBreakPointReceiver(String jobId) {
+        return RedisOpsUtils.del(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId);
+    }
+
 }

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -142,6 +143,19 @@ public class DeviceHmsServiceImpl extends AbstractHmsService implements IDeviceH
                         .eq(DeviceHmsEntity::getUpdateTime, 0L));
         // Delete unread messages cached in redis.
         deviceRedisService.delHmsKeysBySn(deviceSn);
+    }
+
+    @Override
+    public void updateUnreadHmsByHmsKey(String deviceSn, Set<String> hmsIds) {
+        if (CollectionUtils.isEmpty(hmsIds)) {
+            this.updateUnreadHms(deviceSn);
+            return;
+        }
+        mapper.update(DeviceHmsEntity.builder().updateTime(System.currentTimeMillis()).build(),
+                new LambdaUpdateWrapper<DeviceHmsEntity>()
+                        .eq(DeviceHmsEntity::getSn, deviceSn)
+                        .and(wrapper -> hmsIds.forEach(id -> wrapper.eq(DeviceHmsEntity::getHmsId, id).or()))
+                        .eq(DeviceHmsEntity::getUpdateTime, 0L));
     }
 
     private DeviceHmsDTO entity2Dto(DeviceHmsEntity entity) {

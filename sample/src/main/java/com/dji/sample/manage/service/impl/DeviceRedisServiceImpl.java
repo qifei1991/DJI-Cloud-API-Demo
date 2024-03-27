@@ -7,6 +7,7 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.ICapacityCameraService;
 import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sdk.cloudapi.firmware.OtaProgress;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  * @date 2023/3/21
  */
 @Service
+@Slf4j
 public class DeviceRedisServiceImpl implements IDeviceRedisService {
 
     @Autowired
@@ -90,6 +92,19 @@ public class DeviceRedisServiceImpl implements IDeviceRedisService {
     @Override
     public Boolean delHmsKeysBySn(String sn) {
         return RedisOpsUtils.del(RedisConst.HMS_PREFIX + sn);
+    }
+
+    @Override
+    public Boolean delHmsKeysBySnAndHmsKey(String sn, Set<String> hmsKeys) {
+        try {
+            for (String hmsKey : hmsKeys) {
+                RedisOpsUtils.listRemove(RedisConst.HMS_PREFIX + sn, 0, hmsKey);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete Redis Hms Key.", e);
+            return false;
+        }
     }
 
     @Override

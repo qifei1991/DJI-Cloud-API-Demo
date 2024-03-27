@@ -1,11 +1,13 @@
 package com.dji.sample.manage.model.param;
 
+import cn.hutool.core.text.StrPool;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -41,4 +43,12 @@ public class DeviceHmsQueryParam {
 
     @JsonProperty("update_time")
     private Long updateTime;
+
+    /**
+     * 接收多个设备SN
+     * @param deviceSnStr
+     */
+    public void setDeviceSn(String deviceSnStr) {
+        this.deviceSn = new HashSet<>(Set.of(deviceSnStr.split(StrPool.COMMA)));
+    }
 }

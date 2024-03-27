@@ -54,7 +54,7 @@ public enum RemoteDebugMethodEnum {
     BATTERY_MAINTENANCE_SWITCH(DebugMethodEnum.BATTERY_MAINTENANCE_SWITCH, false, AlarmState.class),
 
     ALARM_STATE_SWITCH(DebugMethodEnum.ALARM_STATE_SWITCH, false, AlarmState.class),
-    
+
     BATTERY_STORE_MODE_SWITCH(DebugMethodEnum.BATTERY_STORE_MODE_SWITCH, false, BatteryStoreMode.class),
 
     SDR_WORK_MODE_SWITCH(DebugMethodEnum.SDR_WORKMODE_SWITCH, false, LinkWorkMode.class),
@@ -66,7 +66,7 @@ public enum RemoteDebugMethodEnum {
     private String method;
 
     private boolean progress;
-    
+
     private Class<? extends RemoteDebugHandler> clazz;
 
     RemoteDebugMethodEnum(DebugMethodEnum debugMethodEnum, boolean progress, Class<? extends RemoteDebugHandler> clazz) {
@@ -90,7 +90,7 @@ public enum RemoteDebugMethodEnum {
                         || (Objects.nonNull(methodEnum.debugMethodEnum)
                             && methodEnum.debugMethodEnum.getMethod().equals(method)))
                 .findAny()
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalArgumentException(String.format("远程命令[%s]不存在.", method)));
     }
 
 }

@@ -1,10 +1,7 @@
 package com.dji.sample.manage.model.dto;
 
 import com.dji.sample.manage.model.enums.DeviceFirmwareStatusEnum;
-import com.dji.sdk.cloudapi.device.ControlSourceEnum;
-import com.dji.sdk.cloudapi.device.DeviceDomainEnum;
-import com.dji.sdk.cloudapi.device.DeviceSubTypeEnum;
-import com.dji.sdk.cloudapi.device.DeviceTypeEnum;
+import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.cloudapi.tsa.DeviceIconUrl;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,4 +69,12 @@ public class DeviceDTO {
     private String parentSn;
 
     private String thingVersion;
+
+    private Integer modeCode;
+    private Float longitude;
+    private Float latitude;
+    private Float attitudeHead;
+    private Integer droneInDock;
+
+    private List<DeviceHmsDTO> hmsList;
 }

@@ -49,10 +49,10 @@ public class CustomClaim {
                 field.setAccessible(true);
                 // The value of key is named underscore.
                 map.put(annotation != null ? annotation.value()[0] : field.getName(),
-                        field.get(this).toString());
+                        String.valueOf(field.get(this)));
             }
         } catch (IllegalAccessException e) {
-            log.info("CustomClaim converts failed. {}", this.toString());
+            log.info("CustomClaim converts failed. {}", this);
             e.printStackTrace();
         }
         return map;
@@ -77,11 +77,9 @@ public class CustomClaim {
                 }
                 if (String.class.equals(type)) {
                     field.set(this, value.asString());
-                    continue;
                 }
             } catch (IllegalAccessException e) {
-                log.info("Claim parses failed. {}", claimMap.toString());
-                e.printStackTrace();
+                log.error("Claim parses failed. {}", claimMap, e);
             }
         }
     }

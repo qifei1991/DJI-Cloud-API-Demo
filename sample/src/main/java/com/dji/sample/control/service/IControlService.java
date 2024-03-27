@@ -53,13 +53,31 @@ public interface IControlService {
     HttpResultResponse takeoffToPoint(String sn, TakeoffToPointParam param);
 
     /**
+     * Check the control authority of the drone or the payload control authority.
+     * @param sn The dock sn.
+     * @param authority The authority device type.
+     * @param param Authority parameter.
+     * @return ResponseResult.
+     */
+    HttpResultResponse checkAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
+
+    /**
      * Seize the control authority of the drone or the payload control authority.
      * @param sn
      * @param authority
      * @param param
      * @return
      */
-    HttpResultResponse seizeAuthority(String sn, DroneAuthorityEnum authority, DronePayloadParam param);
+    HttpResultResponse seizeAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
+
+    /**
+     * Release the control authority of the drone or the payload control authority.
+     * @param sn The dock sn.
+     * @param authority The authority device type.
+     * @param param Authority parameter.
+     * @return ResponseResult.
+     */
+    HttpResultResponse releaseAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
 
     /**
      * Control the payload of the drone.

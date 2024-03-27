@@ -33,7 +33,7 @@ public class CreateJobParam {
     @NotNull
     private TaskTypeEnum taskType;
 
-    @Range(min = 20, max = 500)
+    @Range(min = 20, max = 1500)
     @NotNull
     private Integer rthAltitude;
 
@@ -48,4 +48,16 @@ public class CreateJobParam {
     private List<Long> taskDays;
 
     private List<List<Long>> taskPeriods;
+
+    @Deprecated
+    @NotNull
+    @Range(max = 2)
+    private Integer exitWaylineWhenRcLost;
+
+    private String username;
+
+    /**
+     * 能否断点续飞
+     */
+    private Boolean continuable = false;
 }

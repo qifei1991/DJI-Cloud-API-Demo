@@ -1,5 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
+import com.dji.sample.cloudapi.client.DeviceClient;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
 import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
@@ -57,10 +58,14 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Autowired
     private IDevicePayloadService devicePayloadService;
 
+    @Autowired
+    private DeviceClient deviceClient;
+
     @Override
     public TopicStatusResponse<MqttReply> updateTopoOnline(TopicStatusRequest<UpdateTopo> request, MessageHeaders headers) {
         UpdateTopoSubDevice updateTopoSubDevice = request.getData().getSubDevices().get(0);
         String deviceSn = updateTopoSubDevice.getSn();
+        log.info("- [设备上线]上线设备SN，网关SN: {}, 飞行器SN: {}", request.getFrom(), deviceSn);
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(deviceSn);
         Optional<DeviceDTO> gatewayOpt = deviceRedisService.getDeviceOnline(request.getFrom());
@@ -68,6 +73,7 @@ public class SDKDeviceService extends AbstractDeviceService {
                 request.getData().getDomain(), request.getData().getType(),
                 request.getData().getSubType(), request.getData().getThingVersion(), updateTopoSubDevice.getThingVersion());
 
+        log.info("- [设备上线]判断设备是否在线，dock: {}, subDevice: {}.", gatewayOpt.isPresent(), deviceOpt.isPresent());
         if (deviceOpt.isPresent() && gatewayOpt.isPresent()) {
             deviceOnlineAgain(deviceOpt.get().getWorkspaceId(), request.getFrom(), deviceSn);
             return new TopicStatusResponse<MqttReply>().setData(MqttReply.success());
@@ -77,12 +83,14 @@ public class SDKDeviceService extends AbstractDeviceService {
 
         DeviceDTO gateway = deviceGatewayConvertToDevice(request.getFrom(), request.getData());
         Optional<DeviceDTO> gatewayEntityOpt = onlineSaveDevice(gateway, deviceSn, null);
+        log.info("- [设备上线]保存机场设备信息，{}.", gatewayEntityOpt);
         if (gatewayEntityOpt.isEmpty()) {
             log.error("Failed to go online, please check the status data or code logic.");
             return null;
         }
         DeviceDTO subDevice = subDeviceConvertToDevice(updateTopoSubDevice);
         Optional<DeviceDTO> subDeviceEntityOpt = onlineSaveDevice(subDevice, null, gateway.getDeviceSn());
+        log.info("- [设备上线]保存飞行器设备信息，{}.", subDeviceEntityOpt);
         if (subDeviceEntityOpt.isEmpty()) {
             log.error("Failed to go online, please check the status data or code logic.");
             return null;
@@ -100,7 +108,15 @@ public class SDKDeviceService extends AbstractDeviceService {
         deviceService.subDeviceOnlineSubscribeTopic(gatewayManager);
         deviceService.pushDeviceOnlineTopo(gateway.getWorkspaceId(), gateway.getDeviceSn(), subDevice.getDeviceSn());
 
-        log.debug("{} online.", subDevice.getDeviceSn());
+        // add by Qfei, report device online.
+        try {
+            this.deviceClient.reportOnline(deviceService.getDeviceBySn(gateway.getDeviceSn()));
+            this.deviceClient.reportOnline(deviceService.getDeviceBySn(subDevice.getDeviceSn()));
+        } catch (Exception e) {
+            log.error("上报失败");
+        }
+
+        log.info("Drone {} online.", subDevice.getDeviceSn());
         return new TopicStatusResponse<MqttReply>().setData(MqttReply.success());
     }
 
@@ -156,6 +172,9 @@ public class SDKDeviceService extends AbstractDeviceService {
         fillDockOsd(from, request.getData());
 
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DOCK_OSD, from, request.getData());
+
+        // Dock osd report.
+        this.deviceClient.reportDockOsdInfo(request.getData(), device.getDeviceSn());
     }
 
     @Override
@@ -179,6 +198,9 @@ public class SDKDeviceService extends AbstractDeviceService {
         deviceRedisService.setDeviceOsd(from, request.getData());
 
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DEVICE_OSD, from, request.getData());
+
+        // Report drone osd status.
+        this.deviceClient.reportDroneOsdInfo(request.getData(), device.getDeviceSn(), from);
     }
 
     @Override
@@ -206,6 +228,8 @@ public class SDKDeviceService extends AbstractDeviceService {
                         .setHeight(data.getHeight()));
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.RC_OSD, from, data);
 
+        // report gateway osd information.
+        this.deviceClient.reportRcOsdInfo(data, device);
     }
 
     @Override
@@ -352,6 +376,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         if (!Objects.requireNonNullElse(subDevice.getBoundStatus(), false)) {
             // Directly bind the drone of the dock to the same workspace as the dock.
             deviceService.bindDevice(DeviceDTO.builder().deviceSn(subDevice.getDeviceSn()).workspaceId(gateway.getWorkspaceId()).build());
+            log.info("- [设备上线]机场绑定新添加的飞行器，{}.", subDevice);
             subDevice.setWorkspaceId(gateway.getWorkspaceId());
         }
         deviceRedisService.setDeviceOnline(subDevice);
@@ -382,6 +407,7 @@ public class SDKDeviceService extends AbstractDeviceService {
                 .loginTime(LocalDateTime.now())
                 .deviceSn(gatewaySn)
                 .childDeviceSn(deviceSn).build();
+        log.info("- [设备上线]更新机场和飞行器设备信息.");
         deviceService.updateDevice(gateway);
         deviceService.updateDevice(device);
         gateway = deviceRedisService.getDeviceOnline(gatewaySn).map(g -> {

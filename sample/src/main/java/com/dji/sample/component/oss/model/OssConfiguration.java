@@ -2,6 +2,7 @@ package com.dji.sample.component.oss.model;
 
 import com.dji.sdk.cloudapi.storage.OssTypeEnum;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,8 +10,9 @@ import org.springframework.stereotype.Component;
  * @version 0.2
  * @date 2021/12/9
  */
-@ConfigurationProperties(prefix = "oss")
 @Component
+@ConfigurationProperties(prefix = "oss")
+@ConfigurationPropertiesBinding
 public class OssConfiguration {
 
     /**
@@ -27,6 +29,11 @@ public class OssConfiguration {
      * The protocol needs to be included at the beginning of the address.
      */
     public static String endpoint;
+
+    /**
+     * 外网地址
+     */
+    public static String extranetEndpoint;
 
     public static String accessKey;
 
@@ -54,6 +61,10 @@ public class OssConfiguration {
 
     public void setEndpoint(String endpoint) {
         OssConfiguration.endpoint = endpoint;
+    }
+
+    public void setExtranetEndpoint(String extranetEndpoint) {
+        OssConfiguration.extranetEndpoint = extranetEndpoint;
     }
 
     public void setAccessKey(String accessKey) {

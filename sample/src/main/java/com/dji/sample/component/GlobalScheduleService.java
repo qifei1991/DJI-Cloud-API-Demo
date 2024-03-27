@@ -30,8 +30,6 @@ public class GlobalScheduleService {
     @Autowired
     private IMqttTopicService topicService;
 
-    @Autowired
-    private ObjectMapper mapper;
     /**
      * Check the status of the devices every 30 seconds. It is recommended to use cache.
      */

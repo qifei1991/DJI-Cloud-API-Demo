@@ -21,6 +21,7 @@
         <okhttp3.version>4.9.1</okhttp3.version>
         <aliyun-sdk-sts.version>3.1.0</aliyun-sdk-sts.version>
         <aliyun-oss.version>3.12.0</aliyun-oss.version>
+        <huawei-obs.version>3.22.3.1</huawei-obs.version>
         <glassfish-jaxb.version>2.3.3</glassfish-jaxb.version>
         <log4j2.version>2.15.0</log4j2.version>
         <javax-jaxb.version>2.3.0</javax-jaxb.version>
@@ -95,6 +96,13 @@
             <version>${aliyun-oss.version}</version>
         </dependency>
 
+        <!-- 华为云 OBS 不使用的情况下可以不引入 -->
+        <dependency>
+            <groupId>com.huaweicloud</groupId>
+            <artifactId>esdk-obs-java</artifactId>
+            <version>${huawei-obs.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
@@ -142,6 +150,12 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.69</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.22</version>
         </dependency>
 
     </dependencies>

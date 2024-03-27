@@ -106,6 +106,8 @@ public interface IDeviceRedisService {
      */
     Boolean delHmsKeysBySn(String sn);
 
+    Boolean delHmsKeysBySnAndHmsKey(String sn, Set<String> hmsKeys);
+
     void gatewayOffline(String gatewaySn);
 
     void subDeviceOffline(String deviceSn);

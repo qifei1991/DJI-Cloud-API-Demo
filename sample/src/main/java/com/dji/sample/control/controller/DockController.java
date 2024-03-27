@@ -17,7 +17,6 @@ import javax.validation.Valid;
  * @date 2022/7/29
  */
 @RestController
-@Slf4j
 @RequestMapping("${url.control.prefix}${url.control.version}/devices")
 public class DockController {
 
@@ -61,6 +60,5 @@ public class DockController {
         param.setSn(sn);
         return controlService.payloadCommands(param);
     }
-
 
 }

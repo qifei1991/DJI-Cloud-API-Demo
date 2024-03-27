@@ -5,9 +5,11 @@ import com.dji.sdk.cloudapi.control.CommanderModeLostActionEnum;
 import com.dji.sdk.cloudapi.device.ExitWaylineWhenRcLostEnum;
 import com.dji.sdk.cloudapi.device.RcLostActionEnum;
 import com.dji.sdk.cloudapi.wayline.RthModeEnum;
+import com.dji.sdk.cloudapi.wayline.SimulateMission;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -61,4 +63,9 @@ public class TakeoffToPointParam {
     @Min(2)
     @Max(3000)
     private Float commanderFlightHeight;
+
+    private String username;
+
+    @Valid
+    private SimulateMission simulateMission;
 }

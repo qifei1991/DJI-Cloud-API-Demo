@@ -18,6 +18,7 @@ import com.dji.sdk.cloudapi.storage.CredentialsToken;
 import com.dji.sdk.cloudapi.storage.OssTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -34,7 +35,8 @@ import java.util.Objects;
 public class AliyunOssServiceImpl implements IOssService {
 
     private OSS ossClient;
-    
+    private OSS extranetOssClient;
+
     @Override
     public OssTypeEnum getOssType() {
         return OssTypeEnum.ALIYUN;
@@ -71,7 +73,7 @@ public class AliyunOssServiceImpl implements IOssService {
             throw new OSSException("The object does not exist.");
         }
 
-        return ossClient.generatePresignedUrl(bucket, objectKey,
+        return extranetOssClient.generatePresignedUrl(bucket, objectKey,
                 new Date(System.currentTimeMillis() + OssConfiguration.expire * 1000));
     }
 
@@ -98,11 +100,16 @@ public class AliyunOssServiceImpl implements IOssService {
         log.info("Upload FlighttaskCreateFile: {}", objectResult.getETag());
     }
 
+    @Override
     public void createClient() {
         if (Objects.nonNull(this.ossClient)) {
             return;
         }
         this.ossClient = new OSSClientBuilder()
                 .build(OssConfiguration.endpoint, OssConfiguration.accessKey, OssConfiguration.secretKey);
+
+        this.extranetOssClient = !StringUtils.hasText(OssConfiguration.extranetEndpoint)
+                ? this.ossClient
+                : new OSSClientBuilder().build(OssConfiguration.extranetEndpoint, OssConfiguration.accessKey, OssConfiguration.secretKey);
     }
 }

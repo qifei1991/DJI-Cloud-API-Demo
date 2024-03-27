@@ -191,6 +191,19 @@ public class RedisOpsUtils {
     }
 
     /**
+     * 删除集合中值等于value得元素
+     *
+     * @param key   key
+     * @param index index=0, 删除所有值等于value的元素; index>0, 从头部开始删除第一个值等于value的元素;
+     *              index<0, 从尾部开始删除第一个值等于value的元素;
+     * @param value 值
+     * @return 操作后 list 长度
+     */
+    public static Long listRemove(String key, long index, Object value) {
+        return redisTemplate.opsForList().remove(key, index, value);
+    }
+
+    /**
      * LLen
      * @param key
      * @return

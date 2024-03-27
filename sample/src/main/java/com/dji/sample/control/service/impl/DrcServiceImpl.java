@@ -65,10 +65,10 @@ public class DrcServiceImpl implements IDrcService {
 
     @Autowired
     private IDeviceService deviceService;
-    
+
     @Autowired
     private ObjectMapper mapper;
-    
+
     @Autowired
     private IWebSocketMessageService webSocketMessageService;
 
@@ -135,10 +135,10 @@ public class DrcServiceImpl implements IDrcService {
         if (dockOpt.isPresent() && (DockModeCodeEnum.IDLE == dockMode || DockModeCodeEnum.WORKING == dockMode)) {
             Optional<OsdDockDrone> deviceOsd = deviceRedisService.getDeviceOsd(dockOpt.get().getChildDeviceSn(), OsdDockDrone.class);
             if (deviceOsd.isEmpty() || deviceOsd.get().getElevation() <= 0) {
-                throw new RuntimeException("The drone is not in the sky and cannot enter command flight mode.");
+                throw new RuntimeException("飞机不在空中，不能进入手动控制飞行模式.");
             }
         } else {
-            throw new RuntimeException("The current state of the dock does not support entering command flight mode.");
+            throw new RuntimeException("当前状态不支持进入手动控制飞行模式.");
         }
 
         HttpResultResponse result = controlService.seizeAuthority(dockSn, DroneAuthorityEnum.FLIGHT, null);
@@ -175,8 +175,7 @@ public class DrcServiceImpl implements IDrcService {
                         .setHsiFrequency(1).setOsdFrequency(10));
 
         if (!reply.getData().getResult().isSuccess()) {
-            throw new RuntimeException("SN: " + param.getDockSn() + "; Error:" + reply.getData().getResult() +
-                    "; Failed to enter command flight control mode, please try again later!");
+            throw new RuntimeException("进入DRC飞行控制失败, 请稍候重试! SN: " + param.getDockSn() + "; Error:" + reply.getData().getResult());
         }
 
         refreshAcl(param.getDockSn(), param.getClientId(), pubTopic, subTopic);
@@ -197,13 +196,12 @@ public class DrcServiceImpl implements IDrcService {
     @Override
     public void deviceDrcExit(String workspaceId, DrcModeParam param) {
         if (!deviceService.checkDockDrcMode(param.getDockSn())) {
-            throw new RuntimeException("The dock is not in flight control mode.");
+            throw new RuntimeException("机场不处于DRC飞行控制模式.");
         }
         TopicServicesResponse<ServicesReplyData> reply =
                 abstractControlService.drcModeExit(SDKManager.getDeviceSDK(param.getDockSn()));
         if (!reply.getData().getResult().isSuccess()) {
-            throw new RuntimeException("SN: " + param.getDockSn() + "; Error:" +
-                    reply.getData().getResult() + "; Failed to exit command flight control mode, please try again later!");
+            throw new RuntimeException("退出DRC飞行控制模式失败, 请稍候重试! SN: " + param.getDockSn() + "; Error:" + reply.getData().getResult());
         }
 
         String jobId = waylineRedisService.getPausedWaylineJobId(param.getDockSn());

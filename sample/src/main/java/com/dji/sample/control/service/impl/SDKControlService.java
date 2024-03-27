@@ -1,5 +1,6 @@
 package com.dji.sample.control.service.impl;
 
+import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
 import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.control.model.dto.ResultNotifyDTO;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,6 +39,9 @@ public class SDKControlService extends AbstractControlService {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private FlightTaskClient flightTaskClient;
+
     @Override
     public TopicEventsResponse<MqttReply> flyToPointProgress(TopicEventsRequest<FlyToPointProgress> request, MessageHeaders headers) {
         String dockSn  = request.getGateway();
@@ -54,6 +59,12 @@ public class SDKControlService extends AbstractControlService {
                         .message(eventsReceiver.getResult().toString())
                         .result(eventsReceiver.getResult().getCode())
                         .build());
+
+        // 判断是否飞行完成
+        if (List.of(FlyToStatusEnum.WAYLINE_OK, FlyToStatusEnum.WAYLINE_CANCEL).contains(eventsReceiver.getStatus())) {
+            this.flightTaskClient.finishFlyTo(dockSn, eventsReceiver);
+        }
+
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
     }
 
@@ -74,6 +85,12 @@ public class SDKControlService extends AbstractControlService {
                         .message(eventsReceiver.getResult().toString())
                         .result(eventsReceiver.getResult().getCode())
                         .build());
+
+        // add by Qfei, 判断是否飞行完成
+        if (List.of(TakeoffStatusEnum.WAYLINE_OK, TakeoffStatusEnum.WAYLINE_CANCEL, TakeoffStatusEnum.TASK_FINISH)
+                .contains(eventsReceiver.getStatus())) {
+            this.flightTaskClient.finishTakeoffTo(dockSn, eventsReceiver);
+        }
 
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
     }

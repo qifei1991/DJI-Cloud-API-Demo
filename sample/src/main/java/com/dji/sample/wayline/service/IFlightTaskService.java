@@ -75,4 +75,12 @@ public interface IFlightTaskService {
     void updateJobStatus(String workspaceId, String jobId, UpdateJobParam param);
 
     void retryPrepareJob(ConditionalWaylineJobKey jobKey, WaylineJobDTO waylineJob);
+
+    /**
+     * 断点续飞
+     * @param workspaceId 工作空间ID
+     * @param jobId 任务ID
+     * @return ResponseResult
+     */
+    HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId) throws SQLException;
 }

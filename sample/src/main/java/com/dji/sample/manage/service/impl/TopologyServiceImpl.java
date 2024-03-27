@@ -43,6 +43,7 @@ public class TopologyServiceImpl implements ITopologyService {
         return topologyList;
     }
 
+    @Override
     public Optional<TopologyList> getDeviceTopologyByGatewaySn(String gatewaySn) {
         Optional<DeviceDTO> dtoOptional = deviceService.getDeviceBySn(gatewaySn);
         if (dtoOptional.isEmpty()) {

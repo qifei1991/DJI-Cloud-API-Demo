@@ -9,20 +9,51 @@ spring:
     druid:
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.cj.jdbc.Driver
-      url: jdbc:mysql://cloud_api_sample_mysql:3306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
+      url: jdbc:mysql://10.10.10.132:33306/cloud_sample?useSSL=false&allowPublicKeyRetrieval=true
       username: root
-      password: root
+      password: mysql@wrj
+      keep-alive: true  #连接存活配置，防止长时间不操作系统首次点击数据库查询慢的问题；
       initial-size: 10
       min-idle: 10
-      max-active: 20
+      max-active: 50
       max-wait: 60000
+      #如果需要固定连接池大小，则以上三个参数配置为同一数值
+      connection-error-retry-attempts: 3  # 失败后重试连接次数
+      time-between-eviction-runs-millis: 60000 # 检测可以关闭的空闲连接间隔时间，默认60*1000L
+      min-evictable-idle-time-millis: 300000 # 连接在池中的最小生存时间；默认1000L * 60L * 30L;
+      validation-query: select 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      pool-prepared-statements: false
+      max-open-prepared-statements: 20
+      max-pool-prepared-statement-per-connection-size: 20
+      filters: wall,slf4j # 配置监控统计拦截的filters, 去掉后监控界面sql无法统计, 'wall'用于防火墙
+      aop-patterns: com.springboot.service.* # Spring监控AOP切入点，如com.forestar.xxx.service.*,配置多个英文逗号分隔;好像没鸟用
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000 # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      use-global-data-source-stat: true # 合并多个DruidDataSource的监控数据
+      # WebStatFilter配置
+      web-stat-filter:
+        enabled: false
+      # StatViewServlet配置
+      stat-view-servlet:
+        enabled: false
+      # 配置StatFilter
+      filter:
+        stat:
+          enabled: false #关闭开启druid的SQL监控，springboot-2.x版本默认是true开启状态
+          merge-sql: true # 是否开启sql合并，开启能减少内存占用
+          log-slow-sql: true #
+      mysql:
+        usePingMethod: false
 
   redis:
-    host: cloud_api_sample_redis
-    port: 6379
+    host: 10.10.10.132
+    port: 6378
     database: 0
     username: # if you enable
-    password:
+    password: redis@wrj
     lettuce:
       pool:
         max-active: 8
@@ -35,7 +66,7 @@ spring:
       max-request-size: 2GB
 
 jwt:
-  issuer: DJI
+  issuer: MapzoneUavUser
   subject: CloudApiSample
   secret: CloudApiSample
   age: 86400
@@ -45,20 +76,20 @@ mqtt:
   # BASIC parameters are required.
   BASIC:
     protocol: MQTT # @see com.dji.sample.component.mqtt.model.MqttProtocolEnum
-    host: Please enter your ip.
-    port: 1883
+    host: 10.10.10.132 #Please enter your ip.
+    port: 31883
     username: JavaServer
-    password: 123456
-    client-id: 123456
+    password: emqx@wrj
+    client-id: CloudService #123456
     # If the protocol is ws/wss, this value is required.
     path:
   DRC:
     protocol: WS # @see com.dji.sample.component.mqtt.model.MqttProtocolEnum
-    host: Please enter your ip.
-    port: 8083
+    host: 113.57.100.36 #Please enter your ip.
+    port: 38083
     path: /mqtt
     username: JavaServer
-    password: 123456
+    password: emqx@wrj
 
 cloud-sdk:
   mqtt:
@@ -84,20 +115,32 @@ url:
   control:
     prefix: control
     version: /api/v1
+  # provide api form aircraft-manager service.
+  cloud-api:
+    prefix: /cloud-api
+    version:
+
+# 管理系统配置
+aircraft-manager-server:
+  url: http://10.10.2.17:82/wrjgl
+  cloud-api:
+    prefix: /cloud-api
+    version:
+  workspace-id: e3dea0f5-37f2-4d79-ae58-490af3228069
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
-oss:
-  enable: false
-  provider: ALIYUN # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
-  endpoint: https://oss-cn-hangzhou.aliyuncs.com
-  access-key: Please enter your access key.
-  secret-key: Please enter your secret key.
-  expire: 3600
-  region: Please enter your oss region. # cn-hangzhou
-  role-session-name: cloudApi
-  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
-  bucket: Please enter your bucket name.
-  object-dir-prefix: Please enter a folder name.
+#oss:
+#  enable: false
+#  provider: ALIYUN # @see com.dji.sample.component.OssConfiguration.model.enums.OssTypeEnum
+#  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+#  access-key: Please enter your access key.
+#  secret-key: Please enter your secret key.
+#  expire: 3600
+#  region: Please enter your oss region. # cn-hangzhou
+#  role-session-name: cloudApi
+#  role-arn: Please enter your role arn. # acs:ram::123456789:role/stsrole
+#  bucket: Please enter your bucket name.
+#  object-dir-prefix: Please enter a folder name.
 
 #oss:
 #  enable: true
@@ -112,16 +155,17 @@ oss:
 #  bucket: cloudapi-bucket
 #  object-dir-prefix: wayline
 
-#oss:
-#  enable: true
-#  provider: minio
-#  endpoint: http://192.168.1.1:9000
-#  access-key: minioadmin
-#  secret-key: minioadmin
-#  bucket: cloud-bucket
-#  expire: 3600
-#  region: us-east-1
-#  object-dir-prefix: wayline
+oss:
+  enable: true
+  provider: minio
+  endpoint: http://10.10.10.132:39000 #内网地址
+  extranet-endpoint: http://wrj.dilinyun.com:39000 #外网地址
+  access-key: minioadmin
+  secret-key: minioadmin@wrj
+  bucket: aircraft-resource
+  expire: 3600
+  region: us-east-1
+  object-dir-prefix: cloudApi
 
 logging:
   level:
@@ -136,36 +180,37 @@ ntp:
 # To create a license for an application: https://developer.dji.com/user/apps/#all
 cloud-api:
   app:
-    id: Please enter the app id.
-    key: Please enter the app key.
-    license: Please enter the app license.
+    id: 121607 # Please enter the app id.
+    key: 9634af17614cefcb133f3e5db8c4e50 # Please enter the app key.
+    license: Q798DvMCbkOoUhtMJSTOa9J558re0FhO7G4+ah/JJxzJTWclebjvPYsL0zluvgmkf69CTcUzoO27jXySiI0Z9uRnRnDXRnuOonW8BTb7qZ7al0BPCSkqBar3+YaSfxdVNB3jWfYFVHAj6caBiKHLsAlS5bLE2WiZ2w0rii7y+iw= # Please enter the app license.
 
 livestream:
   url:
-    # It is recommended to use a program to create Token. https://github.com/AgoraIO/Tools/blob/master/DynamicKey/AgoraDynamicKey/java/src/main/java/io/agora/media/RtcTokenBuilder2.java
-    agora:
-      channel: Please enter the agora channel.
-      token: Please enter the agora temporary token.
-      uid:  654321
-
     # RTMP  Note: This IP is the address of the streaming server. If you want to see livestream on web page, you need to convert the RTMP stream to WebRTC stream.
     rtmp:
-      url: Please enter the rtmp access address.  # Example: 'rtmp://192.168.1.1/live/'
-    rtsp:
-      username: Please enter the username.
-      password: Please enter the password.
-      port: 8554
+      url: rtmp://wrj.dilinyun.com:8051/uav-flv #Please enter the rtmp access address.  # Example: 'rtmp://192.168.1.1/live/'
 
-    # GB28181 Note:If you don't know what these parameters mean, you can go to Pilot2 and select the GB28181 page in the cloud platform. Where the parameters same as these parameters.
-    gb28181:
-      serverIP: Please enter the server ip.
-      serverPort: Please enter the server port.
-      serverID: Please enter the server id.
-      agentID: Please enter the agent id.
-      agentPassword: Please enter the agent password.
-      localPort: Please enter the local port.
-      channel: Please enter the channel.
-
-    # Webrtc: Only supports using whip standard
-    whip:
-      url: Please enter the rtmp access address. #  Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=
+#    # It is recommended to use a program to create Token. https://github.com/AgoraIO/Tools/blob/master/DynamicKey/AgoraDynamicKey/java/src/main/java/io/agora/media/RtcTokenBuilder2.java
+#    agora:
+#      channel: Please enter the agora channel.
+#      token: Please enter the agora temporary token.
+#      uid:  654321
+#
+#    rtsp:
+#      username: Please enter the username.
+#      password: Please enter the password.
+#      port: 8554
+#
+#    # GB28181 Note:If you don't know what these parameters mean, you can go to Pilot2 and select the GB28181 page in the cloud platform. Where the parameters same as these parameters.
+#    gb28181:
+#      serverIP: Please enter the server ip.
+#      serverPort: Please enter the server port.
+#      serverID: Please enter the server id.
+#      agentID: Please enter the agent id.
+#      agentPassword: Please enter the agent password.
+#      localPort: Please enter the local port.
+#      channel: Please enter the channel.
+#
+#    # Webrtc: Only supports using whip standard
+#    whip:
+#      url: Please enter the rtmp access address. #  Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=

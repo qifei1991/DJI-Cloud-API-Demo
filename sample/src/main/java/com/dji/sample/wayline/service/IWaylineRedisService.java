@@ -4,6 +4,7 @@ import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.cloudapi.wayline.ProgressExtBreakPoint;
 
 import java.util.Optional;
 
@@ -97,4 +98,25 @@ public interface IWaylineRedisService {
     Double getConditionalWaylineJobTime(ConditionalWaylineJobKey jobKey);
 
     Boolean removePrepareConditionalWaylineJob(ConditionalWaylineJobKey jobKey);
+
+    /**
+     * 保存航线任务断点信息到Redis中
+     * @param jobId 任务ID
+     * @param progressExtBreakPoint 断点信息对象
+     */
+    void setProgressExtBreakPoint(String jobId, ProgressExtBreakPoint progressExtBreakPoint);
+
+    /**
+     * 获取Redis中保存的任务断点信息
+     * @param jobId 任务ID
+     * @return 航线飞行进度的断点信息
+     */
+    Optional<ProgressExtBreakPoint> getProgressExtBreakPoint(String jobId);
+
+    /**
+     * 删除Redis中保存的任务断点信息
+     * @param jobId 任务ID
+     * @return 是否删除
+     */
+    Boolean delBreakPointReceiver(String jobId);
 }

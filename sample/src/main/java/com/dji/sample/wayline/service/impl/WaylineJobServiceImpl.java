@@ -1,6 +1,11 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ClassUtil;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
@@ -34,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -84,6 +90,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (Objects.isNull(param)) {
             return Optional.empty();
         }
+        String jobId = UUID.randomUUID().toString();
         // Immediate tasks, allocating time on the backend.
         WaylineJobEntity jobEntity = WaylineJobEntity.builder()
                 .name(param.getName())
@@ -91,7 +98,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .fileId(param.getFileId())
                 .username(username)
                 .workspaceId(workspaceId)
-                .jobId(UUID.randomUUID().toString())
+                .jobId(jobId)
                 .beginTime(beginTime)
                 .endTime(endTime)
                 .status(WaylineJobStatusEnum.PENDING.getVal())
@@ -100,13 +107,17 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .outOfControlAction(param.getOutOfControlAction().getAction())
                 .rthAltitude(param.getRthAltitude())
                 .mediaCount(0)
+                // modify by Qfei, 2023-10-10 18:56:22, 新建的任务，将jobId作为groupId.
+                .exitWaylineWhenRcLost(param.getExitWaylineWhenRcLost())
+                .groupId(jobId)
+                .continuable(Objects.nonNull(param.getContinuable()) ? param.getContinuable() : Boolean.FALSE)
                 .build();
 
         return insertWaylineJob(jobEntity);
     }
 
     @Override
-    public Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId) {
+    public Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId, Boolean continuable) {
         Optional<WaylineJobDTO> parentJobOpt = this.getJobByJobId(workspaceId, parentId);
         if (parentJobOpt.isEmpty()) {
             return Optional.empty();
@@ -119,9 +130,19 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         jobEntity.setStatus(WaylineJobStatusEnum.PENDING.getVal());
         jobEntity.setParentId(parentId);
 
+        // 断点续飞
+        if (Boolean.TRUE.equals(continuable)) {
+            jobEntity.setName(jobEntity.getName() + "_续飞");
+            long beginTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            jobEntity.setBeginTime(beginTime);
+            jobEntity.setEndTime(beginTime);
+            jobEntity.setMediaCount(0);
+        }
+
         return this.insertWaylineJob(jobEntity);
     }
 
+    @Override
     public List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, WaylineJobStatusEnum status) {
         return mapper.selectList(
                 new LambdaQueryWrapper<WaylineJobEntity>()
@@ -151,18 +172,56 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
-    public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize) {
-        Page<WaylineJobEntity> pageData = mapper.selectPage(
-                new Page<WaylineJobEntity>(page, pageSize),
-                new LambdaQueryWrapper<WaylineJobEntity>()
-                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
-                        .orderByDesc(WaylineJobEntity::getId));
+    public PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize, String dockSn,
+            String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime, String orderField, String isAsc) {
+
+        Field field = ClassUtil.getDeclaredField(WaylineJobEntity.class, orderField);
+        QueryWrapper<WaylineJobEntity> queryWrapper = new QueryWrapper<>();
+        if (Objects.nonNull(field)) {
+            TableField annotation = field.getAnnotation(TableField.class);
+            boolean notExit = Objects.nonNull(annotation) && !annotation.exist();
+            String columnName = Objects.isNull(annotation) || !StringUtils.hasText(annotation.value()) ? field.getName() : annotation.value();
+            queryWrapper.orderBy(!notExit, Boolean.getBoolean(isAsc), columnName);
+        }
+        LambdaQueryWrapper<WaylineJobEntity> lambdaQueryWrapper = queryWrapper
+                .lambda()
+                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                .eq(CharSequenceUtil.isNotBlank(dockSn), WaylineJobEntity::getDockSn, dockSn)
+                .like(CharSequenceUtil.isNotBlank(name), WaylineJobEntity::getName, name)
+                .in(CollUtil.isNotEmpty(status), WaylineJobEntity::getStatus, status)
+                .eq(Objects.nonNull(taskType), WaylineJobEntity::getTaskType, taskType)
+                .ge(Objects.nonNull(beginTime), WaylineJobEntity::getBeginTime, beginTime)
+                .le(Objects.nonNull(endTime), WaylineJobEntity::getBeginTime, endTime);
+        if (!StringUtils.hasText(orderField)) {
+            lambdaQueryWrapper.orderByDesc(WaylineJobEntity::getBeginTime);
+        }
+        Page<WaylineJobEntity> pageData = mapper.selectPage(new Page<WaylineJobEntity>(page, pageSize), lambdaQueryWrapper);
         List<WaylineJobDTO> records = pageData.getRecords()
                 .stream()
                 .map(this::entity2Dto)
                 .collect(Collectors.toList());
 
         return new PaginationData<WaylineJobDTO>(records, new Pagination(pageData.getCurrent(), pageData.getSize(), pageData.getTotal()));
+    }
+
+    @Override
+    public Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn) {
+        return Optional.ofNullable(this.entity2Dto(mapper.selectOne(new LambdaQueryWrapper<WaylineJobEntity>()
+                .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                .eq(WaylineJobEntity::getDockSn, dockSn)
+                .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.IN_PROGRESS.getVal())
+                .orderByDesc(WaylineJobEntity::getCreateTime))));
+    }
+
+    @Override
+    public List<WaylineJobDTO> getRemainingJobs(String workspaceId) {
+        return mapper.selectList(new LambdaQueryWrapper<WaylineJobEntity>()
+                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.PENDING.getVal())
+                        .ge(WaylineJobEntity::getBeginTime, System.currentTimeMillis()))
+                .stream()
+                .map(this::entity2Dto)
+                .collect(Collectors.toList());
     }
 
     private WaylineJobEntity dto2Entity(WaylineJobDTO dto) {
@@ -196,10 +255,14 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .rthAltitude(dto.getRthAltitude())
                 .outOfControlAction(Optional.ofNullable(dto.getOutOfControlAction())
                         .map(OutOfControlActionEnum::getAction).orElse(null))
+                .exitWaylineWhenRcLost(dto.getExitWaylineWhenRcLost())
                 .parentId(dto.getParentId())
+                .groupId(dto.getGroupId())
+                .continuable(dto.getContinuable())
                 .build();
     }
 
+    @Override
     public WaylineJobStatusEnum getWaylineState(String dockSn) {
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty() || !StringUtils.hasText(dockOpt.get().getChildDeviceSn())) {
@@ -223,6 +286,14 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
             }
         }
         return WaylineJobStatusEnum.UNKNOWN;
+    }
+
+    @Override
+    public void deleteJob(String workspaceId, String jobId) {
+        this.mapper.delete(
+                new LambdaQueryWrapper<WaylineJobEntity>()
+                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(WaylineJobEntity::getJobId, jobId));
     }
 
     private WaylineJobDTO entity2Dto(WaylineJobEntity entity) {
@@ -256,7 +327,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .waylineType(WaylineTypeEnum.find(entity.getWaylineType()))
                 .rthAltitude(entity.getRthAltitude())
                 .outOfControlAction(OutOfControlActionEnum.find(entity.getOutOfControlAction()))
-                .mediaCount(entity.getMediaCount());
+                .mediaCount(entity.getMediaCount())
+                .exitWaylineWhenRcLost(entity.getExitWaylineWhenRcLost())
+                .parentId(entity.getParentId())
+                .groupId(entity.getGroupId())
+                .continuable(entity.getContinuable());
 
         if (Objects.nonNull(entity.getEndTime())) {
             builder.endTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getEndTime()), ZoneId.systemDefault()));
@@ -267,6 +342,16 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                     .map(FlighttaskProgress::getProgress)
                     .map(FlighttaskProgressData::getPercent)
                     .orElse(null));
+        }
+
+        // modify by Qfei, 2023-10-11 09:50:15
+        if (StringUtils.hasText(entity.getParentId()) && entity.getContinuable()) {
+            Optional<ProgressExtBreakPoint> breakPointReceiver = waylineRedisService.getProgressExtBreakPoint(entity.getParentId());
+            breakPointReceiver.ifPresent(x -> builder.breakPoint(
+                    new FlighttaskBreakPoint().setIndex(x.getIndex())
+                            .setState(x.getState())
+                            .setProgress(x.getProgress())
+                            .setWaylineId(x.getWaylineId())));
         }
 
         if (entity.getMediaCount() == 0) {

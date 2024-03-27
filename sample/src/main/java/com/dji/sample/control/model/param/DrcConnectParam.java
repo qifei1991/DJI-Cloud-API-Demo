@@ -16,4 +16,11 @@ public class DrcConnectParam {
 
     @Range(min = 1800, max = 86400)
     private long expireSec = RedisConst.DRC_MODE_ALIVE_SECOND;
+
+    /**
+     * The id of the account.
+     */
+    private String userId;
+
+    private String username;
 }

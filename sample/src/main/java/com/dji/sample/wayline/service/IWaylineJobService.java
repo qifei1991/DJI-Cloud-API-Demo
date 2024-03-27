@@ -31,9 +31,10 @@ public interface IWaylineJobService {
      * Create a sub-task based on the information of the parent task.
      * @param workspaceId
      * @param parentId
+     * @param continuable 是否断点续传类型
      * @return
      */
-    Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId);
+    Optional<WaylineJobDTO> createWaylineJobByParent(String workspaceId, String parentId, Boolean continuable);
 
     /**
      * Query wayline jobs based on conditions.
@@ -66,7 +67,8 @@ public interface IWaylineJobService {
      * @param pageSize
      * @return
      */
-    PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize);
+    PaginationData<WaylineJobDTO> getJobsByWorkspaceId(String workspaceId, long page, long pageSize, String dockSn,
+            String name, Integer taskType, List<Integer> status, Long beginTime, Long endTime, String orderField, String isAsc);
 
     /**
      * Query the wayline execution status of the dock.
@@ -74,4 +76,22 @@ public interface IWaylineJobService {
      * @return
      */
     WaylineJobStatusEnum getWaylineState(String dockSn);
+
+    /**
+     * Query the remained wayline job in workspace.
+     * @param workspaceId 工作空间
+     * @return List<WaylineJobDTO>
+     */
+    List<WaylineJobDTO> getRemainingJobs(String workspaceId);
+
+    /**
+     * Query the wayline job in executing status of the dock.
+     *
+     * @param workspaceId 工作空间
+     * @param dockSn      机场SN
+     * @return WaylineJobDTO
+     */
+    Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn);
+
+    void deleteJob(String workspaceId, String jobId);
 }

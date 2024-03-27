@@ -1,5 +1,6 @@
 package com.dji.sample.wayline.model.dto;
 
+import com.dji.sdk.cloudapi.wayline.FlighttaskBreakPoint;
 import com.dji.sdk.cloudapi.wayline.OutOfControlActionEnum;
 import com.dji.sdk.cloudapi.wayline.TaskTypeEnum;
 import com.dji.sdk.cloudapi.wayline.WaylineTypeEnum;
@@ -68,4 +69,12 @@ public class WaylineJobDTO {
     private WaylineTaskConditionDTO conditions;
 
     private String parentId;
+
+    private Integer exitWaylineWhenRcLost;
+
+    private String groupId;
+
+    private Boolean continuable;
+
+    private FlighttaskBreakPoint breakPoint;
 }

@@ -1,8 +1,12 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.WaylineFileClient;
 import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.component.oss.service.impl.OssServiceContext;
 import com.dji.sample.wayline.dao.IWaylineFileMapper;
@@ -19,6 +23,7 @@ import com.dji.sdk.cloudapi.wayline.GetWaylineListResponse;
 import com.dji.sdk.cloudapi.wayline.WaylineTypeEnum;
 import com.dji.sdk.common.Pagination;
 import com.dji.sdk.common.PaginationData;
+import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Node;
@@ -49,6 +54,7 @@ import static com.dji.sample.wayline.model.dto.KmzFileProperties.WAYLINE_FILE_SU
  * @date 2021/12/22
  */
 @Service
+@Slf4j
 @Transactional
 public class WaylineFileServiceImpl implements IWaylineFileService {
 
@@ -57,6 +63,9 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
 
     @Autowired
     private OssServiceContext ossService;
+
+    @Autowired
+    private WaylineFileClient waylineFileClient;
 
     @Override
     public PaginationData<GetWaylineListResponse> getWaylinesByParam(String workspaceId, GetWaylineListRequest param) {
@@ -108,7 +117,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     public URL getObjectUrl(String workspaceId, String waylineId) throws SQLException {
         Optional<GetWaylineListResponse> waylineOpt = this.getWaylineByWaylineId(workspaceId, waylineId);
         if (waylineOpt.isEmpty()) {
-            throw new SQLException(waylineId + " does not exist.");
+            throw new SQLException("航线不存在。");
         }
         return ossService.getObjectUrl(OssConfiguration.bucket, waylineOpt.get().getObjectKey());
     }
@@ -122,8 +131,8 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
         if (!StringUtils.hasText(file.getSign())) {
             try (InputStream object = ossService.getObject(OssConfiguration.bucket, metadata.getObjectKey())) {
                 if (object.available() == 0) {
-                    throw new RuntimeException("The file " + metadata.getObjectKey() +
-                            " does not exist in the bucket[" + OssConfiguration.bucket + "].");
+                    throw new RuntimeException("无法从文件存储中找到航线文件, objectKey:[" + metadata.getObjectKey() +
+                            "], bucket[" + OssConfiguration.bucket + "].");
                 }
                 file.setSign(DigestUtils.md5DigestAsHex(object));
             } catch (IOException e) {
@@ -131,6 +140,11 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             }
         }
         int insertId = mapper.insert(file);
+
+        // 新建的航线信息上报无人机管理系统
+        Optional<GetWaylineListResponse> waylineOpt = this.getWaylineByWaylineId(workspaceId, file.getWaylineId());
+        this.waylineFileClient.reportWaylineImport(waylineOpt);
+
         return insertId > 0 ? file.getId() : insertId;
     }
 
@@ -179,7 +193,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     public void importKmzFile(MultipartFile file, String workspaceId, String creator) {
         Optional<WaylineFileDTO> waylineFileOpt = validKmzFile(file);
         if (waylineFileOpt.isEmpty()) {
-            throw new RuntimeException("The file format is incorrect.");
+            throw new RuntimeException("航线文件格式错误.");
         }
 
         try {
@@ -189,14 +203,14 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             ossService.putObject(OssConfiguration.bucket, waylineFile.getObjectKey(), file.getInputStream());
             this.saveWaylineFile(workspaceId, waylineFile);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Failed to save wayline file.", e);
         }
     }
 
     private Optional<WaylineFileDTO> validKmzFile(MultipartFile file) {
         String filename = file.getOriginalFilename();
         if (Objects.nonNull(filename) && !filename.endsWith(WAYLINE_FILE_SUFFIX)) {
-            throw new RuntimeException("The file format is incorrect.");
+            throw new RuntimeException("航线文件格式错误!");
         }
         try (ZipInputStream unzipFile = new ZipInputStream(file.getInputStream(), StandardCharsets.UTF_8)) {
 
@@ -210,13 +224,13 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                 SAXReader reader = new SAXReader();
                 Document document = reader.read(unzipFile);
                 if (!StandardCharsets.UTF_8.name().equals(document.getXMLEncoding())) {
-                    throw new RuntimeException("The file encoding format is incorrect.");
+                    throw new RuntimeException("航线文件编码格式错误.");
                 }
 
                 Node droneNode = document.selectSingleNode("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_INFO);
                 Node payloadNode = document.selectSingleNode("//" + KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_PAYLOAD_INFO);
                 if (Objects.isNull(droneNode) || Objects.isNull(payloadNode)) {
-                    throw new RuntimeException("The file format is incorrect.");
+                    throw new RuntimeException("航线文件格式错误!");
                 }
 
                 DeviceTypeEnum type = DeviceTypeEnum.find(Integer.parseInt(droneNode.valueOf(KmzFileProperties.TAG_WPML_PREFIX + KmzFileProperties.TAG_DRONE_ENUM_VALUE)));
@@ -228,7 +242,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                 return Optional.of(WaylineFileDTO.builder()
                         .droneModelKey(DeviceEnum.find(DeviceDomainEnum.DRONE, type, subType).getDevice())
                         .payloadModelKeys(List.of(DeviceEnum.find(DeviceDomainEnum.PAYLOAD, payloadType, payloadSubType).getDevice()))
-                        .objectKey(OssConfiguration.objectDirPrefix + File.separator + filename)
+                        .objectKey(OssConfiguration.objectDirPrefix + FileNameUtil.UNIX_SEPARATOR + filename)
                         .name(filename.substring(0, filename.lastIndexOf(WAYLINE_FILE_SUFFIX)))
                         .sign(DigestUtils.md5DigestAsHex(file.getInputStream()))
                         .templateTypes(List.of(WaylineTypeEnum.find(templateType).getValue()))
@@ -236,7 +250,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             }
 
         } catch (IOException | DocumentException e) {
-            e.printStackTrace();
+            log.error("Failed to valid the Kmz file.", e);
         }
         return Optional.empty();
     }
@@ -281,15 +295,26 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
                     .username(file.getUsername())
                     .objectKey(file.getObjectKey())
                     // Separate multiple payload data with ",".
-                    .payloadModelKeys(String.join(",", file.getPayloadModelKeys()))
-                    .templateTypes(file.getTemplateTypes().stream()
+                    .payloadModelKeys(CollUtil.isNotEmpty(file.getPayloadModelKeys())
+                            ? String.join(",", file.getPayloadModelKeys()) : null)
+                    .templateTypes(CollUtil.isNotEmpty(file.getTemplateTypes())
+                            ? file.getTemplateTypes().stream()
                             .map(String::valueOf)
-                            .collect(Collectors.joining(",")))
+                            .collect(Collectors.joining(",")) : null)
                     .favorited(file.getFavorited())
                     .sign(file.getSign())
                     .build();
         }
 
         return builder.build();
+    }
+
+    @Override
+    public Integer updateWaylineFile(String workspaceId, String waylineId, WaylineFileDTO file) {
+
+        return this.mapper.update(this.dtoConvertToEntity(file),
+                new LambdaUpdateWrapper<WaylineFileEntity>()
+                        .eq(WaylineFileEntity::getWorkspaceId, workspaceId)
+                        .eq(WaylineFileEntity::getWaylineId, waylineId));
     }
 }

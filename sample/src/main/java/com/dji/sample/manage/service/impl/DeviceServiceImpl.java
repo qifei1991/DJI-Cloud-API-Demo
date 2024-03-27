@@ -1,8 +1,10 @@
 package com.dji.sample.manage.service.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.client.DeviceClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
@@ -14,6 +16,7 @@ import com.dji.sample.manage.model.entity.DeviceEntity;
 import com.dji.sample.manage.model.enums.DeviceFirmwareStatusEnum;
 import com.dji.sample.manage.model.enums.PropertySetFieldEnum;
 import com.dji.sample.manage.model.enums.UserTypeEnum;
+import com.dji.sample.manage.model.param.DeviceHmsQueryParam;
 import com.dji.sample.manage.model.param.DeviceQueryParam;
 import com.dji.sample.manage.model.receiver.BasicDeviceProperty;
 import com.dji.sample.manage.service.*;
@@ -50,8 +53,7 @@ import org.springframework.util.StringUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -99,6 +101,9 @@ public class DeviceServiceImpl implements IDeviceService {
     private IDeviceRedisService deviceRedisService;
 
     @Autowired
+    private IDeviceHmsService deviceHmsService;
+
+    @Autowired
     private StatusSubscribe statusSubscribe;
 
     @Autowired
@@ -125,6 +130,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private AbstractFirmwareService abstractFirmwareService;
 
+    @Autowired
+    private DeviceClient deviceClient;
+
     @Override
     public void subDeviceOffline(String deviceSn) {
         // If no information about this device exists in the cache, the drone is considered to be offline.
@@ -142,6 +150,9 @@ public class DeviceServiceImpl implements IDeviceService {
         // Publish the latest device topology information in the current workspace.
         pushDeviceOfflineTopo(deviceOpt.get().getWorkspaceId(), deviceSn);
         log.debug("{} offline.", deviceSn);
+
+        // report device offline status
+        this.deviceClient.reportDeviceOffline(deviceSn);
     }
 
     @Override
@@ -159,6 +170,9 @@ public class DeviceServiceImpl implements IDeviceService {
         // Publish the latest device topology information in the current workspace.
         pushDeviceOfflineTopo(deviceOpt.get().getWorkspaceId(), gatewaySn);
         log.debug("{} offline.", gatewaySn);
+
+        // report device offline status
+        this.deviceClient.reportDeviceOffline(gatewaySn);
     }
 
     @Override
@@ -240,7 +254,13 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void spliceDeviceTopo(DeviceDTO gateway) {
 
-        gateway.setStatus(deviceRedisService.checkDeviceOnline(gateway.getDeviceSn()));
+        Boolean dockOnline = deviceRedisService.checkDeviceOnline(gateway.getDeviceSn());
+        gateway.setStatus(dockOnline);
+        if (Boolean.TRUE.equals(dockOnline)) {
+            fillDockOsdInfo(gateway);
+            // 机场Hms信息
+            fillOnlineDeviceHms(gateway);
+        }
 
         // sub device
         if (!StringUtils.hasText(gateway.getChildDeviceSn())) {
@@ -248,11 +268,56 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         DeviceDTO subDevice = getDevicesByParams(DeviceQueryParam.builder().deviceSn(gateway.getChildDeviceSn()).build()).get(0);
-        subDevice.setStatus(deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn()));
+        Boolean subDeviceOnline = deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn());
+        subDevice.setStatus(subDeviceOnline);
+        if (Boolean.TRUE.equals(subDeviceOnline)) {
+            fillDroneOsdInfo(subDevice);
+            // 飞机Hms信息
+            fillOnlineDeviceHms(subDevice);
+        }
         gateway.setChildren(subDevice);
 
         // payloads
         subDevice.setPayloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(gateway.getChildDeviceSn()));
+    }
+
+    private void fillDroneOsdInfo(DeviceDTO subDevice) {
+        subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getCode());
+        Optional<OsdDockDrone> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdDockDrone.class);
+        subDeviceOsd.ifPresent(x -> {
+            subDevice.setLongitude(x.getLongitude());
+            subDevice.setLatitude(x.getLatitude());
+            subDevice.setAttitudeHead(Objects.isNull(x.getAttitudeHead()) ? 0 : x.getAttitudeHead());
+        });
+    }
+
+    private void fillRemoteControlOsdInfo(DeviceDTO subDevice) {
+        subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getCode());
+        Optional<OsdRemoteControl> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdRemoteControl.class);
+        subDeviceOsd.ifPresent(x -> {
+            subDevice.setLongitude(x.getLongitude());
+            subDevice.setLatitude(x.getLatitude());
+        });
+    }
+
+    private void fillDockOsdInfo(DeviceDTO gateway) {
+        gateway.setModeCode(this.getDockMode(gateway.getDeviceSn()).getCode());
+        Optional<OsdDock> dockOsd = deviceRedisService.getDeviceOsd(gateway.getDeviceSn(), OsdDock.class);
+        dockOsd.ifPresent(x -> {
+            gateway.setDroneInDock(BooleanUtil.toInt(x.getDroneInDock()));
+            gateway.setLongitude(x.getLongitude());
+            gateway.setLatitude(x.getLatitude());
+        });
+    }
+
+    private void fillOnlineDeviceHms(DeviceDTO device) {
+        device.setHmsList(deviceHmsService.getDeviceHmsByParam(
+                        DeviceHmsQueryParam.builder()
+                                .deviceSn(new HashSet<>(Set.of(device.getDeviceSn())))
+                                .updateTime(0L)
+                                .page(1L)
+                                .pageSize(9999L)
+                                .build()).getList());
     }
 
     @Override
@@ -330,6 +395,7 @@ public class DeviceServiceImpl implements IDeviceService {
      * @param device
      * @return
      */
+    @Override
     public Boolean saveOrUpdateDevice(DeviceDTO device) {
         int count = mapper.selectCount(
                 new LambdaQueryWrapper<DeviceEntity>()
@@ -342,6 +408,7 @@ public class DeviceServiceImpl implements IDeviceService {
      * @param device
      * @return
      */
+    @Override
     public Integer saveDevice(DeviceDTO device) {
         DeviceEntity entity = deviceDTO2Entity(device);
         return mapper.insert(entity) > 0 ? entity.getId() : -1;
@@ -517,7 +584,26 @@ public class DeviceServiceImpl implements IDeviceService {
             return Optional.empty();
         }
         DeviceDTO device = devicesList.get(0);
-        device.setStatus(deviceRedisService.checkDeviceOnline(sn));
+        Boolean online = deviceRedisService.checkDeviceOnline(sn);
+        device.setStatus(online);
+        if (Boolean.TRUE.equals(online)) {
+            switch (device.getDomain()) {
+                case DOCK:
+                    fillDockOsdInfo(device);
+                    break;
+                case DRONE:
+                    fillDroneOsdInfo(device);
+                    break;
+                case REMOTER_CONTROL:
+                    fillRemoteControlOsdInfo(device);
+                    break;
+                default:
+                    break;
+
+            }
+            // 机场Hms信息
+            fillOnlineDeviceHms(device);
+        }
         return Optional.of(device);
     }
 
@@ -525,12 +611,12 @@ public class DeviceServiceImpl implements IDeviceService {
     public HttpResultResponse createDeviceOtaJob(String workspaceId, List<DeviceFirmwareUpgradeDTO> upgradeDTOS) {
         List<OtaCreateDevice> deviceOtaFirmwares = deviceFirmwareService.getDeviceOtaFirmware(workspaceId, upgradeDTOS);
         if (deviceOtaFirmwares.isEmpty()) {
-            return HttpResultResponse.error();
+            return HttpResultResponse.error("无法获取固件更新版本信息！");
         }
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(deviceOtaFirmwares.get(0).getSn());
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("Device is offline.");
+            throw new RuntimeException("设备已离线，请稍候重试！");
         }
         DeviceDTO device = deviceOpt.get();
         String gatewaySn = DeviceDomainEnum.DOCK == device.getDomain() ? device.getDeviceSn() : device.getParentSn();
@@ -542,7 +628,7 @@ public class DeviceServiceImpl implements IDeviceService {
         ServicesReplyData<OtaCreateResponse> serviceReply = response.getData();
         String bid = response.getBid();
         if (!serviceReply.getResult().isSuccess()) {
-            return HttpResultResponse.error(serviceReply.getResult());
+            return HttpResultResponse.error("固件升级失败，错误码: " + serviceReply.getResult());
         }
 
         // Record the device state that needs to be updated.
@@ -558,16 +644,16 @@ public class DeviceServiceImpl implements IDeviceService {
     private void checkOtaConditions(String dockSn) {
         Optional<OsdDock> deviceOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDock.class);
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线, 请稍候重试！");
         }
         boolean emergencyStopState = deviceOpt.get().getEmergencyStopState();
         if (emergencyStopState) {
-            throw new RuntimeException("The emergency stop button of the dock is pressed and can't be upgraded.");
+            throw new RuntimeException("急停按钮按下，不能升级！");
         }
 
         DockModeCodeEnum dockMode = this.getDockMode(dockSn);
         if (DockModeCodeEnum.IDLE != dockMode) {
-            throw new RuntimeException("The current status of the dock can't be upgraded.");
+            throw new RuntimeException("机场当前状态不能升级！");
         }
     }
 
@@ -578,12 +664,12 @@ public class DeviceServiceImpl implements IDeviceService {
 
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty()) {
-            throw new RuntimeException("Dock is offline.");
+            throw new RuntimeException("机场离线, 请稍候重试！");
         }
         String childSn = dockOpt.get().getChildDeviceSn();
         Optional<OsdDockDrone> osdOpt = deviceRedisService.getDeviceOsd(childSn, OsdDockDrone.class);
         if (osdOpt.isEmpty()) {
-            throw new RuntimeException("Device is offline.");
+            throw new RuntimeException("飞行器离线, 请稍后重试！");
         }
 
         // Make sure the data is valid.

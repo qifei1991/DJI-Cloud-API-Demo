@@ -12,6 +12,7 @@ import com.dji.sdk.mqtt.requests.TopicRequestsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 /**
  * @author sean
@@ -27,7 +28,7 @@ public class StorageServiceImpl extends AbstractMediaService implements IStorage
     @Override
     public StsCredentialsResponse getSTSCredentials() {
         return new StsCredentialsResponse()
-                .setEndpoint(OssConfiguration.endpoint)
+                .setEndpoint(StringUtils.hasText(OssConfiguration.extranetEndpoint) ? OssConfiguration.extranetEndpoint : OssConfiguration.endpoint)
                 .setBucket(OssConfiguration.bucket)
                 .setCredentials(ossService.getCredentials())
                 .setProvider(OssConfiguration.provider)
