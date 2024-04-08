@@ -1,5 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
+import com.dji.sample.cloudapi.client.DeviceClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.dto.DeviceDictionaryDTO;
@@ -24,6 +25,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -42,6 +44,9 @@ public class SDKOrganizationService extends AbstractOrganizationService {
 
     @Autowired
     private IWorkspaceService workspaceService;
+
+    @Autowired
+    private DeviceClient deviceClient;
 
     @Override
     public TopicRequestsResponse<MqttReply<AirportBindStatusResponse>> airportBindStatus(TopicRequestsRequest<AirportBindStatusRequest> request, MessageHeaders headers) {
@@ -93,6 +98,7 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         Optional<DeviceDTO> droneOpt = bindDevice2Dto(drone);
         List<OrganizationBindInfo> bindResult = new ArrayList<>();
 
+        String organizationId = Objects.isNull(dock) ? null : dock.getOrganizationId();
         droneOpt.ifPresent(droneDto -> {
             dockOpt.get().setChildDeviceSn(droneDto.getDeviceSn());
             boolean success = deviceService.saveOrUpdateDevice(droneDto);
@@ -101,6 +107,10 @@ public class SDKOrganizationService extends AbstractOrganizationService {
                     new OrganizationBindInfo(droneDto.getDeviceSn(),
                             CommonErrorEnum.DEVICE_BINDING_FAILED.getCode())
             );
+
+            // add by Qfei, Device register.
+            droneDto.setOrganizationId(organizationId);
+            Optional.of(success).ifPresent(x -> deviceClient.reportOnline(Optional.of(droneDto)));
         });
         boolean success = deviceService.saveOrUpdateDevice(dockOpt.get());
 
@@ -108,6 +118,10 @@ public class SDKOrganizationService extends AbstractOrganizationService {
                 OrganizationBindInfo.success(dock.getSn()) :
                 new OrganizationBindInfo(dock.getSn(),
                         CommonErrorEnum.DEVICE_BINDING_FAILED.getCode()));
+
+        // add by Qfei, Device register.
+        dockOpt.get().setOrganizationId(organizationId);
+        Optional.of(success).ifPresent(x -> deviceClient.reportOnline(dockOpt));
 
         return new TopicRequestsResponse<MqttReply<AirportOrganizationBindResponse>>()
                 .setData(MqttReply.success(new AirportOrganizationBindResponse().setErrInfos(bindResult)));

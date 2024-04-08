@@ -27,4 +27,11 @@ public class DeviceOnlineParam {
      * 上线时间, yyyy-MM-dd HH:mm:ss
      */
     private String time;
+
+    private Long orgId;
+    private String orgCode;
+    private String userId;
+    private String userName;
+    private Double longitude;
+    private Double latitude;
 }

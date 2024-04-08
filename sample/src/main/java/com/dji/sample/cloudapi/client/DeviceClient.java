@@ -41,34 +41,39 @@ public class DeviceClient extends AbstractClient {
     private final IDeviceRedisService deviceRedisService;
 
     @Async("asyncThreadPool")
-    public void reportOnline(Optional<DeviceDTO> deviceDTOOptional) {
-        deviceDTOOptional.ifPresent(deviceDTO -> {
-            // 暂时只维护无人机、遥控器、机场的上线
-            String category = null;
-            switch (DeviceDomainEnum.find(deviceDTO.getDomain().getDomain())) {
-                case DRONE:
-                    category = DeviceCategory.AIRCRAFT.getCode();
-                    break;
-                case DOCK:
-                    category = DeviceCategory.DOCK.getCode();
-                    break;
-                case REMOTER_CONTROL:
-                    category = DeviceCategory.RC.getCode();
-                    break;
-                default:
-                    break;
-            }
-            if (StringUtils.hasText(category)) {
-                this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE, DeviceOnlineParam.builder()
-                        .sn(deviceDTO.getDeviceSn())
-                        .name(StrUtil.blankToDefault(deviceDTO.getNickname(), deviceDTO.getDeviceName()))
-                        .category(category)
-                        .type(deviceDTO.getDeviceName())
-                        .firmwareVersion(deviceDTO.getFirmwareVersion())
-                        .time(LocalDateTime.now().format(FORMATTER))
-                        .build());
-            }
-        });
+    public void reportOnline(Optional<DeviceDTO> deviceDTOOpt) {
+        try {
+            deviceDTOOpt.ifPresent(deviceDTO -> {
+                // 暂时只维护无人机、遥控器、机场的上线
+                String category = null;
+                switch (DeviceDomainEnum.find(deviceDTO.getDomain().getDomain())) {
+                    case DRONE:
+                        category = DeviceCategory.AIRCRAFT.getCode();
+                        break;
+                    case DOCK:
+                        category = DeviceCategory.DOCK.getCode();
+                        break;
+                    case REMOTER_CONTROL:
+                        category = DeviceCategory.RC.getCode();
+                        break;
+                    default:
+                        break;
+                }
+                if (StringUtils.hasText(category)) {
+                    this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE, DeviceOnlineParam.builder()
+                            .sn(deviceDTO.getDeviceSn())
+                            .name(StrUtil.blankToDefault(deviceDTO.getNickname(), deviceDTO.getDeviceName()))
+                            .category(category)
+                            .type(deviceDTO.getDeviceName())
+                            .firmwareVersion(deviceDTO.getFirmwareVersion())
+                            .time(LocalDateTime.now().format(FORMATTER))
+                            .orgCode(deviceDTO.getOrganizationId())
+                            .build());
+                }
+            });
+        } catch (Exception e) {
+            log.error("设备上线失败, deviceSn: {}", deviceDTOOpt, e);
+        }
     }
 
     @Async("asyncThreadPool")
@@ -126,51 +131,52 @@ public class DeviceClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void reportDockOsdInfo(OsdDock data, String sn) {
 
-        Optional<OsdDock> oldDockOpt = deviceRedisService.getDeviceOsd(RedisConst.OSD_PREFIX + sn, OsdDock.class);
-        oldDockOpt.ifPresent(x -> BeanUtil.copyProperties(data, x, CopyOptions.create().setIgnoreNullValue(true)));
-        OsdDock osdDock = oldDockOpt.get();
+        Optional<OsdDock> oldDockOpt = deviceRedisService.getDeviceOsd(sn, OsdDock.class);
+        oldDockOpt.ifPresent(osdDock -> {
+            BeanUtil.copyProperties(data, osdDock, CopyOptions.create().setIgnoreNullValue(true));
+            log.debug("Report the Dock osd info: {}", osdDock);
+            DockOsdParam.DockOsdParamBuilder builder = DockOsdParam.builder()
+                    .sn(sn)
+                    .longitude(osdDock.getLongitude())
+                    .latitude(osdDock.getLatitude())
+                    .height(osdDock.getHeight())
+                    .modelCode(osdDock.getModeCode())
+                    .coverState(osdDock.getCoverState())
+                    .putterState(osdDock.getPutterState())
+                    .supplementLightState(BooleanUtil.toInteger(osdDock.getSupplementLightState()))
+                    .droneInDock(BooleanUtil.toInteger(osdDock.getDroneInDock()))
+                    .activationTime(osdDock.getActivationTime())
+                    .batteryStoreMode(osdDock.getBatteryStoreMode())
+                    .alarmState(BooleanUtil.toInteger(osdDock.getAlarmState()))
+                    .rainfall(osdDock.getRainfall())
+                    .windSpeed(osdDock.getWindSpeed())
+                    .environmentTemperature(osdDock.getEnvironmentTemperature())
+                    .temperature(osdDock.getTemperature())
+                    .humidity(osdDock.getHumidity())
+                    .jobNumber(osdDock.getJobNumber())
+                    .emergencyStopState(Optional.ofNullable(osdDock.getEmergencyStopState()).map(x -> x ? 1 : 0).orElse(0))
+                    .time(System.currentTimeMillis())
+                    .drcState(Optional.ofNullable(osdDock.getDrcState()).map(DrcStateEnum::getState).orElse(0))
+                    .remainUpload(Optional.ofNullable(osdDock.getMediaFileDetail()).map(MediaFileDetail::getRemainUpload).orElse(null))
+                    .electricSupplyVoltage(osdDock.getElectricSupplyVoltage())
+                    .workingVoltage(osdDock.getWorkingVoltage())
+                    .workingCurrent(osdDock.getWorkingCurrent());
 
-        DockOsdParam.DockOsdParamBuilder builder = DockOsdParam.builder()
-                .sn(sn)
-                .longitude(osdDock.getLongitude())
-                .latitude(osdDock.getLatitude())
-                .height(osdDock.getHeight())
-                .modelCode(osdDock.getModeCode())
-                .coverState(osdDock.getCoverState())
-                .putterState(osdDock.getPutterState())
-                .supplementLightState(BooleanUtil.toInteger(osdDock.getSupplementLightState()))
-                .droneInDock(BooleanUtil.toInteger(osdDock.getDroneInDock()))
-                .activationTime(osdDock.getActivationTime())
-                .batteryStoreMode(osdDock.getBatteryStoreMode())
-                .alarmState(BooleanUtil.toInteger(osdDock.getAlarmState()))
-                .rainfall(osdDock.getRainfall())
-                .windSpeed(osdDock.getWindSpeed())
-                .environmentTemperature(osdDock.getEnvironmentTemperature())
-                .temperature(osdDock.getTemperature())
-                .humidity(osdDock.getHumidity())
-                .jobNumber(osdDock.getJobNumber())
-                .emergencyStopState(Optional.ofNullable(osdDock.getEmergencyStopState()).map(x -> x ? 1 : 0).orElse(0))
-                .time(System.currentTimeMillis())
-                .drcState(Optional.ofNullable(osdDock.getDrcState()).map(DrcStateEnum::getState).orElse(0))
-                .remainUpload(Optional.ofNullable(osdDock.getMediaFileDetail()).map(MediaFileDetail::getRemainUpload).orElse(null))
-                .electricSupplyVoltage(osdDock.getElectricSupplyVoltage())
-                .workingVoltage(osdDock.getWorkingVoltage())
-                .workingCurrent(osdDock.getWorkingCurrent());
+            Optional.ofNullable(osdDock.getAirConditioner()).ifPresent(x ->
+                    builder.airConditionerMode(x.getAirConditionerState()).switchTime(x.getSwitchTime()));
+            Optional.ofNullable(osdDock.getStorage()).ifPresent(x ->
+                    builder.storageTotal(osdDock.getStorage().getTotal()).storageUsed(osdDock.getStorage().getUsed()));
+            Optional.ofNullable(osdDock.getNetworkState()).ifPresent(x ->
+                    builder.networkType(x.getType()).networkRate(x.getRate()).networkQuality(x.getQuality()));
+            Optional.ofNullable(osdDock.getDroneChargeState()).ifPresent(x ->
+                    builder.droneBatteryPercent(x.getCapacityPercent()).droneBatteryState(BooleanUtil.toInteger(x.getState())));
+            Optional.ofNullable(osdDock.getDroneBatteryMaintenanceInfo()).ifPresent(x ->
+                    builder.droneBatteryMaintenanceState(x.getMaintenanceState()).droneBatteryMaintenanceTimeLeft(x.getMaintenanceTimeLeft()));
+            Optional.ofNullable(osdDock.getBackupBattery()).ifPresent(x ->
+                    builder.backupBatterySwitch(BooleanUtil.toInteger(x.getBatterySwitch())).backupBatteryVoltage(x.getVoltage()));
 
-        Optional.ofNullable(osdDock.getAirConditioner()).ifPresent(x ->
-                builder.airConditionerMode(x.getAirConditionerState()).switchTime(x.getSwitchTime()));
-        Optional.ofNullable(osdDock.getStorage()).ifPresent(x ->
-                builder.storageTotal(osdDock.getStorage().getTotal()).storageUsed(osdDock.getStorage().getUsed()));
-        Optional.ofNullable(osdDock.getNetworkState()).ifPresent(x ->
-                builder.networkType(x.getType()).networkRate(x.getRate()).networkQuality(x.getQuality()));
-        Optional.ofNullable(osdDock.getDroneChargeState()).ifPresent(x ->
-                builder.droneBatteryPercent(x.getCapacityPercent()).droneBatteryState(BooleanUtil.toInteger(x.getState())));
-        Optional.ofNullable(osdDock.getDroneBatteryMaintenanceInfo()).ifPresent(x ->
-                builder.droneBatteryMaintenanceState(x.getMaintenanceState()).droneBatteryMaintenanceTimeLeft(x.getMaintenanceTimeLeft()));
-        Optional.ofNullable(osdDock.getBackupBattery()).ifPresent(x ->
-                builder.backupBatterySwitch(BooleanUtil.toInteger(x.getBatterySwitch())).backupBatteryVoltage(x.getVoltage()));
-
-        this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.DOCK.getCode());
+            this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.DOCK.getCode());
+        });
     }
 
     @Async("asyncThreadPool")

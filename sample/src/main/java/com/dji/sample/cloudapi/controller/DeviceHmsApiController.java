@@ -6,6 +6,7 @@ import com.dji.sample.manage.model.param.DeviceHmsQueryParam;
 import com.dji.sample.manage.service.IDeviceHmsService;
 import com.dji.sdk.common.PaginationData;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
@@ -75,7 +76,7 @@ public class DeviceHmsApiController {
      * @return
      */
     @GetMapping("/{workspace_id}/devices/hms/group-by-sn")
-    public HttpResultResponse<Map<String, List<DeviceHmsDTO>>> getUnreadHmsByDeviceSn(DeviceHmsQueryParam param,
+    public HttpResultResponse<Map<String, List<DeviceHmsDTO>>> getUnreadHmsByDeviceSn(@Validated DeviceHmsQueryParam param,
             @PathVariable String workspace_id) {
         param.setUpdateTime(0L);
         PaginationData<DeviceHmsDTO> paginationData = deviceHmsService.getDeviceHmsByParam(param);

@@ -13,6 +13,9 @@ import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.cloudapi.device.api.AbstractDeviceService;
+import com.dji.sdk.cloudapi.property.DockDroneCommanderFlightHeight;
+import com.dji.sdk.cloudapi.property.DockDroneCommanderModeLostAction;
+import com.dji.sdk.cloudapi.property.DockDroneRthMode;
 import com.dji.sdk.cloudapi.tsa.DeviceIconUrl;
 import com.dji.sdk.cloudapi.tsa.IconUrlEnum;
 import com.dji.sdk.config.version.GatewayManager;
@@ -20,6 +23,7 @@ import com.dji.sdk.common.SDKManager;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.osd.TopicOsdRequest;
 import com.dji.sdk.mqtt.state.TopicStateRequest;
+import com.dji.sdk.mqtt.state.TopicStateResponse;
 import com.dji.sdk.mqtt.status.TopicStatusRequest;
 import com.dji.sdk.mqtt.status.TopicStatusResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -174,7 +178,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DOCK_OSD, from, request.getData());
 
         // Dock osd report.
-        this.deviceClient.reportDockOsdInfo(request.getData(), device.getDeviceSn());
+        this.deviceClient.reportDockOsdInfo(request.getData(), from);
     }
 
     @Override
@@ -523,4 +527,49 @@ public class SDKDeviceService extends AbstractDeviceService {
             deviceRedisService.setDeviceOsd(dockSn, oldDock);
         }
     }
+
+    /**
+     * Live status update for dock and drone
+     *
+     * @param request data
+     * @param headers The headers for a Message.
+     */
+    @Override
+    public void dockLiveStatusUpdate(TopicStateRequest<DockLiveStatus> request, MessageHeaders headers) {
+        log.error("!! dockLiveStatusUpdate not implemented");
+    }
+
+    /**
+     * Live status source update for remote control and drone
+     *
+     * @param request data
+     * @param headers The headers for a Message.
+     */
+    @Override
+    public void rcLiveStatusUpdate(TopicStateRequest<RcLiveStatus> request, MessageHeaders headers) {
+        log.error("!! rcLiveStatusUpdate not implemented");
+    }
+
+    /**
+     * Wpmz firmware version update for drone
+     *
+     * @param request data
+     * @param headers The headers for a Message.
+     */
+    @Override
+    public void dockWpmzVersionUpdate(TopicStateRequest<DockDroneWpmzVersion> request, MessageHeaders headers) {
+        log.error("!! dockWpmzVersionUpdate not implemented");
+    }
+
+    /**
+     * Styles supported by the IR palette
+     *
+     * @param request data
+     * @param headers The headers for a Message.
+     */
+    @Override
+    public void dockThermalSupportedPaletteStyle(TopicStateRequest<DockDroneThermalSupportedPaletteStyle> request, MessageHeaders headers) {
+        log.error("!! dockThermalSupportedPaletteStyle not implemented");
+    }
+
 }

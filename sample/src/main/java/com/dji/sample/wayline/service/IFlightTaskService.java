@@ -5,6 +5,7 @@ import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.param.CreateJobParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
+import com.dji.sdk.cloudapi.wayline.SimulateMission;
 import com.dji.sdk.common.HttpResultResponse;
 
 import java.sql.SQLException;

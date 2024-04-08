@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ import java.util.Set;
 public class DeviceHmsQueryParam {
 
     @JsonProperty("device_sn")
+    @NotEmpty
     private Set<String> deviceSn;
 
     @JsonProperty("begin_time")
@@ -44,11 +46,4 @@ public class DeviceHmsQueryParam {
     @JsonProperty("update_time")
     private Long updateTime;
 
-    /**
-     * 接收多个设备SN
-     * @param deviceSnStr
-     */
-    public void setDeviceSn(String deviceSnStr) {
-        this.deviceSn = new HashSet<>(Set.of(deviceSnStr.split(StrPool.COMMA)));
-    }
 }

@@ -1,8 +1,10 @@
 package com.dji.sample.wayline.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.lang.PatternPool;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -44,6 +46,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +59,10 @@ import java.util.stream.Collectors;
 @Transactional
 @Slf4j
 public class WaylineJobServiceImpl implements IWaylineJobService {
+
+    private static final String JOB_NAME_CONTINUE_SUF = "_续飞";
+
+    private static final Pattern JOB_NAME_PATTERN = PatternPool.get("\\s*_续飞([0-9]*)$");
 
     @Autowired
     private IWaylineJobMapper mapper;
@@ -132,7 +140,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
         // 断点续飞
         if (Boolean.TRUE.equals(continuable)) {
-            jobEntity.setName(jobEntity.getName() + "_续飞");
+            jobEntity.setName(buildJobContinueName(jobEntity.getName()));
             long beginTime = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             jobEntity.setBeginTime(beginTime);
             jobEntity.setEndTime(beginTime);
@@ -140,6 +148,17 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         }
 
         return this.insertWaylineJob(jobEntity);
+    }
+
+    public String buildJobContinueName(String oldName) {
+        Matcher matcher = JOB_NAME_PATTERN.matcher(oldName);
+        String jobName = oldName;
+        int num = 1;
+        if (matcher.find() && matcher.groupCount() > 0) {
+            num = Integer.valueOf(matcher.group(1)) + 1;
+            jobName = StrUtil.removeSuffix(jobName, matcher.group());
+        }
+        return jobName + JOB_NAME_CONTINUE_SUF + num;
     }
 
     @Override

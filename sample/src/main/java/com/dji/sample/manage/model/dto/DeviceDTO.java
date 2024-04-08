@@ -77,4 +77,6 @@ public class DeviceDTO {
     private Integer droneInDock;
 
     private List<DeviceHmsDTO> hmsList;
+
+    private String organizationId;
 }

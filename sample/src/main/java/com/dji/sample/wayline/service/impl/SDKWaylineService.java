@@ -125,7 +125,7 @@ public class SDKWaylineService extends AbstractWaylineService {
             jobDTO.ifPresent(x -> {
                 // 如果执行的断点续飞任务，将Redis中存储的断点信息删除
                 if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
-                    waylineRedisService.delBreakPointReceiver(x.getParentId());
+                    waylineRedisService.delProgressExtBreakPoint(x.getParentId());
                 }
 
                 job.setContinuable(x.getContinuable());

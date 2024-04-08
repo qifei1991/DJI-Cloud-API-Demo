@@ -122,7 +122,7 @@ public class WaylineRedisServiceImpl implements IWaylineRedisService {
     }
 
     @Override
-    public Boolean delBreakPointReceiver(String jobId) {
+    public Boolean delProgressExtBreakPoint(String jobId) {
         return RedisOpsUtils.del(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId);
     }
 

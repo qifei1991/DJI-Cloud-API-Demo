@@ -1,11 +1,11 @@
 package com.dji.sample.wayline.model.param;
 
-import com.dji.sdk.cloudapi.wayline.OutOfControlActionEnum;
-import com.dji.sdk.cloudapi.wayline.TaskTypeEnum;
-import com.dji.sdk.cloudapi.wayline.WaylineTypeEnum;
+import com.dji.sdk.cloudapi.wayline.*;
+import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -60,4 +60,10 @@ public class CreateJobParam {
      * 能否断点续飞
      */
     private Boolean continuable = false;
+
+    @Valid
+    private SimulateMission simulateMission;
+
+    private RthModeEnum rthMode = RthModeEnum.PRESET_HEIGHT;
+    private WaylinePrecisionTypeEnum waylinePrecisionType = WaylinePrecisionTypeEnum.RTK;
 }

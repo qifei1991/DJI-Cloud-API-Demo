@@ -118,5 +118,5 @@ public interface IWaylineRedisService {
      * @param jobId 任务ID
      * @return 是否删除
      */
-    Boolean delBreakPointReceiver(String jobId);
+    Boolean delProgressExtBreakPoint(String jobId);
 }

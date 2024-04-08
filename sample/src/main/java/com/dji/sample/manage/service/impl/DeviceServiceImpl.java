@@ -291,12 +291,12 @@ public class DeviceServiceImpl implements IDeviceService {
         });
     }
 
-    private void fillRemoteControlOsdInfo(DeviceDTO subDevice) {
-        subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getCode());
-        Optional<OsdRemoteControl> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdRemoteControl.class);
-        subDeviceOsd.ifPresent(x -> {
-            subDevice.setLongitude(x.getLongitude());
-            subDevice.setLatitude(x.getLatitude());
+    private void fillRemoteControlOsdInfo(DeviceDTO remoteCtrl) {
+        remoteCtrl.setModeCode(this.getDeviceMode(remoteCtrl.getDeviceSn()).getCode());
+        Optional<OsdRemoteControl> remoteOsd = deviceRedisService.getDeviceOsd(remoteCtrl.getDeviceSn(), OsdRemoteControl.class);
+        remoteOsd.ifPresent(x -> {
+            remoteCtrl.setLongitude(x.getLongitude());
+            remoteCtrl.setLatitude(x.getLatitude());
         });
     }
 
@@ -601,7 +601,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     break;
 
             }
-            // 机场Hms信息
+            // 在线设备Hms信息
             fillOnlineDeviceHms(device);
         }
         return Optional.of(device);
