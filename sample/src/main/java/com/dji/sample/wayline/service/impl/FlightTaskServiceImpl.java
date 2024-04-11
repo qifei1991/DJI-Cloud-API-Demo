@@ -230,10 +230,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     @Override
     public HttpResultResponse publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException {
 
-        log.info(":: Publish flight task: {}", param);
-        if (Objects.isNull(param.getSimulateMission()) || param.getSimulateMission().getIsEnable() == SimulateSwitchEnum.DISABLE) {
-            return HttpResultResponse.error("非调试模式，不予执行");
-        }
+        log.debug(":: Publish flight task: {}", param);
 
         fillImmediateTime(param);
 
@@ -346,10 +343,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             flightTask.setBreakPoint(waylineJob.getBreakPoint());
         }
 
-        log.info(":: Prepare task: " + flightTask);
-        if (Objects.isNull(flightTask.getSimulateMission()) || flightTask.getSimulateMission().getIsEnable() == SimulateSwitchEnum.DISABLE) {
-            throw new IllegalArgumentException("非调试模式，不予执行");
-        }
+        log.debug(":: Prepare task: " + flightTask);
 
         TopicServicesResponse<ServicesReplyData> serviceReply = abstractWaylineService.flighttaskPrepare(
                 SDKManager.getDeviceSDK(waylineJob.getDockSn()), flightTask);

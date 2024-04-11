@@ -176,8 +176,23 @@ public class SDKWaylineService extends AbstractWaylineService {
                                     .setUrl(url.toString())
                                     .setFingerprint(waylineFile.get().getSign()))));
         } catch (SQLException | NullPointerException e) {
-            e.printStackTrace();
+            log.error("Failed to get wayline file URL.", e);
             return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.SYSTEM_ERROR));
         }
+    }
+
+    /**
+     * Return-to-home information
+     *
+     * @param request data
+     * @param headers The headers for a Message.
+     * @return events_reply
+     */
+    @Override
+    public TopicRequestsResponse<MqttReply> returnHomeInfo(TopicRequestsRequest<ReturnHomeInfo> request, MessageHeaders headers) {
+        log.error("*************** returnHomeInfo not implemented! ***************");
+        log.info("- Return home information: gateway: {}, data: {}", request.getGateway(), request.getData());
+
+        return new TopicRequestsResponse<MqttReply>();
     }
 }

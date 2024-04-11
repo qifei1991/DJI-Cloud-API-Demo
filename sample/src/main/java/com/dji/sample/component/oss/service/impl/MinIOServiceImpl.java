@@ -40,15 +40,14 @@ public class MinIOServiceImpl implements IOssService {
 
     @Override
     public CredentialsToken getCredentials() {
-        String endpoint = StringUtils.hasText(OssConfiguration.extranetEndpoint) ? OssConfiguration.extranetEndpoint : OssConfiguration.endpoint;
         try {
-            AssumeRoleProvider provider = new AssumeRoleProvider(endpoint, OssConfiguration.accessKey,
+            AssumeRoleProvider provider = new AssumeRoleProvider(OssConfiguration.endpoint, OssConfiguration.accessKey,
                     OssConfiguration.secretKey, Math.toIntExact(OssConfiguration.expire),
                     null, OssConfiguration.region, null, null, null, null);
             Credentials credential = provider.fetch();
             return new CredentialsToken(credential.accessKey(), credential.secretKey(), credential.sessionToken(), OssConfiguration.expire);
-        } catch (NoSuchAlgorithmException e) {
-            log.debug("Failed to obtain minio sts.");
+        } catch (Exception e) {
+            log.error("Failed to obtain minio sts.", e);
         }
         return null;
     }

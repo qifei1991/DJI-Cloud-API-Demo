@@ -536,7 +536,8 @@ public class SDKDeviceService extends AbstractDeviceService {
      */
     @Override
     public void dockLiveStatusUpdate(TopicStateRequest<DockLiveStatus> request, MessageHeaders headers) {
-        log.error("!! dockLiveStatusUpdate not implemented");
+        log.error("*************** dockLiveStatusUpdate not implemented! ***************");
+        log.info("DockLiveStatusUpdate: gateway: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -547,7 +548,8 @@ public class SDKDeviceService extends AbstractDeviceService {
      */
     @Override
     public void rcLiveStatusUpdate(TopicStateRequest<RcLiveStatus> request, MessageHeaders headers) {
-        log.error("!! rcLiveStatusUpdate not implemented");
+        log.error("*************** rcLiveStatusUpdate not implemented! ***************");
+        log.info("RcLiveStatusUpdate: gateway: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -558,7 +560,8 @@ public class SDKDeviceService extends AbstractDeviceService {
      */
     @Override
     public void dockWpmzVersionUpdate(TopicStateRequest<DockDroneWpmzVersion> request, MessageHeaders headers) {
-        log.error("!! dockWpmzVersionUpdate not implemented");
+        log.error("*************** dockWpmzVersionUpdate not implemented! ***************");
+        log.info("DockWpmzVersionUpdate: gateway: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -569,7 +572,113 @@ public class SDKDeviceService extends AbstractDeviceService {
      */
     @Override
     public void dockThermalSupportedPaletteStyle(TopicStateRequest<DockDroneThermalSupportedPaletteStyle> request, MessageHeaders headers) {
-        log.error("!! dockThermalSupportedPaletteStyle not implemented");
+        log.error("*************** dockThermalSupportedPaletteStyle not implemented! ***************");
+        log.info("DockThermalSupportedPaletteStyle: gateway: {}, data: {}", request.getFrom(), request.getData());
     }
 
+    /**
+     * Under optimal RTH mode, aircraft will automatically plan the optimal return altitude.
+     * When the environment and lighting do not meet the requirements of the visual system (such as direct sunlight in the evening or no light at night), the aircraft will perform a straight-line return at the altitude you have set.
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockDroneRthMode(TopicStateRequest<DockDroneRthMode> request, MessageHeaders headers) {
+        log.error("*************** dockDroneRthMode not implemented! ***************");
+        log.info("DockDroneRthMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * Current RTH height mode
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockDroneCurrentRthMode(TopicStateRequest<DockDroneCurrentRthMode> request, MessageHeaders headers) {
+        log.error("*************** dockDroneCurrentRthMode not implemented! ***************");
+        log.info("DockDroneCurrentRthMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * To-point flight mission out of control action
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockDroneCommanderModeLostAction(TopicStateRequest<DockDroneCommanderModeLostAction> request, MessageHeaders headers) {
+        log.error("*************** dockDroneCommanderModeLostAction not implemented! ***************");
+        log.info("DockDroneCommanderModeLostAction: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * Current mode of to-point flight mission
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockDroneCurrentCommanderFlightMode(TopicStateRequest<DockDroneCurrentCommanderFlightMode> request, MessageHeaders headers) {
+        log.error("*************** dockDroneCurrentCommanderFlightMode not implemented! ***************");
+        log.info("DockDroneCurrentCommanderFlightMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * Relative to (airport) takeoff point altitude.
+     * ALT.
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockDroneCommanderFlightHeight(TopicStateRequest<DockDroneCommanderFlightHeight> request, MessageHeaders headers) {
+        log.error("*************** dockDroneCommanderFlightHeight not implemented! ***************");
+        log.info("DockDroneCommanderFlightHeight: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * The reason why the drone enters current state
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockDroneModeCodeReason(TopicStateRequest<DockDroneModeCodeReason> request, MessageHeaders headers) {
+        log.error("*************** dockDroneModeCodeReason not implemented! ***************");
+        log.info("DockDroneModeCodeReason: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * 4g dongle information
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dongleInfos(TopicStateRequest<DongleInfos> request, MessageHeaders headers) {
+        log.error("*************** dongleInfos not implemented! ***************");
+        log.info("DongleInfos: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
+
+    /**
+     * silent mode
+     *
+     * @param request data
+     * @param headers The headers for Message.
+     */
+    @Override
+    public TopicStateResponse<MqttReply> dockSilentMode(TopicStateRequest<DockSilentMode> request, MessageHeaders headers) {
+        log.error("*************** dockSilentMode not implemented! ***************");
+        log.info("DockSilentMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
 }

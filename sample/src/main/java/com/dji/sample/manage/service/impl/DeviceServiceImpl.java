@@ -599,7 +599,6 @@ public class DeviceServiceImpl implements IDeviceService {
                     break;
                 default:
                     break;
-
             }
             // 在线设备Hms信息
             fillOnlineDeviceHms(device);

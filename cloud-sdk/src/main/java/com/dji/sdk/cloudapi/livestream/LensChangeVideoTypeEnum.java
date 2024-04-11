@@ -13,6 +13,8 @@ import java.util.Arrays;
  */
 public enum LensChangeVideoTypeEnum {
 
+    NORMAL("normal"),
+
     ZOOM("zoom"),
 
     WIDE("wide"),
