@@ -30,5 +30,5 @@ public class StatusSubDeviceReceiver {
 
     private String nonce;
 
-    private Integer version;
+    private String version;
 }

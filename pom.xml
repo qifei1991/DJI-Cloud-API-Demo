@@ -11,7 +11,7 @@
 
 	<groupId>com.dji</groupId>
 	<artifactId>cloud-api-sample</artifactId>
-	<version>1.5.1.beta.1</version>
+	<version>1.5.1.beta.3</version>
 	<name>cloud-api-sample</name>
 
 	<properties>

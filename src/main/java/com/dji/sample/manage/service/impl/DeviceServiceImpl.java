@@ -1,5 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
+import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -24,6 +25,7 @@ import com.dji.sample.manage.dao.IDeviceMapper;
 import com.dji.sample.manage.model.dto.*;
 import com.dji.sample.manage.model.entity.DeviceEntity;
 import com.dji.sample.manage.model.enums.*;
+import com.dji.sample.manage.model.param.DeviceHmsQueryParam;
 import com.dji.sample.manage.model.param.DeviceOtaCreateParam;
 import com.dji.sample.manage.model.param.DeviceQueryParam;
 import com.dji.sample.manage.model.receiver.*;
@@ -106,6 +108,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private DeviceOsdStateClient deviceOsdStateClient;
+
+    @Autowired
+    private IDeviceHmsService deviceHmsService;
 
     private static final List<String> INIT_TOPICS_SUFFIX = List.of(
             OSD_SUF, STATE_SUF, SERVICES_SUF + _REPLY_SUF, EVENTS_SUF, PROPERTY_SUF + SET_SUF + _REPLY_SUF);
@@ -349,13 +354,9 @@ public class DeviceServiceImpl implements IDeviceService {
         Boolean dockOnline = deviceRedisService.checkDeviceOnline(gateway.getDeviceSn());
         gateway.setStatus(dockOnline);
         if (dockOnline) {
-            gateway.setModeCode(this.getDockMode(gateway.getDeviceSn()).getVal());
-            Optional<OsdDockReceiver> dockOsd = deviceRedisService.getDeviceOsd(gateway.getDeviceSn(), OsdDockReceiver.class);
-            dockOsd.ifPresent(x -> {
-                gateway.setDroneInDock(x.getDroneInDock());
-                gateway.setLongitude(x.getLongitude());
-                gateway.setLatitude(x.getLatitude());
-            });
+            fillDockOsdInfo(gateway);
+            // 机场Hms信息
+            fillOnlineDeviceHms(gateway);
         }
 
         // sub device
@@ -369,19 +370,54 @@ public class DeviceServiceImpl implements IDeviceService {
             Boolean subDeviceOnline = deviceRedisService.checkDeviceOnline(subDevice.getDeviceSn());
             subDevice.setStatus(subDeviceOnline);
             if (subDeviceOnline) {
-                subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getVal());
-                Optional<OsdSubDeviceReceiver> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdSubDeviceReceiver.class);
-                subDeviceOsd.ifPresent(x -> {
-                    subDevice.setLongitude(x.getLongitude());
-                    subDevice.setLatitude(x.getLatitude());
-                    subDevice.setAttitudeHead(Objects.isNull(x.getAttitudeHead()) ? 0 : x.getAttitudeHead());
-                });
+                fillDroneOsdInfo(subDevice);
+                // 机场Hms信息
+                fillOnlineDeviceHms(subDevice);
             }
             gateway.setChildren(subDevice);
 
             // payloads
             subDevice.setPayloadsList(payloadService.getDevicePayloadEntitiesByDeviceSn(gateway.getChildDeviceSn()));
         }
+    }
+
+    private void fillDroneOsdInfo(DeviceDTO subDevice) {
+        subDevice.setModeCode(this.getDeviceMode(subDevice.getDeviceSn()).getVal());
+        Optional<OsdSubDeviceReceiver> subDeviceOsd = deviceRedisService.getDeviceOsd(subDevice.getDeviceSn(), OsdSubDeviceReceiver.class);
+        subDeviceOsd.ifPresent(x -> {
+            subDevice.setLongitude(x.getLongitude());
+            subDevice.setLatitude(x.getLatitude());
+            subDevice.setAttitudeHead(Objects.isNull(x.getAttitudeHead()) ? 0 : x.getAttitudeHead());
+        });
+    }
+
+    private void fillRemoteControlOsdInfo(DeviceDTO remoteCtrl) {
+        remoteCtrl.setModeCode(this.getDeviceMode(remoteCtrl.getDeviceSn()).getVal());
+        Optional<OsdGatewayReceiver> remoteOsd = deviceRedisService.getDeviceOsd(remoteCtrl.getDeviceSn(), OsdGatewayReceiver.class);
+        remoteOsd.ifPresent(x -> {
+            remoteCtrl.setLongitude(x.getLongitude());
+            remoteCtrl.setLatitude(x.getLatitude());
+        });
+    }
+
+    private void fillDockOsdInfo(DeviceDTO gateway) {
+        gateway.setModeCode(this.getDockMode(gateway.getDeviceSn()).getVal());
+        Optional<OsdDockReceiver> dockOsd = deviceRedisService.getDeviceOsd(gateway.getDeviceSn(), OsdDockReceiver.class);
+        dockOsd.ifPresent(x -> {
+            gateway.setDroneInDock(x.getDroneInDock());
+            gateway.setLongitude(x.getLongitude());
+            gateway.setLatitude(x.getLatitude());
+        });
+    }
+
+    private void fillOnlineDeviceHms(DeviceDTO device) {
+        device.setHmsList(deviceHmsService.getDeviceHmsByParam(
+                DeviceHmsQueryParam.builder()
+                        .deviceSn(new HashSet<>(Set.of(device.getDeviceSn())))
+                        .updateTime(0L)
+                        .page(1L)
+                        .pageSize(9999L)
+                        .build()).getList());
     }
 
     @Override
@@ -834,6 +870,7 @@ public class DeviceServiceImpl implements IDeviceService {
         Optional<DeviceEntity> droneEntityOpt = this.bindDevice2Entity(DeviceDomainEnum.SUB_DEVICE.getVal(), drone);
 
         List<ErrorInfoReply> bindResult = new ArrayList<>();
+        String organizationId = Objects.isNull(dock) ? null : dock.getOrganizationId();
 
         droneEntityOpt.ifPresent(droneEntity -> {
             dockEntityOpt.get().setChildSn(droneEntity.getDeviceSn());
@@ -844,8 +881,22 @@ public class DeviceServiceImpl implements IDeviceService {
                         new ErrorInfoReply(droneEntity.getDeviceSn(),
                                 CommonErrorEnum.DEVICE_BINDING_FAILED.getErrorCode())
             );
+
+            // add by Qfei, Device register.
+            deviceEntityOpt.ifPresent(x -> {
+                DeviceDTO droneDto = this.deviceEntityConvertToDTO(x);
+                droneDto.setOrganizationId(organizationId);
+                deviceOsdStateClient.reportOnline(Optional.of(droneDto));
+            });
         });
         Optional<DeviceEntity> dockOpt = this.saveDevice(dockEntityOpt.get());
+
+        // add by Qfei, Device register.
+        dockOpt.ifPresent(x -> {
+            DeviceDTO dockDto = this.deviceEntityConvertToDTO(x);
+            dockDto.setOrganizationId(organizationId);
+            deviceOsdStateClient.reportOnline(Optional.of(dockDto));
+        });
 
         bindResult.add(dockOpt.isPresent()
                 ? ErrorInfoReply.success(dock.getSn())
@@ -916,7 +967,26 @@ public class DeviceServiceImpl implements IDeviceService {
             return Optional.empty();
         }
         DeviceDTO device = devicesList.get(0);
-        device.setStatus(deviceRedisService.checkDeviceOnline(sn));
+        Boolean online = deviceRedisService.checkDeviceOnline(sn);
+        device.setStatus(online);
+        if (online) {
+            switch (DeviceDomainEnum.find(device.getDomain())) {
+                case DOCK:
+                    fillDockOsdInfo(device);
+                    break;
+                case SUB_DEVICE:
+                    fillDroneOsdInfo(device);
+                    break;
+                case GATEWAY:
+                    fillRemoteControlOsdInfo(device);
+                    break;
+                default:
+                    break;
+            }
+            // 在线设备Hms信息
+            fillOnlineDeviceHms(device);
+        }
+
         return Optional.of(device);
     }
 

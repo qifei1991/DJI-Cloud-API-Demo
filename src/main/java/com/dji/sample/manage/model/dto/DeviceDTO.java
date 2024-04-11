@@ -70,4 +70,9 @@ public class DeviceDTO {
     private Integer firmwareProgress;
 
     private String parentSn;
+
+    private String organizationId;
+
+    private List<DeviceHmsDTO> hmsList;
+
 }

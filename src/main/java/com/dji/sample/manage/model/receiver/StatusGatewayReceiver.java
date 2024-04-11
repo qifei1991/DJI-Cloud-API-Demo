@@ -36,7 +36,7 @@ public class StatusGatewayReceiver {
 
     private String nonce;
 
-    private Integer version;
+    private String version;
 
     @JsonProperty(value = "sub_devices")
     private List<StatusSubDeviceReceiver> subDevices;

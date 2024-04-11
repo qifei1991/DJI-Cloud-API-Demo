@@ -365,7 +365,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         boolean isErr = !jobIds.removeAll(waylineJobIds) || !jobIds.isEmpty() ;
         if (isErr) {
             List<WaylineJobDTO> cannotCancelJobs = getJobsByConditions(workspaceId, jobIds, null);
-            throw new IllegalArgumentException("以下任务的状态不支持取消，请排除后重新操作！" + Arrays.toString(cannotCancelJobs.stream().map(WaylineJobDTO::getJobName).toArray()));
+            throw new IllegalArgumentException("以下任务的状态不支持取消: "
+                    + Arrays.toString(cannotCancelJobs.stream().map(WaylineJobDTO::getJobName).toArray()));
         }
 
         // Group job id by dock sn.
