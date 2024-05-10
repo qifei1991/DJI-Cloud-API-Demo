@@ -2,7 +2,6 @@ package com.dji.sample.wayline.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -35,7 +34,6 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -193,7 +191,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     public void importKmzFile(MultipartFile file, String workspaceId, String creator) {
         Optional<WaylineFileDTO> waylineFileOpt = validKmzFile(file);
         if (waylineFileOpt.isEmpty()) {
-            throw new RuntimeException("航线文件格式错误.");
+            throw new RuntimeException("航线文件格式错误。");
         }
 
         try {
@@ -203,7 +201,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             ossService.putObject(OssConfiguration.bucket, waylineFile.getObjectKey(), file.getInputStream());
             this.saveWaylineFile(workspaceId, waylineFile);
         } catch (IOException e) {
-            log.error("Failed to save wayline file.", e);
+            log.error("航线文件保存失败。", e);
         }
     }
 
@@ -250,7 +248,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
             }
 
         } catch (IOException | DocumentException e) {
-            log.error("Failed to valid the Kmz file.", e);
+            log.error("航线[kmz]文件校验失败。", e);
         }
         return Optional.empty();
     }

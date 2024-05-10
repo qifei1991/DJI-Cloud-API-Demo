@@ -69,7 +69,9 @@ public class SDKWaylineService extends AbstractWaylineService {
 
     @Override
     public TopicEventsResponse<MqttReply> deviceExitHomingNotify(TopicEventsRequest<DeviceExitHomingNotify> request, MessageHeaders headers) {
-        return deviceExitHomingNotify(request, headers);
+        log.error("*************** deviceExitHomingNotify not implemented! ***************");
+        log.info("- Device exit Homing notify: gateway: {}, data: {}", request.getGateway(), request.getData());
+        return new TopicEventsResponse<MqttReply>();
     }
 
     @Override

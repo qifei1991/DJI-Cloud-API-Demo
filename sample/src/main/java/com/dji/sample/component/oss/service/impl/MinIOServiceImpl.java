@@ -103,9 +103,9 @@ public class MinIOServiceImpl implements IOssService {
             try {
                 ObjectWriteResponse response = client.putObject(
                         PutObjectArgs.builder().bucket(bucket).object(objectKey).stream(input, input.available(), 0).build());
-                log.info("Upload FlighttaskCreateFile: {}", response.etag());
+                log.info("Upload File: {}", response.etag());
             } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException ex) {
-                log.error("Failed to upload FlighttaskCreateFile {}.", objectKey, ex);
+                log.error("Failed to upload File {}.", objectKey, ex);
             }
         }
     }

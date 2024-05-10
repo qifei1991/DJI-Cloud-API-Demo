@@ -1,10 +1,7 @@
 package com.dji.sdk.cloudapi.interconnection.api;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
-import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromEsdk;
-import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionToEsdkRequest;
-import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionToPsdkRequest;
-import com.dji.sdk.cloudapi.interconnection.InterconnectionMethodEnum;
+import com.dji.sdk.cloudapi.interconnection.*;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
 import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.config.version.GatewayTypeEnum;
@@ -80,4 +77,69 @@ public abstract class AbstractInterconnectionService {
                 InterconnectionMethodEnum.CUSTOM_DATA_TRANSMISSION_TO_PSDK.getMethod(),
                 request);
     }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> psdkWidgetValueSet(GatewayManager gateway, PSDKWidgetValueSetRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.PSDK_WIDGET_VALUE_SET.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> psdkInputBoxTextSet(GatewayManager gateway, PSDKInputBoxTextSetRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.PSDK_INPUT_BOX_TEXT_SET.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0)
+    public TopicServicesResponse<ServicesReplyData> speakerAudioPlayStart(String droneSn, SpeakerAudioPlayStartRequest request) {
+        return servicesPublish.publish(
+                droneSn,
+                InterconnectionMethodEnum.SPEAKER_AUDIO_PLAY_START.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> speakerTtsPlayStart(GatewayManager gateway, SpeakerTtsPlayStartRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.SPEAKER_TTS_PLAY_START.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> speakerReplay(GatewayManager gateway, SpeakerPlayRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.SPEAKER_REPLAY.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> speakerPlayStop(GatewayManager gateway, SpeakerPlayRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.SPEAKER_PLAY_STOP.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> speakerPlayModeSet(GatewayManager gateway, SpeakerPlayModeSetRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.SPEAKER_PLAY_MODE_SET.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> speakerPlayVolumeSet(GatewayManager gateway, SpeakerPlayVolumeSetRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                InterconnectionMethodEnum.SPEAKER_PLAY_VOLUME_SET.getMethod(),
+                request);
+    }
+
 }

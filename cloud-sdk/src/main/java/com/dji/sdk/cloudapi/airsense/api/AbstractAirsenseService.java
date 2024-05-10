@@ -22,7 +22,7 @@ public abstract class AbstractAirsenseService {
 
 
     /**
-     * cloud-custom data transmit from psdk
+     * AirSense Warning
      * @param request  data
      * @param headers  The headers for a {@link Message}.
      * @return events_reply

@@ -158,6 +158,14 @@ public class ChannelName {
 
     public static final String INBOUND_EVENTS_CAMERA_PHOTO_TAKE_PROGRESS = "inboundEventsCameraPhotoTakeProgress";
 
+    public static final String INBOUND_EVENTS_PSDK_UI_RESOURCE_UPLOAD_RESULT = "inboundEventsPsdkUiResourceUploadResult";
+
+    public static final String INBOUND_EVENTS_PSDK_FLOATING_WINDOW_TEXT = "inboundEventsPsdkFloatingWindowText";
+
+    public static final String INBOUND_EVENTS_SPEAKER_AUDIO_PLAY_START_PROGRESS = "inboundEventsSpeakerAudioPlayStartProgress";
+
+    public static final String INBOUND_EVENTS_SPEAKER_TTS_PLAY_START_PROGRESS = "inboundEventsSpeakerTtsPlayStartProgress";
+
 
     // property
     public static final String INBOUND_PROPERTY_SET_REPLY = "inboundPropertySetReply";

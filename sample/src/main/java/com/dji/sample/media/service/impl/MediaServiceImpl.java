@@ -141,6 +141,8 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
                 return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
             }
             countDTO.setPreJobId(countDTO.getJobId());
+        } else {
+            countDTO = new MediaFileCountDTO();
         }
         countDTO.setJobId(jobId);
         mediaRedisService.setMediaHighestPriority(request.getGateway(), countDTO);
@@ -163,9 +165,12 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
 
         // set path
         String objectKey = file.getObjectKey();
-        file.setPath(objectKey.substring(Optional.of(objectKey.indexOf(OssConfiguration.objectDirPrefix))
-                .filter(index -> index > 0).map(index -> index++).orElse(0),
-                objectKey.lastIndexOf("/")));
+        // 获取媒体文件path, path中去掉objectDirPrefix, modify by Qfei, 2024-4-11 18:44:20
+        Integer startInx = Optional.of(objectKey.indexOf(OssConfiguration.objectDirPrefix))
+                .filter(index -> index >= 0)
+                .map(index -> index + OssConfiguration.objectDirPrefix.length() + 1)
+                .orElse(0);
+        file.setPath(objectKey.substring(startInx, objectKey.lastIndexOf("/")));
 
         Integer saved = fileService.saveFile(device.getWorkspaceId(), file);
 
@@ -239,5 +244,14 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
                 .setName(file.getName())
                 .setObjectKey(file.getObjectKey())
                 .setPath(file.getPath());
+    }
+
+    public static void main(String[] args) {
+        String objectKey = "ac793856-e9d0-4184-8b61-9d45c44179b1/DJI_202404111632_005_ac793856-e9d0-4184-8b61-9d45c44179b1/DJI_20240411163430_0001_V.jpeg";
+        Integer startInx = Optional.of(objectKey.indexOf("cloudApi"))
+                .filter(index -> index >= 0)
+                .map(index -> index + "cloudApi".length() + 1)
+                .orElse(0);
+        log.info("path: " + objectKey.substring(startInx, objectKey.lastIndexOf("/")));
     }
 }
