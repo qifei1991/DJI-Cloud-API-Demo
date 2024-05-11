@@ -18,6 +18,7 @@ import java.util.Optional;
 public class WaylineFileClient extends AbstractClient {
 
     public void reportWaylineImport(Optional<GetWaylineListResponse> waylineOpt) {
+        log.debug("Report Upload wayline file: {}", waylineOpt);
         waylineOpt.ifPresent(x -> this.applicationJsonPost(ClientUri.URI_WAYLINE_REPORT, x));
     }
 }

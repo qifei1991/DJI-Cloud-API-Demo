@@ -50,6 +50,8 @@ public enum DockStateDataKeyEnum {
 
     SILENT_MODE(Set.of("silent_mode"), DockSilentMode.class),
 
+    WIRELESS_LINK_TOPO(Set.of("wireless_link_topo"), WirelessLinkTopoInfo.class),
+
     ;
 
     private final Set<String> keys;

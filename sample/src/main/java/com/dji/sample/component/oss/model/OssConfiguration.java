@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
  * @version 0.2
  * @date 2021/12/9
  */
-@Component
 @ConfigurationProperties(prefix = "oss")
+@Component
 @ConfigurationPropertiesBinding
 public class OssConfiguration {
 

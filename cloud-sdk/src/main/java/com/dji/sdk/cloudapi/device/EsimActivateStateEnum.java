@@ -13,9 +13,11 @@ import java.util.Arrays;
  */
 public enum EsimActivateStateEnum {
 
-    INACTIVATED(0),
+    UNKNOWN(0),
 
-    ACTIVATED(1),
+    INACTIVATED(1),
+
+    ACTIVATED(2),
 
     ;
 
