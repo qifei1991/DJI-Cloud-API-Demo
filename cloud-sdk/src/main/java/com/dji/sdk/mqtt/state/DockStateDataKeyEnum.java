@@ -38,7 +38,7 @@ public enum DockStateDataKeyEnum {
 
     COMMANDER_MODE_LOST_ACTION(Set.of("commander_mode_lost_action"), DockDroneCommanderModeLostAction.class),
 
-    CURRENT_COMMANDER_FLIGHT_MODE(Set.of("current_commander_flight_mode"), DockDroneCurrentCommanderFlightMode.class),
+    CURRENT_COMMANDER_FLIGHT_MODE(Set.of("current_commander_flight_mode", "commander_flight_mode"), DockDroneCurrentCommanderFlightMode.class),
 
     COMMANDER_FLIGHT_HEIGHT(Set.of("commander_flight_height"), DockDroneCommanderFlightHeight.class),
 
@@ -51,6 +51,12 @@ public enum DockStateDataKeyEnum {
     SILENT_MODE(Set.of("silent_mode"), DockSilentMode.class),
 
     WIRELESS_LINK_TOPO(Set.of("wireless_link_topo"), WirelessLinkTopoInfo.class),
+
+    // UOM_REAL_NAME_STATE(Set.of("uom_real_name_state"), UomRealNameState.class),
+    //
+    // RTCM_INFO(Set.of("rtcm_info"), RtcmInfo.class),
+    //
+    // FLYSAFE_DATABASE_VERSION(Set.of("flysafe_database_version"), FlysafeDatabaseVersion.class),
 
     ;
 

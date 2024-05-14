@@ -204,7 +204,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DEVICE_OSD, from, request.getData());
 
         // Report drone osd status.
-        this.deviceClient.reportDroneOsdInfo(request.getData(), device.getDeviceSn(), from);
+        this.deviceClient.reportDroneOsdInfo(request.getData(), device.getDeviceSn(), request.getGateway());
     }
 
     @Override

@@ -9,7 +9,6 @@ import com.dji.sample.cloudapi.model.param.*;
 import com.dji.sample.cloudapi.util.ApiUtil;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
-import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
@@ -92,8 +91,6 @@ public class DeviceClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void reportDroneOsdInfo(OsdDockDrone data, String deviceSn, String dockSn) {
 
-        // 根据网关SN查询是否是机场飞行任务, 赋值作业ID
-        Optional<EventsReceiver<FlighttaskProgress>> runningJobOpt = waylineRedisService.getRunningWaylineJob(dockSn);
         AircraftOsdParam.AircraftOsdParamBuilder builder = AircraftOsdParam.builder()
                 .sn(deviceSn)
                 .firmwareVersion(data.getFirmwareVersion())
@@ -123,7 +120,9 @@ public class DeviceClient extends AbstractClient {
                         .gimbalRoll(mainPayload.getGimbalRoll())
                         .gimbalYaw(mainPayload.getGimbalYaw()));
 
-        runningJobOpt.ifPresent(x -> builder.sortiesId(x.getBid()));
+        // 根据网关SN查询是否是机场飞行作业, 赋值作业ID
+        Optional<EventsReceiver<FlighttaskProgress>> runningJobOpt = waylineRedisService.getRunningWaylineJob(dockSn);
+        runningJobOpt.ifPresent(x -> builder.sortiesId(x.getOutput().getExt().getFlightId()));
 
         this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
     }
