@@ -1,6 +1,6 @@
 package com.dji.sample.map.service.impl;
 
-import com.dji.sdk.cloudapi.flightarea.api.AbstractFlightAreaService;
+import com.dji.sdk.cloudapi.flightarea.api.AbstractFlightAreaPublishService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -9,6 +9,6 @@ import org.springframework.stereotype.Service;
  * @date 2023/11/22
  */
 @Service
-public class SDKFlightAreaService extends AbstractFlightAreaService {
+public class SDKFlightAreaService extends AbstractFlightAreaPublishService {
 
 }

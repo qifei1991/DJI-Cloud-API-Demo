@@ -50,9 +50,8 @@ public class WaylineJobApiController {
             @RequestParam(name = "end_time", required = false) Long endTime,
             @RequestParam(name = "order_field", required = false) String orderField,
             @RequestParam(name = "is_asc", required = false) String isAsc) {
-        PaginationData<WaylineJobDTO> data = waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize,
-                dockSn, name, taskType, status, beginTime, endTime, orderField, isAsc);
-        return HttpResultResponse.success(data);
+        return HttpResultResponse.success(waylineJobService.getJobsByWorkspaceId(workspaceId, page, pageSize,
+                dockSn, name, taskType, status, beginTime, endTime, orderField, isAsc));
     }
 
     /**

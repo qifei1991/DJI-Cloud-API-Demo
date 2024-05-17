@@ -52,11 +52,13 @@ public enum DockStateDataKeyEnum {
 
     WIRELESS_LINK_TOPO(Set.of("wireless_link_topo"), WirelessLinkTopoInfo.class),
 
-    // UOM_REAL_NAME_STATE(Set.of("uom_real_name_state"), UomRealNameState.class),
-    //
+    UOM_REAL_NAME_STATE(Set.of("uom_real_name_state"), UomRealNameState.class),
+
     // RTCM_INFO(Set.of("rtcm_info"), RtcmInfo.class),
-    //
+
     // FLYSAFE_DATABASE_VERSION(Set.of("flysafe_database_version"), FlysafeDatabaseVersion.class),
+
+    // AIR_TRANSFER_ENABLE(Set.of("air_transfer_enable"), AirTransferEnable.class),
 
     ;
 

@@ -170,7 +170,7 @@
 
                     <!--!!!【注意】本地调试一定要把下面代码屏蔽掉,只有打包时候需要-->
 
-                    <!--<exclude>application*.yml</exclude>-->
+                    <exclude>application*.yml</exclude>
 
                 </excludes>
             </resource>

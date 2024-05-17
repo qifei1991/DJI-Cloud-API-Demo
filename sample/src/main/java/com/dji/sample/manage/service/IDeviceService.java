@@ -142,6 +142,7 @@ public interface IDeviceService {
      * @return device
      */
     Optional<DeviceDTO> getDeviceBySn(String sn);
+    Optional<DeviceDTO> getDeviceBySnWithHms(String sn);
 
     /**
      * Create job for device firmware updates.

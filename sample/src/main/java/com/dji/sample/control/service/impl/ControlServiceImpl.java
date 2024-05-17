@@ -16,6 +16,7 @@ import com.dji.sample.manage.model.dto.DevicePayloadDTO;
 import com.dji.sample.manage.service.IDevicePayloadService;
 import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.manage.service.IDeviceService;
+import com.dji.sample.wayline.service.impl.SDKWaylineService;
 import com.dji.sdk.cloudapi.control.FlyToPointRequest;
 import com.dji.sdk.cloudapi.control.PayloadAuthorityGrabRequest;
 import com.dji.sdk.cloudapi.control.TakeoffToPointRequest;
@@ -23,7 +24,6 @@ import com.dji.sdk.cloudapi.control.api.AbstractControlService;
 import com.dji.sdk.cloudapi.debug.DebugMethodEnum;
 import com.dji.sdk.cloudapi.debug.api.AbstractDebugService;
 import com.dji.sdk.cloudapi.device.*;
-import com.dji.sdk.cloudapi.wayline.api.AbstractWaylineService;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
 import com.dji.sdk.exception.CloudSDKErrorEnum;
@@ -74,7 +74,7 @@ public class ControlServiceImpl implements IControlService {
 
     @Autowired
     @Qualifier("SDKWaylineService")
-    private AbstractWaylineService abstractWaylineService;
+    private SDKWaylineService abstractWaylineService;
 
     @Autowired
     private FlightTaskClient flightTaskClient;

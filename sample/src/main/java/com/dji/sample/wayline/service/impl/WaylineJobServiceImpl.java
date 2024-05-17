@@ -319,7 +319,6 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (entity == null) {
             return null;
         }
-
         WaylineJobDTO.WaylineJobDTOBuilder builder = WaylineJobDTO.builder()
                 .jobId(entity.getJobId())
                 .jobName(entity.getName())

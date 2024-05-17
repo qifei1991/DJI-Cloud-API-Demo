@@ -7,6 +7,8 @@ import com.dji.sdk.exception.CloudSDKException;
 import com.dji.sdk.mqtt.ChannelName;
 import com.dji.sdk.mqtt.MqttGatewayPublish;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -33,6 +35,8 @@ import static com.dji.sdk.mqtt.TopicConst.*;
 @Configuration
 public class StateRouter {
 
+    private static final Logger log = LoggerFactory.getLogger(StateRouter.class);
+
     @Resource
     private MqttGatewayPublish gatewayPublish;
 
@@ -49,6 +53,9 @@ public class StateRouter {
                                 .setData(Common.getObjectMapper().convertValue(response.getData(), getTypeReference(response.getGateway(), response.getData())));
                     } catch (IOException e) {
                         throw new CloudSDKException(e);
+                    } catch (CloudSDKException e) {
+                        log.error("Parse state data error, payload => {}", new String((byte[]) source.getPayload()));
+                        throw e;
                     }
                 }, null)
                 .<TopicStateRequest, StateDataKeyEnum>route(response -> StateDataKeyEnum.find(response.getData().getClass()),

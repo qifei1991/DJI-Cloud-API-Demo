@@ -301,7 +301,13 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     private void fillDockOsdInfo(DeviceDTO gateway) {
-        gateway.setModeCode(this.getDockMode(gateway.getDeviceSn()).getCode());
+        if (Objects.isNull(gateway)) {
+            return;
+        }
+        gateway.setModeCode(
+                Optional.ofNullable(this.getDockMode(gateway.getDeviceSn()))
+                        .map(DockModeCodeEnum::getCode)
+                        .orElse(DockModeCodeEnum.IDLE.getCode()));
         Optional<OsdDock> dockOsd = deviceRedisService.getDeviceOsd(gateway.getDeviceSn(), OsdDock.class);
         dockOsd.ifPresent(x -> {
             gateway.setDroneInDock(BooleanUtil.toInt(x.getDroneInDock()));
@@ -579,6 +585,17 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public Optional<DeviceDTO> getDeviceBySn(String sn) {
+        List<DeviceDTO> devicesList = this.getDevicesByParams(DeviceQueryParam.builder().deviceSn(sn).build());
+        if (devicesList.isEmpty()) {
+            return Optional.empty();
+        }
+        DeviceDTO device = devicesList.get(0);
+        device.setStatus(deviceRedisService.checkDeviceOnline(sn));
+        return Optional.of(device);
+    }
+
+    @Override
+    public Optional<DeviceDTO> getDeviceBySnWithHms(String sn) {
         List<DeviceDTO> devicesList = this.getDevicesByParams(DeviceQueryParam.builder().deviceSn(sn).build());
         if (devicesList.isEmpty()) {
             return Optional.empty();

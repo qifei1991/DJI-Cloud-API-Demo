@@ -110,7 +110,7 @@ public class DeviceHmsServiceImpl extends AbstractHmsService implements IDeviceH
 
     @Override
     public PaginationData<DeviceHmsDTO> getDeviceHmsByParam(DeviceHmsQueryParam param) {
-        log.info("--- device sns: {}", param.getDeviceSn());
+        log.debug("-query hms device sns: {}", param.getDeviceSn());
         LambdaQueryWrapper<DeviceHmsEntity> queryWrapper = new LambdaQueryWrapper<DeviceHmsEntity>()
                 .and(wrapper -> param.getDeviceSn().forEach(sn -> wrapper.eq(DeviceHmsEntity::getSn, sn).or()))
                 .between(param.getBeginTime() != null && param.getEndTime() != null,

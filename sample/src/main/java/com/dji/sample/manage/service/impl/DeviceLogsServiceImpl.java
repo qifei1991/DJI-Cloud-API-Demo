@@ -33,7 +33,6 @@ import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
@@ -74,16 +73,13 @@ public class DeviceLogsServiceImpl extends AbstractLogService implements IDevice
     private IStorageService storageService;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private IWebSocketMessageService webSocketMessageService;
 
     @Autowired
     private IDeviceRedisService deviceRedisService;
 
     @Autowired
-    private AbstractLogService abstractLogService;
+    private SDKLogService abstractLogService;
 
     @Override
     public PaginationData<DeviceLogsDTO> getUploadedLogs(String deviceSn, DeviceLogsQueryParam param) {

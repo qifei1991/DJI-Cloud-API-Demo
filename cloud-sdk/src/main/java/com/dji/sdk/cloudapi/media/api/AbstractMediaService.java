@@ -1,16 +1,16 @@
 package com.dji.sdk.cloudapi.media.api;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
-import com.dji.sdk.cloudapi.media.*;
-import com.dji.sdk.cloudapi.storage.StsCredentialsResponse;
+import com.dji.sdk.cloudapi.media.FileUploadCallback;
+import com.dji.sdk.cloudapi.media.HighestPriorityUploadFlightTaskMedia;
+import com.dji.sdk.cloudapi.media.MediaMethodEnum;
+import com.dji.sdk.cloudapi.media.UploadFlighttaskMediaPrioritize;
 import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.config.version.GatewayTypeEnum;
 import com.dji.sdk.mqtt.ChannelName;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
-import com.dji.sdk.mqtt.requests.TopicRequestsRequest;
-import com.dji.sdk.mqtt.requests.TopicRequestsResponse;
 import com.dji.sdk.mqtt.services.ServicesPublish;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
@@ -64,15 +64,4 @@ public abstract class AbstractMediaService {
                 MediaMethodEnum.UPLOAD_FLIGHTTASK_MEDIA_PRIORITIZE.getMethod(),
                 request);
     }
-
-    /**
-     * Obtain upload temporary credentials
-     * @param request
-     * @param headers
-     */
-    @ServiceActivator(inputChannel = ChannelName.INBOUND_REQUESTS_STORAGE_CONFIG_GET, outputChannel = ChannelName.OUTBOUND_REQUESTS)
-    public TopicRequestsResponse<MqttReply<StsCredentialsResponse>> storageConfigGet(TopicRequestsRequest<StorageConfigGet> request, MessageHeaders headers) {
-        throw new UnsupportedOperationException("storageConfigGet not implemented");
-    }
-
 }

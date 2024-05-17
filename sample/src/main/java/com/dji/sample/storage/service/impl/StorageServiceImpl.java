@@ -4,7 +4,7 @@ import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.component.oss.service.impl.OssServiceContext;
 import com.dji.sample.storage.service.IStorageService;
 import com.dji.sdk.cloudapi.media.StorageConfigGet;
-import com.dji.sdk.cloudapi.media.api.AbstractMediaService;
+import com.dji.sdk.cloudapi.storage.api.AbstractStorageService;
 import com.dji.sdk.cloudapi.storage.StsCredentialsResponse;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.requests.TopicRequestsRequest;
@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
  * @date 2022/3/9
  */
 @Service
-public class StorageServiceImpl extends AbstractMediaService implements IStorageService {
+public class StorageServiceImpl extends AbstractStorageService implements IStorageService {
 
     @Autowired
     private OssServiceContext ossService;

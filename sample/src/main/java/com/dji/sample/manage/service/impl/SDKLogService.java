@@ -1,6 +1,6 @@
 package com.dji.sample.manage.service.impl;
 
-import com.dji.sdk.cloudapi.log.api.AbstractLogService;
+import com.dji.sdk.cloudapi.log.api.AbstractLogPublishService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -9,6 +9,6 @@ import org.springframework.stereotype.Service;
  * @date 2023/7/6
  */
 @Service
-public class SDKLogService extends AbstractLogService {
+public class SDKLogService extends AbstractLogPublishService {
 
 }

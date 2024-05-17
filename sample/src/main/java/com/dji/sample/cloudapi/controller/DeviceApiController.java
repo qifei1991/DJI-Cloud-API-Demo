@@ -38,7 +38,7 @@ public class DeviceApiController {
 
     @GetMapping("/{device_sn}")
     public HttpResultResponse getDevice(@PathVariable("device_sn") String deviceSn) {
-        Optional<DeviceDTO> deviceOpt = deviceService.getDeviceBySn(deviceSn);
+        Optional<DeviceDTO> deviceOpt = deviceService.getDeviceBySnWithHms(deviceSn);
         return deviceOpt.isEmpty() ? HttpResultResponse.error("device not found.") : HttpResultResponse.success(deviceOpt.get());
     }
 
