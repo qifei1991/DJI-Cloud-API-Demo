@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -142,11 +143,12 @@ public class DeviceClient extends AbstractClient {
                     .modelCode(osdDock.getModeCode())
                     .coverState(osdDock.getCoverState())
                     .putterState(osdDock.getPutterState())
-                    .supplementLightState(BooleanUtil.toInteger(osdDock.getSupplementLightState()))
-                    .droneInDock(BooleanUtil.toInteger(osdDock.getDroneInDock()))
+                    .supplementLightState(Objects.isNull(osdDock.getSupplementLightState()) ? null
+                            : BooleanUtil.toInteger(osdDock.getSupplementLightState()))
+                    .droneInDock(Objects.isNull(osdDock.getDroneInDock()) ? null : BooleanUtil.toInteger(osdDock.getDroneInDock()))
                     .activationTime(osdDock.getActivationTime())
                     .batteryStoreMode(osdDock.getBatteryStoreMode())
-                    .alarmState(BooleanUtil.toInteger(osdDock.getAlarmState()))
+                    .alarmState(Objects.isNull(osdDock.getAlarmState()) ? null : BooleanUtil.toInteger(osdDock.getAlarmState()))
                     .rainfall(osdDock.getRainfall())
                     .windSpeed(osdDock.getWindSpeed())
                     .environmentTemperature(osdDock.getEnvironmentTemperature())

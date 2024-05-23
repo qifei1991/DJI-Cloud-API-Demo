@@ -17077,6 +17077,17 @@
     "tr": "Düşük görüş. Aracınızı dikkatli uçurun",
     "zh": "环境能见度差，请谨慎飞行"
   },
+  "fpv_tip_0x1A020400_in_the_sky": {
+    "de": "Schlechte Sicht. Mit Vorsicht fliegen",
+    "en": "Low visibility. Fly with caution",
+    "es": "Poca visibilidad. Vuela con cuidado",
+    "fr": "Faible visibilité. Pilotez avec précaution",
+    "ja": "視界不良。慎重に飛行してください",
+    "ko": "가시성 낮음. 비행 시 주의 필요",
+    "ru": "Низкая видимость. Соблюдайте осторожность при полете",
+    "tr": "Düşük görüş. Aracınızı dikkatli uçurun",
+    "zh": "环境能见度差，请谨慎飞行"
+  },
   "fpv_tip_0x1A040001": {
     "de": "Fehler: Energiemodus. Fluggerät neu starten.",
     "en": "Power mode error. Restart aircraft",
@@ -21503,6 +21514,10 @@
     "en": "System not busy. Recording available",
     "zh": "业务繁忙解除，允许录像"
   },
+  "fpv_tip_0x1C001307_in_the_sky": {
+    "en": "System not busy. Recording available",
+    "zh": "业务繁忙解除，允许录像"
+  },
   "fpv_tip_0x1C001401": {
     "de": "Die Kameraverbindung ist instabil. Den Gimbal lösen und wieder montieren",
     "en": "Camera connection unstable. Detach and remount gimbal",
@@ -23679,6 +23694,17 @@
     "tr": "Gimbal %component_index yükselme ekseni bitiş noktasına ulaştı",
     "zh": "云台%component_index俯仰已达限位"
   },
+  "fpv_tip_0x1D050002_in_the_sky": {
+    "de": "Gimbal  %component_index: Neigungsachsen-Endpunkt erreicht",
+    "en": "Gimbal %component_index pitch axis endpoint reached",
+    "es": "Se ha alcanzado el límite del eje de inclinación del estabilizador %component_index",
+    "fr": "Limite axe vertical de la nacelle  %component_index atteinte",
+    "ja": "ジンバル%component_indexピッチ軸のエンドポイントに達しました",
+    "ko": "짐벌  %component_index 피치 축 엔드포인트 도달",
+    "ru": "Достигнут предел оси наклона стабилизатора  %component_index",
+    "tr": "Gimbal %component_index yükselme ekseni bitiş noktasına ulaştı",
+    "zh": "云台%component_index俯仰已达限位"
+  },
   "fpv_tip_0x1D050003": {
     "de": "Gimbal  %component_index: Gierachsen-Endpunkt erreicht",
     "en": "Gimbal %component_index pan axis endpoint reached",
@@ -24667,6 +24693,17 @@
     "zh": "LTE 信号弱，请谨慎飞行"
   },
   "fpv_tip_0x1F0B0025": {
+    "de": "Schwaches LTE-Signal. Mit Vorsicht fliegen",
+    "en": "LTE signal weak. Fly with caution",
+    "es": "Señal de LTE débil. Vuela con cuidado.",
+    "fr": "Signal LTE faible. Pilotez avec précaution",
+    "ja": "LTE信号 弱。慎重に飛行してください",
+    "ko": "LTE 신호 약함. 비행 시 주의 필요",
+    "ru": "Слабый сигнал LTE. Будьте внимательны при полете",
+    "tr": "LTE sinyali zayıf. Dikkatlice uçun.",
+    "zh": "LTE 信号弱，请谨慎飞行"
+  },
+  "fpv_tip_0x1F0B0025_in_the_sky": {
     "de": "Schwaches LTE-Signal. Mit Vorsicht fliegen",
     "en": "LTE signal weak. Fly with caution",
     "es": "Señal de LTE débil. Vuela con cuidado.",

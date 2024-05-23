@@ -54,11 +54,17 @@ public enum DockStateDataKeyEnum {
 
     UOM_REAL_NAME_STATE(Set.of("uom_real_name_state"), UomRealNameState.class),
 
-    // RTCM_INFO(Set.of("rtcm_info"), RtcmInfo.class),
+    RTCM_INFO(Set.of("rtcm_info"), RtcmInfo.class),
 
-    // FLYSAFE_DATABASE_VERSION(Set.of("flysafe_database_version"), FlysafeDatabaseVersion.class),
+    FLYSAFE_DATABASE_VERSION(Set.of("flysafe_database_version"), FlysafeDatabaseVersion.class),
 
-    // AIR_TRANSFER_ENABLE(Set.of("air_transfer_enable"), AirTransferEnable.class),
+    AIR_TRANSFER_ENABLE(Set.of("air_transfer_enable"), AirTransferEnable.class),
+
+    PSDK_UI_RESOURCE(Set.of("psdk_ui_resource"), PsdkUiResource.class),
+
+    PSDK_WIDGET_VALUES(Set.of("psdk_widget_values"), PsdkWidgetValues.class),
+
+    CAMERA_WATERMARK_SETTINGS(Set.of("camera_watermark_settings"), CameraWatermarkSettingsInfo.class),
 
     ;
 

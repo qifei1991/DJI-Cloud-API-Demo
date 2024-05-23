@@ -191,10 +191,10 @@ livestream:
       url: rtmp://192.168.1.230:1936/uav-flv #Please enter the rtmp access address.  # Example: 'rtmp://192.168.1.1/live/'
 
 #    # It is recommended to use a program to create Token. https://github.com/AgoraIO/Tools/blob/master/DynamicKey/AgoraDynamicKey/java/src/main/java/io/agora/media/RtcTokenBuilder2.java
-#    agora:
-#      channel: Please enter the agora channel.
-#      token: Please enter the agora temporary token.
-#      uid:  654321
+    agora:
+      channel: Please enter the agora channel.
+      token: Please enter the agora temporary token.
+      uid:  654321
 #
 #    rtsp:
 #      username: Please enter the username.
