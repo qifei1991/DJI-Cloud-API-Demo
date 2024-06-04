@@ -1,5 +1,6 @@
 package com.dji.sample.manage.model.common;
 
+import com.dji.sdk.cloudapi.hms.HmsInTheSkyEnum;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,13 @@ public class HmsJsonUtil {
 
     public static HmsMessage get(String key) {
         if (nodes.get(key) == null) {
+            // modify by Qfei, 判断是否包含 'in_the_sky' 字符串，如果去掉后有msg，就取去掉后的值
+            if (key.endsWith(HmsInTheSkyEnum.IN_THE_SKY.getText())) {
+                String newKey = key.substring(0, key.indexOf(HmsInTheSkyEnum.IN_THE_SKY.getText()));
+                if (null != nodes.get(newKey)) {
+                    mapper.convertValue(nodes.get(newKey), HmsMessage.class);
+                }
+            }
             return new HmsMessage();
         }
         return mapper.convertValue(nodes.get(key), HmsMessage.class);

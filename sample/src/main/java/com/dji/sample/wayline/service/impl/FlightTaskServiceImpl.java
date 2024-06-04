@@ -417,7 +417,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
         Set<String> waylineJobIds = waylineJobs.stream().map(WaylineJobDTO::getJobId).collect(Collectors.toSet());
         // Check if the task status is correct.
-        boolean isErr = !jobIds.removeAll(waylineJobIds) || !jobIds.isEmpty() ;
+        boolean isErr = !jobIds.removeAll(waylineJobIds) || !jobIds.isEmpty();
         if (isErr) {
             List<WaylineJobDTO> cannotCancelJobs = waylineJobService.getJobsByConditions(workspaceId, jobIds, null);
             throw new IllegalArgumentException("操作失败，以下任务的状态不支持取消: "
@@ -745,11 +745,11 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
      * @return events_reply
      */
     @Override
-    public TopicRequestsResponse<MqttReply> returnHomeInfo(TopicRequestsRequest<ReturnHomeInfo> request, MessageHeaders headers) {
+    public TopicEventsResponse<MqttReply> returnHomeInfo(TopicEventsRequest<ReturnHomeInfo> request, MessageHeaders headers) {
         log.error("*************** returnHomeInfo not implemented! ***************");
         log.info("- Return home information: gateway: {}, data: {}", request.getGateway(), request.getData());
 
-        return new TopicRequestsResponse<MqttReply>();
+        return new TopicEventsResponse<MqttReply>();
     }
 
 }

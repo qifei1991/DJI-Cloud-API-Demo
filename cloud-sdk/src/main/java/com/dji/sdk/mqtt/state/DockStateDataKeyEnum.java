@@ -66,6 +66,8 @@ public enum DockStateDataKeyEnum {
 
     CAMERA_WATERMARK_SETTINGS(Set.of("camera_watermark_settings"), CameraWatermarkSettingsInfo.class),
 
+    CAMERAS(Set.of("cameras"), DockDroneCameras.class),
+
     ;
 
     private final Set<String> keys;

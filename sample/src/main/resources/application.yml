@@ -184,6 +184,12 @@ cloud-api:
     key: 9634af17614cefcb133f3e5db8c4e50 # Please enter the app key.
     license: Q798DvMCbkOoUhtMJSTOa9J558re0FhO7G4+ah/JJxzJTWclebjvPYsL0zluvgmkf69CTcUzoO27jXySiI0Z9uRnRnDXRnuOonW8BTb7qZ7al0BPCSkqBar3+YaSfxdVNB3jWfYFVHAj6caBiKHLsAlS5bLE2WiZ2w0rii7y+iw= # Please enter the app license.
 
+## Agora 直播配置
+agora:
+  token-service-url: http://192.168.1.230:18011/wrjcs/agoraTokenService
+  token-expire-time: 7200
+  privilege-expire-time: 7200
+
 livestream:
   url:
     # RTMP  Note: This IP is the address of the streaming server. If you want to see livestream on web page, you need to convert the RTMP stream to WebRTC stream.
@@ -192,9 +198,9 @@ livestream:
 
 #    # It is recommended to use a program to create Token. https://github.com/AgoraIO/Tools/blob/master/DynamicKey/AgoraDynamicKey/java/src/main/java/io/agora/media/RtcTokenBuilder2.java
     agora:
-      channel: Please enter the agora channel.
-      token: Please enter the agora temporary token.
-      uid:  654321
+#      channel: Please enter the agora channel.
+#      token: Please enter the agora temporary token.
+      uid: 654321
 #
 #    rtsp:
 #      username: Please enter the username.
@@ -213,4 +219,4 @@ livestream:
 #
 #    # Webrtc: Only supports using whip standard
 #    whip:
-#      url: Please enter the rtmp access address. #  Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=
+#      url: Please enter the rtmp access address. # Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=

@@ -1,5 +1,7 @@
 package com.dji.sample.manage.service.impl;
 
+import com.dji.sample.agora.AgoraClient;
+import com.dji.sample.agora.model.*;
 import com.dji.sample.manage.model.dto.*;
 import com.dji.sample.manage.model.param.DeviceQueryParam;
 import com.dji.sample.manage.service.*;
@@ -11,6 +13,7 @@ import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
  * @date 2021/11/22
  * @version 0.1
  */
+@Slf4j
 @Service
 @Transactional
 public class LiveStreamServiceImpl implements ILiveStreamService {
@@ -43,6 +47,9 @@ public class LiveStreamServiceImpl implements ILiveStreamService {
 
     @Autowired
     private AbstractLivestreamService abstractLivestreamService;
+
+    @Autowired
+    private AgoraClient agoraClient;
 
     @Override
     public List<CapacityDeviceDTO> getLiveCapacity(String workspaceId) {
@@ -74,7 +81,12 @@ public class LiveStreamServiceImpl implements ILiveStreamService {
         }
 
         ILivestreamUrl url = LiveStreamProperty.get(liveParam.getUrlType());
-        url = setExt(liveParam.getUrlType(), url, liveParam.getVideoId());
+        try {
+            url = setExt(liveParam.getUrlType(), url, liveParam.getVideoId());
+        } catch (Exception e) {
+            log.error("处理直播地址出错.", e);
+            return HttpResultResponse.error("处理直播地址出错");
+        }
 
         TopicServicesResponse<ServicesReplyData<String>> response = abstractLivestreamService.liveStartPush(
                 SDKManager.getDeviceSDK(responseResult.getData().getDeviceSn()),
@@ -214,7 +226,20 @@ public class LiveStreamServiceImpl implements ILiveStreamService {
         switch (type) {
             case AGORA:
                 LivestreamAgoraUrl agoraUrl = (LivestreamAgoraUrl) url.clone();
-                return agoraUrl.setSn(videoId.getDroneSn());
+                String channelName = videoId.getDroneSn() + "-" + videoId.getPayloadIndex().toString();
+                ResultData<TokenResult> result = agoraClient.generateToken(new GenerateTokenDTO()
+                        .setChannelName(channelName)
+                        .setUid(String.valueOf(agoraUrl.getUid()))
+                        .setServiceRtc(new ServiceRtc()
+                                .setEnable(true)
+                                .setRole(AgoraRoleEnum.ROLE_PUBLISHER)));
+                if (Objects.isNull(result) || result.getCode() != 0) {
+                    log.error("Failed to generate agora token: {}", result);
+                    throw new RuntimeException("获取直播token出错。");
+                }
+                return agoraUrl.setToken(result.getData().getToken())
+                        .setChannel(channelName)
+                        .setSn(videoId.getDroneSn());
             case RTMP:
                 LivestreamRtmpUrl rtmpUrl = (LivestreamRtmpUrl) url.clone();
                 return rtmpUrl.setUrl(rtmpUrl.getUrl() + videoId.getDroneSn() + "-" + videoId.getPayloadIndex().toString());

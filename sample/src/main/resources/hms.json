@@ -17726,6 +17726,17 @@
     "tr": "Yukarı sensör(ler) bulanık. Yukarı engel önleyici kullanılamıyor. Sadece kızılötesi sensörler kullanılabiliyor. Dikkatli uçurun",
     "zh": "上视可能脏污，上方视觉避障失效，请谨慎飞行"
   },
+  "fpv_tip_0x1A420C85_in_the_sky": {
+    "de": "Aufwärtsgerichtete(r) Sensor(en) unscharf. Aufwärtsgerichtete Hindernisvermeidung nicht verfügbar. Nur Infrarotsensoren verfügbar. Mit Vorsicht fliegen",
+    "en": "Upward sensor(s) blurry. Upward obstacle avoidance unavailable. Fly with caution",
+    "es": "Sensor(es) superior(es) borroso(s). Sistema anticolisión superior no disponible. Solo están disponibles los sensores de infrarrojos. Vuela con cuidado",
+    "fr": "Capteur(s) supérieur(s) flou(s). Évitement d\\'obstacles indisponible. Volez avec précaution",
+    "ja": "上方センサーが不鮮明です。上方障害物回避を利用できません。赤外線センサーのみが使用可能です。慎重に飛行してください",
+    "ko": "상향 센서가 흐릿합니다. 상향 장애물 회피를 사용할 수 없습니다. 적외선 센서만 사용할 수 있습니다. 주의해서 비행하세요",
+    "ru": "Размытое изображение с верхних датчиков. Обход препятствий сверху недоступен. Доступны только инфракрасные датчики. Будьте внимательны при полете",
+    "tr": "Yukarı sensör(ler) bulanık. Yukarı engel önleyici kullanılamıyor. Sadece kızılötesi sensörler kullanılabiliyor. Dikkatli uçurun",
+    "zh": "上视可能脏污，上方视觉避障失效，请谨慎飞行"
+  },
   "fpv_tip_0x1A420CC0": {
     "de": "Fluglagenwinkel des Fluggeräts zu groß. Hindernisvermeidung nicht verfügbar. Mit Vorsicht fliegen",
     "en": "Aircraft attitude angle too large. Obstacle avoidance unavailable. Fly with caution",
