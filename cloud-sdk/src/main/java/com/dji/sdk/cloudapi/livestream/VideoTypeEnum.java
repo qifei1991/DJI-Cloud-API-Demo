@@ -21,7 +21,9 @@ public enum VideoTypeEnum {
 
     NORMAL("normal"),
 
-    IR("ir");
+    IR("ir"),
+
+    UNKNOWN("undefined");
 
     private final String type;
 
