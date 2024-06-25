@@ -37,6 +37,26 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
     }
 
     /**
+     * @param workspaceDTO
+     * @return
+     */
+    @Override
+    public Integer createWorkspace(WorkspaceDTO workspaceDTO) {
+        return mapper.insert(dtoConvertToEntity(workspaceDTO));
+    }
+
+    private WorkspaceEntity dtoConvertToEntity(WorkspaceDTO dto) {
+        return WorkspaceEntity.builder()
+                .workspaceId(dto.getWorkspaceId())
+                .platformName(dto.getPlatformName())
+                .workspaceName(dto.getWorkspaceName())
+                .workspaceDesc(dto.getWorkspaceDesc())
+                .bindCode(dto.getBindCode())
+                .build()
+                ;
+    }
+
+    /**
      * Convert database entity objects into workspace data transfer object.
      * @param entity
      * @return

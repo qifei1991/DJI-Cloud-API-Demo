@@ -21,4 +21,5 @@ public interface IWorkspaceService {
      */
     Optional<WorkspaceDTO> getWorkspaceNameByBindCode(String bindCode);
 
+    Integer createWorkspace(WorkspaceDTO workspaceDTO);
 }

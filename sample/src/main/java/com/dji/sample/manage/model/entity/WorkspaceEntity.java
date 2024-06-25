@@ -1,12 +1,18 @@
 package com.dji.sample.manage.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @TableName(value = "manage_workspace")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class WorkspaceEntity implements Serializable {
 
     @TableId(type = IdType.AUTO)
