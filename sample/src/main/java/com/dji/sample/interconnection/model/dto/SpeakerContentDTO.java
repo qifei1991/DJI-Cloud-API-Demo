@@ -1,6 +1,5 @@
 package com.dji.sample.interconnection.model.dto;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.dji.sample.interconnection.model.enums.SpeakerContentTypeEnum;
 import com.dji.sdk.cloudapi.interconnection.PlayAudioFormatEnum;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,7 +22,7 @@ public class SpeakerContentDTO {
      * uuid
      */
     @JsonProperty("id")
-    private String interconnectionId;
+    private String contentId;
 
     /**
      * interconnection name
@@ -33,25 +32,21 @@ public class SpeakerContentDTO {
     /**
      * The play content type. 0: tts; 1: audio.
      */
-    @TableField("type")
     private SpeakerContentTypeEnum type;
 
     /**
      * The key of the file in the bucket.
      */
-    @TableField("object_key")
     private String objectKey;
 
     /**
      * 音频文件格式
      */
-    @TableField("audio_format")
     private PlayAudioFormatEnum audioFormat;
 
     /**
      * The md5 of the interconnection file.
      */
-    @TableField("sign")
     private String sign;
 
     /**
@@ -62,7 +57,7 @@ public class SpeakerContentDTO {
     /**
      * The name of the creator.
      */
-    @TableField("user_name")
+    @JsonProperty("user_name")
     private String username;
 
     /**
@@ -75,4 +70,5 @@ public class SpeakerContentDTO {
      */
     private Long updateTime;
 
+    private String organizationCode;
 }

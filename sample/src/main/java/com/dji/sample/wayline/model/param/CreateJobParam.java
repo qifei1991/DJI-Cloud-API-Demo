@@ -1,7 +1,6 @@
 package com.dji.sample.wayline.model.param;
 
 import com.dji.sdk.cloudapi.wayline.*;
-import lombok.Builder;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
@@ -65,5 +64,6 @@ public class CreateJobParam {
     private SimulateMission simulateMission;
 
     private RthModeEnum rthMode = RthModeEnum.PRESET_HEIGHT;
+
     private WaylinePrecisionTypeEnum waylinePrecisionType = WaylinePrecisionTypeEnum.RTK;
 }

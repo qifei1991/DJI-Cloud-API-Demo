@@ -166,7 +166,8 @@ public class DeviceServiceImpl implements IDeviceService {
 
         deviceRedisService.subDeviceOffline(deviceOpt.get().getChildDeviceSn());
         deviceRedisService.gatewayOffline(gatewaySn);
-        offlineUnsubscribeTopic(SDKManager.getDeviceSDK(gatewaySn));
+        // modify by fei·Qi, 2024-8-8 18:52:12, 设备离线后不去掉订阅的topic消息，防止网络原因设备离线重新上线后无法取到消息
+        // offlineUnsubscribeTopic(SDKManager.getDeviceSDK(gatewaySn));
         // Publish the latest device topology information in the current workspace.
         pushDeviceOfflineTopo(deviceOpt.get().getWorkspaceId(), gatewaySn);
         log.debug("{} offline.", gatewaySn);

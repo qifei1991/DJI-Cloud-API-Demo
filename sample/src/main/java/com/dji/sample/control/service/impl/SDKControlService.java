@@ -10,6 +10,7 @@ import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sdk.cloudapi.control.*;
 import com.dji.sdk.cloudapi.control.api.AbstractControlService;
 import com.dji.sdk.mqtt.MqttReply;
+import com.dji.sdk.mqtt.drc.TopicDrcRequest;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -131,5 +132,11 @@ public class SDKControlService extends AbstractControlService {
                         .message(eventsReceiver.getReason().getMessage())
                         .result(eventsReceiver.getReason().getVal()).build());
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
+    }
+
+    @Override
+    public void heartBeatUp(TopicDrcRequest<HeartBeatRequest> request, MessageHeaders headers) {
+        log.error("*************** heartBeatUp not implemented! ***************");
+        log.info("- DRC heart beat up information: method: {}, data: {}", request.getMethod(), request.getData());
     }
 }

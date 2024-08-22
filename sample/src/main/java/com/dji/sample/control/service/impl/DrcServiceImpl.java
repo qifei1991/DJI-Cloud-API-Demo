@@ -1,5 +1,6 @@
 package com.dji.sample.control.service.impl;
 
+import cn.hutool.cron.CronUtil;
 import com.dji.sample.component.mqtt.config.MqttPropertyConfiguration;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.mqtt.model.MapKeyConst;
@@ -24,12 +25,15 @@ import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.dji.sdk.cloudapi.control.DrcModeEnterRequest;
 import com.dji.sdk.cloudapi.control.DrcModeMqttBroker;
+import com.dji.sdk.cloudapi.control.HeartBeatRequest;
 import com.dji.sdk.cloudapi.control.api.AbstractControlService;
 import com.dji.sdk.cloudapi.device.DockModeCodeEnum;
 import com.dji.sdk.cloudapi.device.OsdDockDrone;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
+import com.dji.sdk.config.version.Dock2ThingVersionEnum;
+import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.mqtt.TopicConst;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
@@ -40,6 +44,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +59,8 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class DrcServiceImpl implements IDrcService {
+
+    private static String DRC_HEART_CRON = "0/2 * * * * ?";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -163,8 +171,9 @@ public class DrcServiceImpl implements IDrcService {
 
         checkDrcModeCondition(workspaceId, param.getDockSn());
 
+        GatewayManager gatewayMgr = SDKManager.getDeviceSDK(param.getDockSn());
         TopicServicesResponse<ServicesReplyData> reply = abstractControlService.drcModeEnter(
-                SDKManager.getDeviceSDK(param.getDockSn()),
+                gatewayMgr,
                 new DrcModeEnterRequest()
                         .setMqttBroker(MqttPropertyConfiguration.getMqttBrokerWithDrc(param.getDockSn() + "-" + System.currentTimeMillis(), param.getDockSn(),
                                 RedisConst.DRC_MODE_ALIVE_SECOND.longValue(),
@@ -179,6 +188,22 @@ public class DrcServiceImpl implements IDrcService {
         }
 
         refreshAcl(param.getDockSn(), param.getClientId(), pubTopic, subTopic);
+
+        // 添加定时心跳任务，10秒一次
+        double sinceVersion = Double.parseDouble(Dock2ThingVersionEnum.V1_3_0.getThingVersion()
+                .substring(0, Dock2ThingVersionEnum.V1_3_0.getThingVersion().lastIndexOf(".")));
+        String thingVersion = gatewayMgr.getGatewayThingVersion().getThingVersion();
+        double dockVersion = Double.parseDouble(thingVersion.substring(0, thingVersion.lastIndexOf(".")));
+        if (dockVersion >= sinceVersion) {
+            CronUtil.remove(param.getDockSn()); // todo 去掉之前的心跳,临时处理方案
+            CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () -> {
+                abstractControlService.heartBeatDown(gatewayMgr,
+                        new HeartBeatRequest()
+                                .setSeq(0L)
+                                .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
+            });
+        }
+
         return JwtAclDTO.builder().sub(List.of(subTopic)).pub(List.of(pubTopic)).build();
     }
 
@@ -198,8 +223,8 @@ public class DrcServiceImpl implements IDrcService {
         if (!deviceService.checkDockDrcMode(param.getDockSn())) {
             throw new RuntimeException("机场不处于DRC飞行控制模式.");
         }
-        TopicServicesResponse<ServicesReplyData> reply =
-                abstractControlService.drcModeExit(SDKManager.getDeviceSDK(param.getDockSn()));
+        GatewayManager gatewayMgr = SDKManager.getDeviceSDK(param.getDockSn());
+        TopicServicesResponse<ServicesReplyData> reply = abstractControlService.drcModeExit(gatewayMgr);
         if (!reply.getData().getResult().isSuccess()) {
             throw new RuntimeException("退出DRC飞行控制模式失败, 请稍候重试! SN: " + param.getDockSn() + "; Error:" + reply.getData().getResult());
         }
@@ -207,6 +232,15 @@ public class DrcServiceImpl implements IDrcService {
         String jobId = waylineRedisService.getPausedWaylineJobId(param.getDockSn());
         if (StringUtils.hasText(jobId)) {
             flighttaskService.updateJobStatus(workspaceId, jobId, UpdateJobParam.builder().status(WaylineTaskStatusEnum.RESUME).build());
+        }
+
+        // 清楚DRC心跳任务
+        double sinceVersion = Double.parseDouble(Dock2ThingVersionEnum.V1_3_0.getThingVersion()
+                .substring(0, Dock2ThingVersionEnum.V1_3_0.getThingVersion().lastIndexOf(".")));
+        String thingVersion = gatewayMgr.getGatewayThingVersion().getThingVersion();
+        double dockVersion = Double.parseDouble(thingVersion.substring(0, thingVersion.lastIndexOf(".")));
+        if (dockVersion >= sinceVersion) {
+            CronUtil.remove(param.getDockSn());
         }
 
         this.delDrcModeInRedis(param.getDockSn());

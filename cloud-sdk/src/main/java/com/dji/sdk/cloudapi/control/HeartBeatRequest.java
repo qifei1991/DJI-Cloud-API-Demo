@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
  */
 public class HeartBeatRequest extends BaseModel {
 
-    @NotNull
     private Long seq;
 
     @NotNull

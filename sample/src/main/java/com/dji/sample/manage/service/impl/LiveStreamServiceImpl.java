@@ -61,7 +61,7 @@ public class LiveStreamServiceImpl implements ILiveStreamService {
                         .domains(List.of(DeviceDomainEnum.DRONE.getDomain(), DeviceDomainEnum.DOCK.getDomain()))
                         .build());
 
-        // Query the live capability of each drone.
+        // Query the live capability of each device.
         return devicesList.stream()
                 .filter(device -> deviceRedisService.checkDeviceOnline(device.getDeviceSn()))
                 .map(device -> CapacityDeviceDTO.builder()

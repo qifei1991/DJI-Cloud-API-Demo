@@ -1,17 +1,15 @@
 package com.dji.sdk.cloudapi.interconnection.api;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
-import com.dji.sdk.cloudapi.interconnection.*;
+import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromEsdk;
+import com.dji.sdk.cloudapi.interconnection.SpeakerPlayTaskNotify;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
-import com.dji.sdk.config.version.GatewayManager;
-import com.dji.sdk.config.version.GatewayTypeEnum;
 import com.dji.sdk.mqtt.ChannelName;
 import com.dji.sdk.mqtt.MqttReply;
+import com.dji.sdk.mqtt.events.EventsDataRequest;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
 import com.dji.sdk.mqtt.services.ServicesPublish;
-import com.dji.sdk.mqtt.services.ServicesReplyData;
-import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -41,19 +39,6 @@ public abstract class AbstractInterconnectionService {
     }
 
     /**
-     * cloud-custom data transmit to esdk
-     * @param gateway   gateway device
-     * @return  services_reply
-     */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> customDataTransmissionToEsdk(GatewayManager gateway, CustomDataTransmissionToEsdkRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.CUSTOM_DATA_TRANSMISSION_TO_ESDK.getMethod(),
-                request);
-    }
-
-    /**
      * cloud-custom data transmit from psdk
      * @param request  data
      * @param headers  The headers for a {@link Message}.
@@ -65,81 +50,10 @@ public abstract class AbstractInterconnectionService {
         throw new UnsupportedOperationException("customDataTransmissionFromPsdk not implemented");
     }
 
-    /**
-     * cloud-custom data transmit to psdk
-     * @param gateway   gateway device
-     * @return  services_reply
-     */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> customDataTransmissionToPsdk(GatewayManager gateway, CustomDataTransmissionToPsdkRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.CUSTOM_DATA_TRANSMISSION_TO_PSDK.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> psdkWidgetValueSet(GatewayManager gateway, PSDKWidgetValueSetRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.PSDK_WIDGET_VALUE_SET.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> psdkInputBoxTextSet(GatewayManager gateway, PSDKInputBoxTextSetRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.PSDK_INPUT_BOX_TEXT_SET.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0)
-    public TopicServicesResponse<ServicesReplyData> speakerAudioPlayStart(String droneSn, SpeakerAudioPlayStartRequest request) {
-        return servicesPublish.publish(
-                droneSn,
-                InterconnectionMethodEnum.SPEAKER_AUDIO_PLAY_START.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerTtsPlayStart(GatewayManager gateway, SpeakerTtsPlayStartRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.SPEAKER_TTS_PLAY_START.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerReplay(GatewayManager gateway, SpeakerPlayRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.SPEAKER_REPLAY.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayStop(GatewayManager gateway, SpeakerPlayRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.SPEAKER_PLAY_STOP.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayModeSet(GatewayManager gateway, SpeakerPlayModeSetRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.SPEAKER_PLAY_MODE_SET.getMethod(),
-                request);
-    }
-
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayVolumeSet(GatewayManager gateway, SpeakerPlayVolumeSetRequest request) {
-        return servicesPublish.publish(
-                gateway.getGatewaySn(),
-                InterconnectionMethodEnum.SPEAKER_PLAY_VOLUME_SET.getMethod(),
-                request);
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_SPEAKER_PLAY_STATUS_NOTIFY, outputChannel = ChannelName.OUTBOUND_EVENTS)
+    public TopicEventsResponse<MqttReply> speakerPlayTaskStatusNotify(
+            TopicEventsRequest<EventsDataRequest<SpeakerPlayTaskNotify>> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("speakerPlayTaskStatusNotify not implemented.");
     }
 
 }

@@ -18,4 +18,31 @@ public class SpeakerPlayModeSetRequest {
 
     @NotNull
     private PlayModeEnum playMode;
+
+    @Override
+    public String toString() {
+        return "SpeakerPlayModeSetRequest{" +
+                "psdkIndex=" + psdkIndex +
+                ", playMode=" + playMode +
+                '}';
+    }
+
+    public @NotNull @Range(min = 0, max = 3) Integer getPsdkIndex() {
+        return psdkIndex;
+    }
+
+    public SpeakerPlayModeSetRequest setPsdkIndex(@NotNull @Range(
+            min = 0, max = 3) Integer psdkIndex) {
+        this.psdkIndex = psdkIndex;
+        return this;
+    }
+
+    public @NotNull PlayModeEnum getPlayMode() {
+        return playMode;
+    }
+
+    public SpeakerPlayModeSetRequest setPlayMode(@NotNull PlayModeEnum playMode) {
+        this.playMode = playMode;
+        return this;
+    }
 }

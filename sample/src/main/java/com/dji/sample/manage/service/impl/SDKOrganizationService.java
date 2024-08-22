@@ -114,10 +114,8 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         });
         boolean success = deviceService.saveOrUpdateDevice(dockOpt.get());
 
-        bindResult.add(success ?
-                OrganizationBindInfo.success(dock.getSn()) :
-                new OrganizationBindInfo(dock.getSn(),
-                        CommonErrorEnum.DEVICE_BINDING_FAILED.getCode()));
+        bindResult.add(success ? OrganizationBindInfo.success(dock.getSn()) :
+                new OrganizationBindInfo(dock.getSn(), CommonErrorEnum.DEVICE_BINDING_FAILED.getCode()));
 
         // add by Qfei, Device register.
         dockOpt.get().setOrganizationId(organizationId);

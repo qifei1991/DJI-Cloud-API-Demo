@@ -68,6 +68,11 @@ public enum DockStateDataKeyEnum {
 
     CAMERAS(Set.of("cameras"), DockDroneCameras.class),
 
+    GEO_CAGING_STATUS(Set.of("geo_caging_status"), GeoCagingStatusInfo.class),
+
+    AR_INFO_SWITCH(Set.of("ar_info_switch"), ArInfoSwitch.class),
+
+    PAYLOADS(Set.of("payloads"), PayloadsInfo.class),
     ;
 
     private final Set<String> keys;

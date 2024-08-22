@@ -26,8 +26,8 @@ public class SpeakerContentEntity implements Serializable {
     /**
     * uuid
     */
-    @TableField("interconnection_id")
-    private String interconnectionId;
+    @TableField("content_id")
+    private String contentId;
 
     /**
     * interconnection name
@@ -83,4 +83,9 @@ public class SpeakerContentEntity implements Serializable {
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     private Long updateTime;
 
+    /**
+     * 组织机构编码（无人机管理系统中使用的组织机构），过滤数据用
+     */
+    @TableField("organization_code")
+    private String organizationCode;
 }

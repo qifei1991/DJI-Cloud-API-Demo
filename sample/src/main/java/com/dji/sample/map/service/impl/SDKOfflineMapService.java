@@ -30,7 +30,7 @@ public class SDKOfflineMapService extends AbstractOfflineMapService {
         log.error("*************** dockDroneOfflineMapEnable not implemented! ***************");
         log.info("- DockDrone Offline map Enable: gateway: {}, data: {}", request.getGateway(), request.getData());
 
-        return new TopicStateResponse<MqttReply>();
+        return new TopicStateResponse<>();
     }
 
     /**
@@ -42,7 +42,7 @@ public class SDKOfflineMapService extends AbstractOfflineMapService {
         log.error("*************** offlineMapSyncProgress not implemented! ***************");
         log.info("- Offline map sync progress: gateway: {}, data: {}", request.getGateway(), request.getData());
 
-        return new TopicRequestsResponse<MqttReply>();
+        return new TopicRequestsResponse<>();
     }
 
     /**
@@ -54,6 +54,6 @@ public class SDKOfflineMapService extends AbstractOfflineMapService {
         log.error("*************** offlineMapGet not implemented! ***************");
         log.info("- Offline map Get: gateway: {}, data: {}", request.getGateway(), request.getData());
 
-        return new TopicRequestsResponse<MqttReply<OfflineMapGetResponse>>();
+        return new TopicRequestsResponse<>();
     }
 }

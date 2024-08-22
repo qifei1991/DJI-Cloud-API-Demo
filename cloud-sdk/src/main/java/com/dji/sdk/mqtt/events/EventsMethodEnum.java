@@ -9,6 +9,7 @@ import com.dji.sdk.cloudapi.flightarea.FlightAreasSyncProgress;
 import com.dji.sdk.cloudapi.hms.Hms;
 import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromEsdk;
 import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromPsdk;
+import com.dji.sdk.cloudapi.interconnection.SpeakerPlayTaskNotify;
 import com.dji.sdk.cloudapi.log.FileUploadProgress;
 import com.dji.sdk.cloudapi.map.OfflineMapSyncProgress;
 import com.dji.sdk.cloudapi.media.FileUploadCallback;
@@ -85,6 +86,9 @@ public enum EventsMethodEnum {
     CUSTOM_DATA_TRANSMISSION_FROM_ESDK("custom_data_transmission_from_esdk", ChannelName.INBOUND_EVENTS_CUSTOM_DATA_TRANSMISSION_FROM_ESDK, new TypeReference<CustomDataTransmissionFromEsdk>() {}),
 
     CUSTOM_DATA_TRANSMISSION_FROM_PSDK("custom_data_transmission_from_psdk", ChannelName.INBOUND_EVENTS_CUSTOM_DATA_TRANSMISSION_FROM_PSDK, new TypeReference<CustomDataTransmissionFromPsdk>() {}),
+
+    // 自定义喊话器音频播放状态通知
+    SPEAKER_PLAY_STATUS_NOTIFY("speaker_play_status_notify", ChannelName.INBOUND_EVENTS_SPEAKER_PLAY_STATUS_NOTIFY, new TypeReference<EventsDataRequest<SpeakerPlayTaskNotify>>() {}),
 
     AIRSENSE_WARNING("airsense_warning", ChannelName.INBOUND_EVENTS_AIRSENSE_WARNING, new TypeReference<List<AirsenseWarning>>() {}),
 

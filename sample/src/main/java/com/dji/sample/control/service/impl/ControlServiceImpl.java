@@ -96,7 +96,7 @@ public class ControlServiceImpl implements IControlService {
 
         boolean isExist = deviceRedisService.checkDeviceOnline(sn);
         if (!isExist) {
-            return HttpResultResponse.error("机场已下线.");
+            return HttpResultResponse.error("机场已下线");
         }
         TopicServicesResponse response;
         switch (controlMethodEnum) {
@@ -121,12 +121,12 @@ public class ControlServiceImpl implements IControlService {
         // TODO 设备固件版本不兼容情况
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty()) {
-            throw new RuntimeException("The dock is offline, please restart the dock.");
+            throw new RuntimeException("机场已下线，请重启机场后重试。");
         }
 
         DroneModeCodeEnum deviceMode = deviceService.getDeviceMode(dockOpt.get().getChildDeviceSn());
         if (DroneModeCodeEnum.MANUAL != deviceMode) {
-            throw new RuntimeException("The current state of the drone does not support this function, please try again later.");
+            throw new RuntimeException("飞行器当前状态不支持指点飞行操作，请稍候重试。");
         }
 
         HttpResultResponse result = seizeAuthority(dockSn, DroneAuthorityEnum.FLIGHT, null);
@@ -146,9 +146,8 @@ public class ControlServiceImpl implements IControlService {
         TopicServicesResponse<ServicesReplyData> response = abstractControlService.flyToPoint(
                 SDKManager.getDeviceSDK(sn), mapper.convertValue(param, FlyToPointRequest.class));
         ServicesReplyData reply = response.getData();
-        return reply.getResult().isSuccess() ?
-                HttpResultResponse.success()
-                : HttpResultResponse.error("飞机飞向目标点失败. " + reply.getResult());
+        return reply.getResult().isSuccess() ? HttpResultResponse.success()
+                : HttpResultResponse.error("飞向目标点失败, " + reply.getResult());
     }
 
     @Override
@@ -158,18 +157,18 @@ public class ControlServiceImpl implements IControlService {
 
         return reply.getResult().isSuccess() ?
                 HttpResultResponse.success()
-                : HttpResultResponse.error("飞机停止飞向目标点失败. " + reply.getResult());
+                : HttpResultResponse.error("终止飞向目标点操作失败, " + reply.getResult());
     }
 
     private void checkTakeoffCondition(String dockSn) {
         Optional<DeviceDTO> dockOpt = deviceRedisService.getDeviceOnline(dockSn);
         if (dockOpt.isEmpty() || DockModeCodeEnum.IDLE != deviceService.getDockMode(dockSn)) {
-            throw new RuntimeException("当前机场状态不支持起飞.");
+            throw new RuntimeException("机场当前状态不支持起飞");
         }
 
         HttpResultResponse result = seizeAuthority(dockSn, DroneAuthorityEnum.FLIGHT, null);
         if (HttpResultResponse.CODE_SUCCESS != result.getCode()) {
-            throw new IllegalArgumentException("飞行器起飞失败, " + result.getMessage());
+            throw new IllegalArgumentException("一键起飞失败, " + result.getMessage());
         }
 
     }
@@ -190,7 +189,7 @@ public class ControlServiceImpl implements IControlService {
             this.flightTaskClient.startTakeoffTo(sn, param);
             return HttpResultResponse.success();
         }
-        return HttpResultResponse.error("飞行器一键起飞失败. " + reply.getResult());
+        return HttpResultResponse.error("一键起飞失败, " + reply.getResult());
     }
 
     @Override

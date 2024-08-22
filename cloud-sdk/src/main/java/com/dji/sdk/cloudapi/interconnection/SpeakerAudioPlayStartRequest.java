@@ -13,6 +13,8 @@ import javax.validation.constraints.NotNull;
  */
 public class SpeakerAudioPlayStartRequest extends BaseModel {
 
+    private String jobId;
+
     @NotNull
     @Range(min = 0, max = 3)
     private Integer psdkIndex;
@@ -23,9 +25,19 @@ public class SpeakerAudioPlayStartRequest extends BaseModel {
     @Override
     public String toString() {
         return "SpeakerAudioPlayStartRequest{" +
-                "psdkIndex=" + psdkIndex +
+                "jobId='" + jobId + '\'' +
+                ", psdkIndex=" + psdkIndex +
                 ", file=" + file +
                 '}';
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public SpeakerAudioPlayStartRequest setJobId(String jobId) {
+        this.jobId = jobId;
+        return this;
     }
 
     public Integer getPsdkIndex() {
@@ -45,4 +57,5 @@ public class SpeakerAudioPlayStartRequest extends BaseModel {
         this.file = file;
         return this;
     }
+
 }

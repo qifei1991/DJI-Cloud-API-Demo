@@ -1,11 +1,15 @@
 package com.dji.sample.interconnection.service.impl;
 
+import com.dji.sample.interconnection.service.ISpeakerJobService;
 import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromEsdk;
+import com.dji.sdk.cloudapi.interconnection.SpeakerPlayTaskNotify;
 import com.dji.sdk.cloudapi.interconnection.api.AbstractInterconnectionService;
 import com.dji.sdk.mqtt.MqttReply;
+import com.dji.sdk.mqtt.events.EventsDataRequest;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +20,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class SDKInterconnectionService extends AbstractInterconnectionService {
+
+    @Autowired
+    private ISpeakerJobService speakerJobService;
 
     /**
      * cloud-custom data transmit from psdk
@@ -28,6 +35,16 @@ public class SDKInterconnectionService extends AbstractInterconnectionService {
     public TopicEventsResponse<MqttReply> customDataTransmissionFromPsdk(TopicEventsRequest<CustomDataTransmissionFromEsdk> request, MessageHeaders headers) {
 
         log.info("CustomDataTransmissionFromPsdk: gateway: {}, data: {}", request.getFrom(), request.getData());
+
+        return new TopicEventsResponse<>();
+    }
+
+    @Override
+    public TopicEventsResponse<MqttReply> speakerPlayTaskStatusNotify(TopicEventsRequest<EventsDataRequest<SpeakerPlayTaskNotify>> request, MessageHeaders headers) {
+        log.info("CustomDataTransmissionFromPsdk: gateway: {}, data: {}", request.getFrom(), request.getData());
+
+        SpeakerPlayTaskNotify output = request.getData().getOutput();
+        speakerJobService.updateJobStatus(request.getBid(), output.getStatus());
 
         return new TopicEventsResponse<>();
     }
