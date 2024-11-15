@@ -18,6 +18,8 @@ public enum UserExperienceImprovementEnum {
     REFUSE(1),
 
     AGREE(2),
+
+    UNKNOWN(3)
     ;
 
     private final int state;

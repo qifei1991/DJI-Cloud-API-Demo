@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>更新日志</title>
+    <style>
+        h1 {
+            color: #393D49;
+            border-bottom: 1px solid #eee;
+            font-size: 28px;
+            font-weight: 300;
+        }
+        span.v {
+            font-size: 18px;
+            font-weight: 100;
+            color: #333;
+            margin-right: 10px;
+        }
+        span.pt {
+            font-size: 16px;
+            margin: 1px;
+            background: 1px #e0dada;
+        }
+        ul {
+            font-size: 16px;
+        }
+        hr {
+            background-color: #e6e6e6;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h1 style="font-weight:bold;font-size:20px;">§版本号命名规范指南</h1>
+    <p>版本号的格式为 X.Y.Z(又称 Major.Minor.Patch)，递增的规则为：</p>
+    <ul>
+        <li>X 表示主版本号，当 API 的兼容性变化时，X 需递增。</li>
+        <li>Y 表示次版本号，当增加功能时(不影响 API 的兼容性)，Y 需递增。</li>
+        <li>Z 表示修订号，当做 Bug 修复时(不影响 API 的兼容性)，Z 需递增。</li>
+    </ul>
+    <p>详细的规则如下：</p>
+    <ol>
+        <li>X, Y, Z 必须为非负整数，且不得包含前导零，必须按数值递增，如 1.9.0 -&gt; 1.10.0 -&gt; 1.11.0</li>
+        <li>0.Y.Z 的版本号表明软件处于初始开发阶段，意味着 API 可能不稳定；1.0.0 表明版本已有稳定的 API。</li>
+        <li>当 API 的兼容性变化时，X 必须递增，Y 和 Z 同时设置为 0；当新增功能(不影响 API 的兼容性)或者 API 被标记为 Deprecated 时，Y 必须递增，同时 Z 设置为 0；当进行 bug fix 时，Z 必须递增。</li>
+        <li>先行版本号(Pre-release)意味该版本不稳定，可能存在兼容性问题，其格式为：X.Y.Z.[a-c][正整数]，如 1.0.0.a1，1.0.0.b99，1.0.0.c1000。</li>
+        <li>开发版本号常用于 CI-CD，格式为 X.Y.Z.dev[正整数]，如 1.0.1.dev4。</li>
+        <li>版本号的排序规则为依次比较主版本号、次版本号和修订号的数值，如 1.0.0 &lt; 1.0.1 &lt; 1.1.1 &lt; 2.0.0；对于先行版本号和开发版本号，有：1.0.0.a100 &lt; 1.0.0，2.1.0.dev3 &lt; 2.1.0；当存在字母时，以 ASCII 的排序来比较，如 1.0.0.a1 &lt; 1.0.0.b1。</li>
+        <li>注意：版本一经发布，不得修改其内容，任何修改必须在新版本发布！</li>
+    </ol>
+    <p>修饰词：</p>
+    <ul>
+        <li style="float:left;margin-right:25px;">alpha：内部版本</li>
+        <li style="float:left;margin-right:25px;">beta：测试版</li>
+        <li style="float:left;margin-right:25px;">demo：演示版</li>
+        <li style="float:left;margin-right:25px;">enhance：增强版</li>
+        <li style="float:left;margin-right:25px;">free：自由版</li>
+        <li style="float:left;margin-right:25px;">full version：完整版，即正式版</li>
+        <li style="float:left;margin-right:25px;">lts：长期维护版本</li>
+        <li style="float:left;margin-right:25px;">release：发行版</li>
+        <li style="float:left;margin-right:25px;">rc：即将作为正式版发布</li>
+        <li style="float:left;margin-right:25px;">standard：标准版</li>
+        <li style="float:left;margin-right:25px;">ultimate：旗舰版</li>
+        <li>upgrade：升级版</li>
+    </ul>
+</div>
+<h1 style="font-weight:bold;font-size:20px;">§日志更新说明</h1>
+
+<p>
+    <span class="v">[发布版本] 3.3.0-rc</span>
+    <span class="v">[发布日期] 2024年6月13日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]集成声网Agora和SRS流媒体直播服务；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] 3.2.1-RELEASE</span>
+    <span class="v">[发布日期] 2024年7月15日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]机场模块添加告警信息模块功能；</li>
+        <li>[修改]直播功能播放回调函数中添加没人观看时关闭推流逻辑；</li>
+        <li>[修改]修复系统部分bug；</li>
+        <li>[修改]对接机场2，调整接口功能和参数；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] 3.2.0-BETA</span>
+    <span class="v">[发布日期] 2023年9月7日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]调整地图模块交互操作；</li>
+        <li>[修改]添加机场模块功能；</li>
+        <li>[修改]修改任务数据获取时时间字段处理；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] 3.1.0-RC</span>
+    <span class="v">[发布日期] 2023年9月2日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]调整地图模块交互操作；</li>
+        <li>[修改]添加机场模块功能；</li>
+        <li>[修改]修改任务数据获取时时间字段处理；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] 3.0.02-SNAPSHOT</span>
+    <span class="v">[发布日期] 2023年6月26日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]添加飞行数据模块编辑记录信息功能；</li>
+        <li>[修改]添加tif影像分辨率获取；</li>
+        <li>[修改]修改任务回收站模块数据清理bug；</li>
+        <li>[修改]修改现场监控模块飞行轨迹展示、实时图传照片展示逻辑；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] 3.0.01-SNAPSHOT</span>
+    <span class="v">[发布日期] 2023年6月14日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]添加cloud-api相关接口；</li>
+        <li>[修改]集成文件对象存储（支持多平台），修改上传接口，添加上传后回调接口；</li>
+        <li>[修改]系统模块添加权限控制（所有模块）；</li>
+        <li>[修改]修改照片栏，支持视频播放；</li>
+        <li>调整现场监控模块整体结构；</li>
+        <li>调整地图模块交互操作，添加卷帘、时间轴、测量等地图工具；</li>
+        <li>优化飞行数据模块打开渲染效果、照片展示效果；</li>
+        <li>添加飞行数据挂接任务功能；</li>
+        <li>系统流畅度优化；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] v5.2.21-2.09-SNAPSHOT</span>
+    <span class="v">[发布日期] </span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]任务新增表单组织机构和位置选择交互逻辑修改；</li>
+        <li>[修改]任务目标图形详细信息面板优化；</li>
+        <li>[修改]添加minio上传TIFF文件后发布和注册影像图层功能逻辑；</li>
+        <li>[修改]导入任务目标图形时修改；</li>
+    </ul>
+</p>
+<p>
+    <span class="v">[发布版本] v5.2.21-2.08-RELEASE</span>
+    <span class="v">[发布日期] 2022年7月6日</span>
+    <br/>
+    <span class="pt">[依赖] forestar-adf-5.2.21.6-RELEASE</span>
+    <ul>
+        <li>[修改]模块数据列表展示字段修改；</li>
+        <li>[修改]弹窗地图初始化设置优化；</li>
+        <li>[修改]菜单样式修改；</li>
+        <li>[修改]影像拼接弹窗中卷帘功能添加；</li>
+        <li>[修改]政区搜索权限过滤；</li>
+        <li>[修改]影像拼接模块删除功能修改；</li>
+        <li>[修改]统一系统参数配置格式，添加系统配置参数非空校验；</li>
+        <li>[修改]判断照片上传插件安装状态，如果未安装提示安装；</li>
+        <li>[修改]调整无人机在线状态判断视图；</li>
+        <li>[修改]飞行记录表中添加任务挂接字段；</li>
+        <li>[修改]添加系统开发和维护说明文档；</li>
+        <li>[修改]添加回收站模块功能，添加清理回收站超过30天的数据定时任务；</li>
+        <li>[修改]组织机构根据组织机构编码过滤逻辑、区域树展示点击不展开逻辑；</li>
+        <li>[修改]修改飞控端上传飞行记录获取用户、组织机构、位置信息；</li>
+        <li>[修改]对接新版飞控端上传飞行数据接口；</li>
+        <li>[修改]任务模块执行单位、执行人员、数据过滤逻辑调整；</li>
+        <li>[修改]照片插件查询飞行记录列表数据权限过滤；</li>
+        <li>[修改]聚合数据查询修改；</li>
+        <li>[修改]数据列表加载loading；</li>
+    </ul>
+</p>
+
+<p>
+    <span class="v">[发布版本] v1.10.20</span>
+    <span class="v">[发布日期] 2022年4月19日</span>
+    <br/>
+    <span class="pt">[SDK] v1.0.7</span>
+    <ul>
+        <li>[修改]修改用户体验计划枚举值，添加3；</li>
+    </ul>
+</p>
+</body>
+</html>

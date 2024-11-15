@@ -97,7 +97,7 @@ public class MinIOServiceImpl implements IOssService {
     public void putObject(String bucket, String objectKey, InputStream input) {
         try {
             client.statObject(StatObjectArgs.builder().bucket(bucket).object(objectKey).build());
-            throw new RuntimeException("The filename already exists.");
+            throw new RuntimeException("文件名已存在，请修改后重新上传。");
         } catch (MinioException | InvalidKeyException | IOException | NoSuchAlgorithmException e) {
             log.info("The file does not exist, start uploading.");
             try {

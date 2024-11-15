@@ -200,7 +200,7 @@ livestream:
     agora:
 #      channel: Please enter the agora channel.
 #      token: Please enter the agora temporary token.
-      uid: 654321
+      uid: 87654321
 #
 #    rtsp:
 #      username: Please enter the username.

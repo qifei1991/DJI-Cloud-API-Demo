@@ -94,7 +94,7 @@ public class AliyunOssServiceImpl implements IOssService {
     @Override
     public void putObject(String bucket, String objectKey, InputStream input) {
         if (ossClient.doesObjectExist(bucket, objectKey)) {
-            throw new RuntimeException("The filename already exists.");
+            throw new RuntimeException("文件名已存在，请修改后重新上传。");
         }
         PutObjectResult objectResult = ossClient.putObject(new PutObjectRequest(bucket, objectKey, input, new ObjectMetadata()));
         log.info("Upload FlighttaskCreateFile: {}", objectResult.getETag());

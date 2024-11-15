@@ -38,6 +38,7 @@ public enum RemoteDebugStepKeyEnum {
     CHECK_WIRED_CONNECT_STATE("check_wired_connect_state", "Get aircraft state"),
 
     OPEN_DRONE("open_drone", "Open the plane"),
+    CLOSE_DRONE("close_drone", "Close the plane"),
 
     OPEN_ALARM("open_alarm", "Open sound and light alarm"),
 

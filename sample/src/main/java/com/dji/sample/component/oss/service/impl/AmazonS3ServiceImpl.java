@@ -85,7 +85,7 @@ public class AmazonS3ServiceImpl implements IOssService {
     @Override
     public void putObject(String bucket, String objectKey, InputStream input) {
         if (client.doesObjectExist(bucket, objectKey)) {
-            throw new RuntimeException("The filename already exists.");
+            throw new RuntimeException("文件名已存在，请修改后重新上传。");
         }
         PutObjectResult objectResult = client.putObject(new PutObjectRequest(bucket, objectKey, input, new ObjectMetadata()));
         log.info("Upload FlighttaskCreateFile: {}", objectResult.toString());

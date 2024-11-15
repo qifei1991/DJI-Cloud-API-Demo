@@ -101,7 +101,7 @@ public class HuaweiObsServiceImpl implements IOssService {
     @Override
     public void putObject(String bucket, String objectKey, InputStream input) {
         if (this.obsClient.doesObjectExist(bucket, objectKey)) {
-            throw new RuntimeException("The filename already exists.");
+            throw new RuntimeException("文件名已存在，请修改后重新上传。");
         }
         PutObjectResult objectResult = this.obsClient.putObject(bucket, objectKey, input);
         log.info("Upload File: {}", objectResult.getEtag());
