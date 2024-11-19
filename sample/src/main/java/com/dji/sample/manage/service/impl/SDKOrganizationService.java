@@ -99,6 +99,7 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         List<OrganizationBindInfo> bindResult = new ArrayList<>();
 
         String organizationId = Objects.isNull(dock) ? null : dock.getOrganizationId();
+        OrganizationBindDevice finalDrone = drone;
         droneOpt.ifPresent(droneDto -> {
             dockOpt.get().setChildDeviceSn(droneDto.getDeviceSn());
             boolean success = deviceService.saveOrUpdateDevice(droneDto);
@@ -110,7 +111,8 @@ public class SDKOrganizationService extends AbstractOrganizationService {
 
             // add by Qfei, Device register.
             droneDto.setOrganizationId(organizationId);
-            Optional.of(success).ifPresent(x -> deviceClient.reportOnline(Optional.of(droneDto)));
+            Optional.of(success).ifPresent(x -> deviceClient.reportDeviceBind(Optional.of(droneDto),
+                    Optional.ofNullable(finalDrone).map(OrganizationBindDevice::getDeviceBindingCode).orElse(null)));
         });
         boolean success = deviceService.saveOrUpdateDevice(dockOpt.get());
 
@@ -119,7 +121,8 @@ public class SDKOrganizationService extends AbstractOrganizationService {
 
         // add by Qfei, Device register.
         dockOpt.get().setOrganizationId(organizationId);
-        Optional.of(success).ifPresent(x -> deviceClient.reportOnline(dockOpt));
+        OrganizationBindDevice finalDock = dock;
+        Optional.of(success).ifPresent(x -> deviceClient.reportDeviceBind(dockOpt, finalDock.getDeviceBindingCode()));
 
         return new TopicRequestsResponse<MqttReply<AirportOrganizationBindResponse>>()
                 .setData(MqttReply.success(new AirportOrganizationBindResponse().setErrInfos(bindResult)));

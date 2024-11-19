@@ -40,8 +40,12 @@ public class DeviceClient extends AbstractClient {
     private final IWaylineRedisService waylineRedisService;
     private final IDeviceRedisService deviceRedisService;
 
+    public void reportOnline(Optional<DeviceDTO> deviceDTO) {
+        reportDeviceBind(deviceDTO, null);
+    }
+
     @Async("asyncThreadPool")
-    public void reportOnline(Optional<DeviceDTO> deviceDTOOpt) {
+    public void reportDeviceBind(Optional<DeviceDTO> deviceDTOOpt, String bindCode) {
         try {
             deviceDTOOpt.ifPresent(deviceDTO -> {
                 // 暂时只维护无人机、遥控器、机场的上线
@@ -68,6 +72,7 @@ public class DeviceClient extends AbstractClient {
                             .firmwareVersion(deviceDTO.getFirmwareVersion())
                             .time(LocalDateTime.now().format(FORMATTER))
                             .orgCode(deviceDTO.getOrganizationId())
+                            .bindCode(bindCode)
                             .build());
                 }
             });

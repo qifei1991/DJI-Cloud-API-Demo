@@ -66,6 +66,8 @@ public enum DeviceTypeEnum {
     M3D_CAMERA(80),
 
     M3TD_CAMERA(81),
+
+    M3D_AUXILIARY_IMAGERY(176),  // 新增，机场 10.01.3205 版本固件有增加这个类型, Matrice 3D 辅助影像||Matrice 3TD 辅助影像
     ;
 
     private final int type;
