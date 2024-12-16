@@ -146,14 +146,16 @@ public class DrcServiceImpl implements IDrcService {
                 throw new RuntimeException("飞机不在空中，不能进入手动控制飞行模式.");
             }
         } else {
-            throw new RuntimeException("当前状态不支持进入手动控制飞行模式.");
+            log.info("- [Drc Condition] Dock Mode: {}", dockMode);
+            throw new RuntimeException("机场当前状态不支持进入手动控制飞行模式.");
         }
 
         HttpResultResponse result = controlService.seizeAuthority(dockSn, DroneAuthorityEnum.FLIGHT, null);
+        log.info("- [Drc Condition] SeizeAuthority Response: {}", result);
+
         if (HttpResultResponse.CODE_SUCCESS != result.getCode()) {
             throw new IllegalArgumentException(result.getMessage());
         }
-
     }
 
     @Override
@@ -162,16 +164,27 @@ public class DrcServiceImpl implements IDrcService {
         String pubTopic = topic + TopicConst.DOWN;
         String subTopic = topic + TopicConst.UP;
 
+        GatewayManager gatewayMgr = SDKManager.getDeviceSDK(param.getDockSn());
+
         // If the dock is in drc mode, refresh the permissions directly.
         if (deviceService.checkDockDrcMode(param.getDockSn())
                 && param.getClientId().equals(this.getDrcModeInRedis(param.getDockSn()))) {
             refreshAcl(param.getDockSn(), param.getClientId(), topic, subTopic);
+            // 添加定时心跳任务，10秒一次
+            if (checkHeartBeatSinceVersion(gatewayMgr)) {
+                CronUtil.remove(param.getDockSn()); // todo 去掉之前的心跳,临时处理方案
+                log.info("- [Drc HeartBeat] 先删除再添加, SN: {}", gatewayMgr.getGatewaySn());
+                CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () ->
+                        abstractControlService.heartBeatDown(gatewayMgr,
+                                new HeartBeatRequest()
+                                        .setSeq(0L)
+                                        .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())));
+            }
             return JwtAclDTO.builder().sub(List.of(subTopic)).pub(List.of(pubTopic)).build();
         }
 
         checkDrcModeCondition(workspaceId, param.getDockSn());
 
-        GatewayManager gatewayMgr = SDKManager.getDeviceSDK(param.getDockSn());
         TopicServicesResponse<ServicesReplyData> reply = abstractControlService.drcModeEnter(
                 gatewayMgr,
                 new DrcModeEnterRequest()
@@ -184,27 +197,33 @@ public class DrcServiceImpl implements IDrcService {
                         .setHsiFrequency(1).setOsdFrequency(10));
 
         if (!reply.getData().getResult().isSuccess()) {
+            log.error("[Drc Enter] DrcModeEnter: DockSn: {}, Reply: {}", param.getDockSn(), reply);
             throw new RuntimeException("进入DRC飞行控制失败, 请稍候重试! SN: " + param.getDockSn() + "; Error:" + reply.getData().getResult());
         }
 
         refreshAcl(param.getDockSn(), param.getClientId(), pubTopic, subTopic);
-
         // 添加定时心跳任务，10秒一次
+        if (checkHeartBeatSinceVersion(gatewayMgr)) {
+            log.info("- [Drc HeartBeat] 先删除再添加, SN: {}", gatewayMgr.getGatewaySn());
+            CronUtil.remove(param.getDockSn()); // todo 去掉之前的心跳,临时处理方案
+            CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () ->
+                    abstractControlService.heartBeatDown(gatewayMgr,
+                            new HeartBeatRequest()
+                                    .setSeq(0L)
+                                    .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())));
+        }
+        return JwtAclDTO.builder().sub(List.of(subTopic)).pub(List.of(pubTopic)).build();
+    }
+
+    /**
+     * 检查机场版本是否需要 定时心跳
+     * @param gatewayMgr 网关设备
+     */
+    private boolean checkHeartBeatSinceVersion(GatewayManager gatewayMgr) {
         double sinceVersion = Double.parseDouble(Dock2ThingVersionEnum.V1_3_0.getThingVersion()
                 .substring(0, Dock2ThingVersionEnum.V1_3_0.getThingVersion().lastIndexOf(".")));
         String thingVersion = gatewayMgr.getGatewayThingVersion().getThingVersion();
-        double dockVersion = Double.parseDouble(thingVersion.substring(0, thingVersion.lastIndexOf(".")));
-        if (dockVersion >= sinceVersion) {
-            CronUtil.remove(param.getDockSn()); // todo 去掉之前的心跳,临时处理方案
-            CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () -> {
-                abstractControlService.heartBeatDown(gatewayMgr,
-                        new HeartBeatRequest()
-                                .setSeq(0L)
-                                .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
-            });
-        }
-
-        return JwtAclDTO.builder().sub(List.of(subTopic)).pub(List.of(pubTopic)).build();
+        return Double.parseDouble(thingVersion.substring(0, thingVersion.lastIndexOf("."))) >= sinceVersion;
     }
 
     private void refreshAcl(String dockSn, String clientId, String pubTopic, String subTopic) {
@@ -226,20 +245,19 @@ public class DrcServiceImpl implements IDrcService {
         GatewayManager gatewayMgr = SDKManager.getDeviceSDK(param.getDockSn());
         TopicServicesResponse<ServicesReplyData> reply = abstractControlService.drcModeExit(gatewayMgr);
         if (!reply.getData().getResult().isSuccess()) {
+            log.error("[Drc exit] Error, sn: {}, Reply: {}", param.getDockSn(), reply);
             throw new RuntimeException("退出DRC飞行控制模式失败, 请稍候重试! SN: " + param.getDockSn() + "; Error:" + reply.getData().getResult());
         }
 
         String jobId = waylineRedisService.getPausedWaylineJobId(param.getDockSn());
         if (StringUtils.hasText(jobId)) {
+            log.info("[Drc exit] Resume the running job, JobId: {}", jobId);
             flighttaskService.updateJobStatus(workspaceId, jobId, UpdateJobParam.builder().status(WaylineTaskStatusEnum.RESUME).build());
         }
 
-        // 清楚DRC心跳任务
-        double sinceVersion = Double.parseDouble(Dock2ThingVersionEnum.V1_3_0.getThingVersion()
-                .substring(0, Dock2ThingVersionEnum.V1_3_0.getThingVersion().lastIndexOf(".")));
-        String thingVersion = gatewayMgr.getGatewayThingVersion().getThingVersion();
-        double dockVersion = Double.parseDouble(thingVersion.substring(0, thingVersion.lastIndexOf(".")));
-        if (dockVersion >= sinceVersion) {
+        // 清除DRC心跳任务
+        if (checkHeartBeatSinceVersion(gatewayMgr)) {
+            log.info("- [Drc HeartBeat] 删除, SN: {}", gatewayMgr.getGatewaySn());
             CronUtil.remove(param.getDockSn());
         }
 
