@@ -141,7 +141,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
 
         // 新建的航线信息上报无人机管理系统
         Optional<GetWaylineListResponse> waylineOpt = this.getWaylineByWaylineId(workspaceId, file.getWaylineId());
-        this.waylineFileClient.reportWaylineImport(waylineOpt);
+        this.waylineFileClient.reportWaylineImport(waylineOpt, workspaceId);
 
         return insertId > 0 ? file.getId() : insertId;
     }

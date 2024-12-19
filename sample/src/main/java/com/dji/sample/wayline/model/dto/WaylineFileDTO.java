@@ -43,4 +43,6 @@ public class WaylineFileDTO {
     private Long updateTime;
 
     private String remark;
+
+    private String bindCode;
 }

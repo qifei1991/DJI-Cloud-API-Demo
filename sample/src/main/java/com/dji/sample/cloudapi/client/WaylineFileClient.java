@@ -1,10 +1,13 @@
 package com.dji.sample.cloudapi.client;
 
 import com.dji.sample.cloudapi.util.ClientUri;
+import com.dji.sample.manage.model.dto.WorkspaceDTO;
+import com.dji.sample.manage.service.IWorkspaceService;
 import com.dji.sample.wayline.model.dto.WaylineFileDTO;
 import com.dji.sdk.cloudapi.device.DeviceEnum;
 import com.dji.sdk.cloudapi.wayline.GetWaylineListResponse;
 import com.dji.sdk.cloudapi.wayline.WaylineTypeEnum;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +22,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WaylineFileClient extends AbstractClient {
 
-    public void reportWaylineImport(Optional<GetWaylineListResponse> waylineOpt) {
+    private final IWorkspaceService workspaceService;
+
+    public void reportWaylineImport(Optional<GetWaylineListResponse> waylineOpt, String workspaceId) {
         log.debug("Report Upload wayline file: {}", waylineOpt);
+        Optional<WorkspaceDTO> workspace = workspaceService.getWorkspaceByWorkspaceId(workspaceId);
         waylineOpt.ifPresent(x ->
                 this.applicationJsonPost(ClientUri.URI_WAYLINE_REPORT,
                         WaylineFileDTO.builder()
@@ -37,6 +44,7 @@ public class WaylineFileClient extends AbstractClient {
                                 .favorited(x.getFavorited())
                                 .createTime(x.getCreateTime())
                                 .updateTime(x.getUpdateTime())
+                                .bindCode(workspace.map(WorkspaceDTO::getBindCode).orElse(null))
                                 .build()));
     }
 }
