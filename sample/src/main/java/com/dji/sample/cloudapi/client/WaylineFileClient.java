@@ -9,6 +9,7 @@ import com.dji.sdk.cloudapi.wayline.GetWaylineListResponse;
 import com.dji.sdk.cloudapi.wayline.WaylineTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -27,9 +28,10 @@ public class WaylineFileClient extends AbstractClient {
 
     private final IWorkspaceService workspaceService;
 
+    @Async("asyncThreadPool")
     public void reportWaylineImport(Optional<GetWaylineListResponse> waylineOpt, String workspaceId) {
-        log.debug("Report Upload wayline file: {}", waylineOpt);
         Optional<WorkspaceDTO> workspace = workspaceService.getWorkspaceByWorkspaceId(workspaceId);
+        log.debug("Report Upload wayline file, workspace: {}, wayline: {}", workspace, waylineOpt);
         waylineOpt.ifPresent(x ->
                 this.applicationJsonPost(ClientUri.URI_WAYLINE_REPORT,
                         WaylineFileDTO.builder()

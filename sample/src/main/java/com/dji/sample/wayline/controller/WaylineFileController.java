@@ -68,7 +68,7 @@ public class WaylineFileController implements IHttpWaylineService {
         CustomClaim customClaim = (CustomClaim)request.getAttribute(TOKEN_CLAIM);
         String workspaceId = customClaim.getWorkspaceId();
         String creator = customClaim.getUsername();
-        waylineFileService.importKmzFile(file, workspaceId, creator);
+        waylineFileService.importKmzFile(file, workspaceId, creator, null);
         return HttpResultResponse.success();
     }
 

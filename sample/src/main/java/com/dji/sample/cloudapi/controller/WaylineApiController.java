@@ -6,12 +6,14 @@ import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sample.wayline.model.dto.WaylineFileDTO;
 import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sdk.common.PaginationData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
  * @author Qfei
  * @date 2022/12/21 14:45
  */
+@Slf4j
 @RestController
 @RequestMapping("${url.cloud-api.prefix}${url.cloud-api.version}/wayline/workspaces")
 public class WaylineApiController {
@@ -34,11 +37,8 @@ public class WaylineApiController {
     /**
      * Query the basic data of the wayline file according to the query conditions.
      * The query condition field in pilot is fixed.
-     * @param orderBy   Sorted fields. Spliced at the end of the sql statement.
-     * @param favorited Whether the wayline file is favorited or not.
-     * @param page 索引
-     * @param pageSize 每页多少条
-     * @param templateType 模板类型
+     *
+     * @param request      Request parameters.
      */
     @GetMapping("/{workspace_id}/waylines")
     public HttpResultResponse<PaginationData<GetWaylineListResponse>> getWaylinesPagination(@Valid GetWaylineListRequest request,
@@ -55,12 +55,13 @@ public class WaylineApiController {
     @PostMapping("/{workspace_id}/waylines/file/upload")
     public HttpResultResponse importKmzFile(MultipartFile file,
             @PathVariable(name = "workspace_id") String workspaceId,
-            @RequestParam(name = "creator", defaultValue = "manager-server") String creator) {
+            @RequestParam(name = "creator", defaultValue = "manager-server") String creator,
+            @RequestParam(name = "waylineId", required = false) String waylineId) {
 
         if (Objects.isNull(file)) {
             return HttpResultResponse.error("No file received.");
         }
-        this.waylineFileService.importKmzFile(file, workspaceId, creator);
+        this.waylineFileService.importKmzFile(file, workspaceId, creator, waylineId);
         return HttpResultResponse.success();
     }
 
@@ -85,8 +86,9 @@ public class WaylineApiController {
 
     /**
      * Favorite the wayline file according to the wayline file id.
+     *
      * @param workspaceId
-     * @param ids   wayline file id
+     * @param ids         wayline file id
      * @return
      */
     @PostMapping("/{workspace_id}/favorites")
@@ -98,8 +100,9 @@ public class WaylineApiController {
 
     /**
      * Delete the favorites of this wayline file based on the wayline file id.
+     *
      * @param workspaceId
-     * @param ids wayline file id
+     * @param ids         wayline file id
      * @return
      */
     @DeleteMapping("/{workspace_id}/favorites")
@@ -112,6 +115,7 @@ public class WaylineApiController {
     /**
      * Checking whether the name already exists according to the wayline name must ensure the uniqueness of the wayline name.
      * This interface will be called when uploading waylines and must be available.
+     *
      * @param workspaceId
      * @param names
      * @return
@@ -125,6 +129,7 @@ public class WaylineApiController {
 
     /**
      * Delete the wayline file in the workspace according to the wayline id.
+     *
      * @param workspaceId
      * @param waylineId
      * @return
@@ -140,5 +145,16 @@ public class WaylineApiController {
     public HttpResultResponse editWayline(@PathVariable(name = "workspace_id") String workspaceId,
             @PathVariable(name = "wayline_id") String waylineId, @RequestBody WaylineFileDTO file) {
         return HttpResultResponse.success(this.waylineFileService.updateWaylineFile(workspaceId, waylineId, file));
+    }
+
+    @GetMapping("/{workspace_id}/waylines/{wayline_id}/url")
+    public HttpResultResponse getWaylineFileDownloadAddress(@PathVariable("workspace_id") String workspaceId,
+            @PathVariable("wayline_id") String waylineId) {
+        try {
+            return HttpResultResponse.success(waylineFileService.getObjectUrl(workspaceId, waylineId).toString());
+        } catch (SQLException e) {
+            log.error("Fail to obtain wayline file URL.", e);
+            return HttpResultResponse.error("Fail to obtain wayline file URL.");
+        }
     }
 }

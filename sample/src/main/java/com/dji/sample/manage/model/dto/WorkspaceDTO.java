@@ -27,4 +27,16 @@ public class WorkspaceDTO {
     private String platformName;
 
     private String bindCode;
+
+    @Override
+    public String toString() {
+        return "WorkspaceDTO{" +
+                "id=" + id +
+                ", workspaceId='" + workspaceId + '\'' +
+                ", workspaceName='" + workspaceName + '\'' +
+                ", workspaceDesc='" + workspaceDesc + '\'' +
+                ", platformName='" + platformName + '\'' +
+                ", bindCode='" + bindCode + '\'' +
+                '}';
+    }
 }

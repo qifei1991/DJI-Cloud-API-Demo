@@ -123,7 +123,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     @Override
     public Integer saveWaylineFile(String workspaceId, WaylineFileDTO metadata) {
         WaylineFileEntity file = this.dtoConvertToEntity(metadata);
-        file.setWaylineId(UUID.randomUUID().toString());
+        file.setWaylineId(StringUtils.hasText(metadata.getWaylineId()) ? metadata.getWaylineId() : UUID.randomUUID().toString());
         file.setWorkspaceId(workspaceId);
 
         if (!StringUtils.hasText(file.getSign())) {
@@ -188,12 +188,16 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     }
 
     @Override
-    public void importKmzFile(MultipartFile file, String workspaceId, String creator) {
+    public void importKmzFile(MultipartFile file, String workspaceId, String creator, String waylineId) {
         Optional<WaylineFileDTO> waylineFileOpt = validKmzFile(file);
         if (waylineFileOpt.isEmpty()) {
             throw new RuntimeException("航线文件格式错误。");
         }
 
+        // 针对无人机管理系统规划的航线导入进来
+        if (StringUtils.hasText(waylineId)) {
+            waylineFileOpt.get().setWaylineId(waylineId);
+        }
         try {
             WaylineFileDTO waylineFile = waylineFileOpt.get();
             waylineFile.setUsername(creator);
