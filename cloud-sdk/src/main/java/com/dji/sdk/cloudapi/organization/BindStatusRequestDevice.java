@@ -18,13 +18,10 @@ public class BindStatusRequestDevice {
     @JsonProperty("is_device_bind_organization")
     private Boolean deviceBindOrganization;
 
-    @NotNull
     private String organizationId;
 
-    @NotNull
     private String organizationName;
 
-    @NotNull
     private String deviceCallsign;
 
     public BindStatusRequestDevice() {

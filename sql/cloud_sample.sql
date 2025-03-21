@@ -199,8 +199,27 @@ VALUES
 	(28, 0, 91, 0, 'M3D', NULL),
 	(29, 0, 91, 1, 'M3TD', NULL),
 	(30, 1, 80, 0, 'M3D Camera', NULL),
-	(31, 1, 81, 0, 'M3TD Camera', NULL);
+	(31, 1, 81, 0, 'M3TD Camera', NULL),
+    (32, 1, 176, 0, 'Matrice 3D Auxiliary imagery', NULL),
+    (33, 0, 99, 0, 'M4E', NULL),
+    (34, 0, 99, 1, 'M4T', NULL),
+    (35, 1, 88, 0, 'M4E Camera', NULL),
+    (36, 1, 89, 0, 'M4T Camera ', NULL),
+    (37, 2, 174, 0, 'DJI RC Plus 2', 'Remote control for Matrice 4 '),
+    (38, 0, 100, 0, 'M4D', NULL),
+    (39, 0, 100, 1, 'M4TD', NULL),
+    (40, 1, 98, 0, 'M4D Camera', NULL),
+    (41, 1, 99, 0, 'M4TD Camera', NULL),
+    (42, 3, 3, 0, 'Dock3', NULL)
+;
 
+/*机场3修改内容*/
+INSERT INTO `manage_device_dictionary` (`id`, `domain`, `device_type`, `sub_type`, `device_name`, `device_desc`)
+VALUES (38, 0, 100, 0, 'M4D', NULL),
+(39, 0, 100, 1, 'M4TD', NULL),
+(40, 1, 98, 0, 'M4D Camera', NULL),
+(41, 1, 99, 0, 'M4TD Camera', NULL),
+(42, 3, 3, 0, 'Dock3', NULL);
 
 /*!40000 ALTER TABLE `manage_device_dictionary` ENABLE KEYS */;
 UNLOCK TABLES;

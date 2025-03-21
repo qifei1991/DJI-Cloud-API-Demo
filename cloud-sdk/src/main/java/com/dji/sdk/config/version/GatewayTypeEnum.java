@@ -12,11 +12,13 @@ import java.util.Arrays;
  */
 public enum GatewayTypeEnum {
 
-    RC(DeviceEnum.RC, DeviceEnum.RC_PLUS, DeviceEnum.RC_PRO),
+    RC(DeviceEnum.RC, DeviceEnum.RC_PLUS, DeviceEnum.RC_PRO, DeviceEnum.RC_PRO_TWO),
 
     DOCK(DeviceEnum.DOCK),
 
     DOCK2(DeviceEnum.DOCK2),
+
+    DOCK3(DeviceEnum.DOCK3),
     ;
 
     private final DeviceEnum[] gateway;

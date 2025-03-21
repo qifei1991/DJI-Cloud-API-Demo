@@ -158,10 +158,10 @@ aircraft-manager-server:
 oss:
   enable: true
   provider: minio
-  endpoint: http://192.168.1.200:9000 #内网地址
-  extranet-endpoint: http://192.168.1.200:9000 #http://wrj.dilinyun.com:39000 #外网地址
-  access-key: dlwyminio
-  secret-key: dlwy2021
+  endpoint: http://192.168.1.230:9000 #内网地址
+  extranet-endpoint: http://123.125.92.18:9000 #http://product.dilinyun.com:9000 #外网地址
+  access-key: minioadmin
+  secret-key: minioadmin@wrj
   bucket: aircraft-resource
   expire: 3600
   region: us-east-1
@@ -192,15 +192,14 @@ agora:
 
 livestream:
   url:
-    # RTMP  Note: This IP is the address of the streaming server. If you want to see livestream on web page, you need to convert the RTMP stream to WebRTC stream.
     rtmp:
-      url: rtmp://192.168.1.230:1936/uav-flv #Please enter the rtmp access address.  # Example: 'rtmp://192.168.1.1/live/'
-
-#    # It is recommended to use a program to create Token. https://github.com/AgoraIO/Tools/blob/master/DynamicKey/AgoraDynamicKey/java/src/main/java/io/agora/media/RtcTokenBuilder2.java
+      url: rtmp://192.168.1.230:1935/live/ # Example: 'rtmp://192.168.1.1/live/'
     agora:
 #      channel: Please enter the agora channel.
 #      token: Please enter the agora temporary token.
-      uid: 87654321
+      uid: 876543230
+    whip:
+      url: http://192.168.1.230:1985/rtc/v1/whip/?app=live&stream= # Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=
 #
 #    rtsp:
 #      username: Please enter the username.
@@ -216,7 +215,3 @@ livestream:
 #      agentPassword: Please enter the agent password.
 #      localPort: Please enter the local port.
 #      channel: Please enter the channel.
-#
-#    # Webrtc: Only supports using whip standard
-#    whip:
-#      url: Please enter the rtmp access address. # Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=

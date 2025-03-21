@@ -57,9 +57,19 @@ public enum DeviceTypeEnum {
 
     RC_PRO(144),
 
+    RC_PRO_TWO(174),
+
+    M4(99),
+
+    M4E_CAMERA(88),
+
+    M4T_CAMERA(89),
+
     DOCK(1),
 
     DOCK2(2),
+
+    DOCK3(3),
 
     M3D(91),
 
@@ -68,6 +78,13 @@ public enum DeviceTypeEnum {
     M3TD_CAMERA(81),
 
     M3D_AUXILIARY_IMAGERY(176),  // 新增，机场 10.01.3205 版本固件有增加这个类型, Matrice 3D 辅助影像||Matrice 3TD 辅助影像
+
+    M4D(100),
+
+    M4D_CAMERA(98),
+
+    M4TD_CAMERA(99)
+
     ;
 
     private final int type;

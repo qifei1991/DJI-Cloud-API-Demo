@@ -56,7 +56,8 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         for (BindStatusResponseDevice bindStatus : data) {
             Optional<DeviceDTO> deviceOpt = deviceService.getDeviceBySn(bindStatus.getSn());
             bindStatusResult.add(deviceOpt.isPresent() ? dto2BindStatus(deviceOpt.get()) :
-                    new BindStatusRequestDevice().setSn(bindStatus.getSn()).setDeviceBindOrganization(false));
+                    new BindStatusRequestDevice().setSn(bindStatus.getSn()).setDeviceBindOrganization(false)
+                            .setOrganizationId("").setOrganizationName("").setDeviceCallsign(""));
         }
         return new TopicRequestsResponse<MqttReply<AirportBindStatusResponse>>()
                 .setData(MqttReply.success(new AirportBindStatusResponse().setBindStatus(bindStatusResult)));
