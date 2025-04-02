@@ -2,8 +2,6 @@ package com.dji.sdk.config.version;
 
 import com.dji.sdk.exception.CloudSDKVersionException;
 import com.fasterxml.jackson.annotation.JsonValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -31,8 +29,6 @@ public enum DroneThingVersionEnum implements IThingVersion {
 
     V1_3_1("1.3.1", CloudSDKVersionEnum.V1_0_3),
     ;
-
-    private static final Logger log = LoggerFactory.getLogger(DroneThingVersionEnum.class);
 
     private final String thingVersion;
 
