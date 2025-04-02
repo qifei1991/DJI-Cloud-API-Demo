@@ -145,6 +145,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
             jobEntity.setBeginTime(beginTime);
             jobEntity.setEndTime(beginTime);
             jobEntity.setMediaCount(0);
+            jobEntity.setContinuable(true);
         }
 
         return this.insertWaylineJob(jobEntity);

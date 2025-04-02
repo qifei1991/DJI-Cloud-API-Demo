@@ -73,6 +73,9 @@ public enum DockStateDataKeyEnum {
     AR_INFO_SWITCH(Set.of("ar_info_switch"), ArInfoSwitch.class),
 
     PAYLOADS(Set.of("payloads"), PayloadsInfo.class),
+
+    DEPARTURE_TRAJECTORY(Set.of("departure_trajectory"), DepartureTrajectory.class)
+
     ;
 
     private final Set<String> keys;

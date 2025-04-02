@@ -627,26 +627,44 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                                 .jobId(response.getBid()).mediaCount(job.getMediaCount()).uploadedCount(0).build());
             }
 
+            Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(deviceOpt.get().getWorkspaceId(), response.getBid());
+
             if (FlighttaskStatusEnum.OK != statusEnum) {
                 job.setCode(eventsReceiver.getResult().getCode());
                 job.setStatus(WaylineJobStatusEnum.FAILED.getVal());
 
-                log.info("Job status: {}, break point: {}", statusEnum.getStatus(), output.getExt().getBreakPoint());
-                this.waylineRedisService.setProgressExtBreakPoint(response.getBid(), output.getExt().getBreakPoint());
+                ProgressExtBreakPoint breakPoint = output.getExt().getBreakPoint();
+                log.info("Job status: {}, break point: {}", statusEnum.getStatus(), breakPoint);
+                /*
+                 * add by Qfei, 2025-3-27 17:28:22
+                 * 判断断点信息是否为空
+                 * 1. 如果为空，说明飞行任务还没有飞出机场就失败了
+                 *   a. 如果执行的断点续飞任务，将之前断点信息赋值给当前航线任务
+                 *   b. 如果执行的是新建任务，此种情况当前任务不能执行续飞操作，需要重新创建新的飞行任务
+                 * 2. 如果不为空，保存当前任务的断点信息，可以执行续飞操作
+                 */
+                if (Objects.isNull(breakPoint)) {
+                    jobDTO.ifPresent(x -> {
+                        if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
+                            waylineRedisService.getProgressExtBreakPoint(x.getParentId()).ifPresentOrElse(
+                                    parBreakPoint -> waylineRedisService.setProgressExtBreakPoint(response.getBid(), parBreakPoint),
+                                    () -> job.setContinuable(false));
+                        }
+                    });
+                } else {
+                    waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
+                }
             }
             waylineJobService.updateJob(job);
             waylineRedisService.delRunningWaylineJob(response.getGateway());
             waylineRedisService.delPausedWaylineJob(response.getBid());
 
             // add by Qfei, report flight task end.
-            Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(deviceOpt.get().getWorkspaceId(), response.getBid());
             jobDTO.ifPresent(x -> {
-                // 如果执行的断点续飞任务，将Redis中存储的断点信息删除
+                // 如果执行的断点续飞任务，将Redis中存储的之前飞行的断点信息删除
                 if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
                     waylineRedisService.delProgressExtBreakPoint(x.getParentId());
                 }
-
-                job.setContinuable(x.getContinuable());
                 job.setGroupId(x.getGroupId());
             });
             this.flightTaskClient.flightTaskCompleted(job);

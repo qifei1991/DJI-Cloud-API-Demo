@@ -13,6 +13,26 @@ import java.util.Arrays;
  */
 public enum AirConditionerStateEnum {
 
+    /**
+     * {
+     *   "0":"空闲模式(无制冷、制热、除湿等)",
+     *   "1":"制冷模式",
+     *   "2":"制热模式",
+     *   "3":"除湿模式",
+     *   "4":"制冷退出模式",
+     *   "5":"制热退出模式",
+     *   "6":"除湿退出模式",
+     *   "7":"制冷准备模式",
+     *   "8":"制热准备模式",
+     *   "9":"除湿准备模式",
+     *   "10":"风冷准备中,
+     *   "11":"风冷中",
+     *   "12":"风冷退出中",
+     *   "13":"除雾准备中",
+     *   "14":"除雾中",
+     *   "15":"除雾退出中"
+     * }
+     */
     IDLE(0),
 
     COOL(1),
@@ -32,6 +52,20 @@ public enum AirConditionerStateEnum {
     HEATING_PREPARATION(8),
 
     DEHUMIDIFICATION_PREPARATION(9),
+
+    // add by Qfei, 2025-3-27 18:23:48
+
+    AIR_COOLING_PREPARATION(10),
+
+    AIR_COOLING(11),
+
+    AIR_COOLING_EXIT(12),
+
+    DEFOG_PREPARATION(13),
+
+    DEFOGGING(14),
+
+    DEFOGGING_EXIT(15),
 
     DISCONNECTED(32767),
     ;

@@ -9,6 +9,7 @@ import java.util.List;
  * @date 2024/5/22 19:15
  */
 public class PsdkUiResource extends BaseModel {
+
     private List<Object> psdkUiResource;
 
     @Override
