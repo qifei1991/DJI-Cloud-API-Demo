@@ -1,6 +1,7 @@
 package com.dji.sample.control.service.impl;
 
 import cn.hutool.cron.CronUtil;
+import cn.hutool.json.JSONObject;
 import com.dji.sample.component.mqtt.config.MqttPropertyConfiguration;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.mqtt.model.MapKeyConst;
@@ -8,8 +9,9 @@ import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.control.model.dto.JwtAclDTO;
+import com.dji.sample.control.model.dto.MqttAclAccessRule;
 import com.dji.sample.control.model.enums.DroneAuthorityEnum;
-import com.dji.sample.control.model.enums.MqttAclAccessEnum;
+import com.dji.sample.control.model.enums.MqttAclAccessActionEnum;
 import com.dji.sample.control.model.param.DrcConnectParam;
 import com.dji.sample.control.model.param.DrcModeParam;
 import com.dji.sample.control.service.IControlService;
@@ -30,6 +32,7 @@ import com.dji.sdk.cloudapi.control.api.AbstractControlService;
 import com.dji.sdk.cloudapi.device.DockModeCodeEnum;
 import com.dji.sdk.cloudapi.device.OsdDockDrone;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.common.Common;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
 import com.dji.sdk.config.version.Dock2ThingVersionEnum;
@@ -37,6 +40,7 @@ import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.mqtt.TopicConst;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -115,7 +119,9 @@ public class DrcServiceImpl implements IDrcService {
         // first time
         if (!StringUtils.hasText(clientId) || !RedisOpsUtils.checkExist(RedisConst.MQTT_ACL_PREFIX + clientId)) {
             clientId = userId + "-" + System.currentTimeMillis();
-            RedisOpsUtils.hashSet(RedisConst.MQTT_ACL_PREFIX + clientId, "", MqttAclAccessEnum.ALL.getValue());
+            // RedisOpsUtils.hashSet(RedisConst.MQTT_ACL_PREFIX + clientId, "", MqttAclAccessEnum.ALL.getValue());
+            DrcAclRedisUtil.hashSet(RedisConst.MQTT_ACL_PREFIX + clientId,
+                    "", new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.ALL.getAction()));
         }
 
         String key = RedisConst.MQTT_ACL_PREFIX + clientId;
@@ -229,11 +235,13 @@ public class DrcServiceImpl implements IDrcService {
     private void refreshAcl(String dockSn, String clientId, String pubTopic, String subTopic) {
         this.setDrcModeInRedis(dockSn, clientId);
 
-        // assign acl，Match by clientId. https://www.emqx.io/docs/zh/v4.4/advanced/acl-redis.html
+        // assign acl，Match by clientId. https://docs.emqx.com/zh/emqx/v5.2/access-control/authz/redis.html
         // scheme: HSET mqtt_acl:[clientid] [topic] [access]
         String key = RedisConst.MQTT_ACL_PREFIX + clientId;
-        RedisOpsUtils.hashSet(key, pubTopic, MqttAclAccessEnum.PUB.getValue());
-        RedisOpsUtils.hashSet(key, subTopic, MqttAclAccessEnum.SUB.getValue());
+        // RedisOpsUtils.hashSet(key, pubTopic, MqttAclAccessEnum.PUB.getValue());
+        // RedisOpsUtils.hashSet(key, subTopic, MqttAclAccessEnum.SUB.getValue());
+        DrcAclRedisUtil.hashSet(key, pubTopic, new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.PUBLISH.getAction()));
+        DrcAclRedisUtil.hashSet(key, subTopic, new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.SUBSCRIBE.getAction()));
         RedisOpsUtils.expireKey(key, RedisConst.DRC_MODE_ALIVE_SECOND);
     }
 
@@ -265,4 +273,8 @@ public class DrcServiceImpl implements IDrcService {
         RedisOpsUtils.del(RedisConst.MQTT_ACL_PREFIX + param.getClientId());
     }
 
+    public static void main(String[] args) throws JsonProcessingException {
+        log.info("acl json: {}", Common.getObjectMapper().convertValue(
+                new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.PUBLISH.getAction()), JSONObject.class));
+    }
 }

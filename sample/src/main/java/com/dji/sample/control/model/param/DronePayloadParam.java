@@ -2,6 +2,7 @@ package com.dji.sample.control.model.param;
 
 import com.dji.sdk.cloudapi.control.CameraTypeEnum;
 import com.dji.sdk.cloudapi.control.GimbalResetModeEnum;
+import com.dji.sdk.cloudapi.control.MeteringModeEnum;
 import com.dji.sdk.cloudapi.device.CameraModeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,8 +16,8 @@ import javax.validation.constraints.Pattern;
  * @version 1.4
  * @date 2023/3/1
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class DronePayloadParam extends AuthorityBaseParam {
 
     @Pattern(regexp = "\\d+-\\d+-\\d+")
@@ -53,4 +54,21 @@ public class DronePayloadParam extends AuthorityBaseParam {
     private Double y;
 
     private GimbalResetModeEnum resetMode;
+
+    /**
+     * 测温模式 {"0":"关闭测温","1":"点测温","2":"区域测温"}
+     */
+    private MeteringModeEnum mode;
+
+    /**
+     * 测温区域宽度 {"max":1,"min":0}
+     */
+    @Range(min = 0, max = 1)
+    private Double width;
+
+    /**
+     * 测温区域高度 {"max":1,"min":0}
+     */
+    @Range(min = 0, max = 1)
+    private Double height;
 }

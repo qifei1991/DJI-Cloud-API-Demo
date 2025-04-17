@@ -1,6 +1,7 @@
 package com.dji.sample.component.redis;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -20,6 +21,7 @@ public class RedisOpsUtils {
     private static RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
+    @Qualifier("redisTemplate")
     public void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
         RedisOpsUtils.redisTemplate = redisTemplate;
     }

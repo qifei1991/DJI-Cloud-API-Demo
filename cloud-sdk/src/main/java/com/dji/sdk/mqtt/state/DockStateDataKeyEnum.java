@@ -74,7 +74,11 @@ public enum DockStateDataKeyEnum {
 
     PAYLOADS(Set.of("payloads"), PayloadsInfo.class),
 
-    DEPARTURE_TRAJECTORY(Set.of("departure_trajectory"), DepartureTrajectory.class)
+    DEPARTURE_TRAJECTORY(Set.of("departure_trajectory"), DepartureTrajectory.class),
+
+    AI_SPOTLIGHT_ZOOM_ON(Set.of("ai_spotlight_zoom_on"), AiSpotlightZoomOn.class),
+
+    AI_SPOTLIGHT_ZOOM_STATE(Set.of("ai_spotlight_zoom_state"), AiSpotlightZoomStatus.class)
 
     ;
 

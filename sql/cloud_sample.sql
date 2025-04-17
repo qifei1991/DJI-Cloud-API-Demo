@@ -9,6 +9,33 @@ SET NAMES utf8mb4;
 /*!40101 SET @OLD_SQL_MODE='NO_AUTO_VALUE_ON_ZERO', SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- emqx 用户表
+-- # mqtt_user
+-- # ------------------------------------------------------------
+-- # ------------------------------------------------------------
+DROP TABLE IF EXISTS `mqtt_user`;
+
+CREATE TABLE `mqtt_user` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+    `username` varchar(100) DEFAULT NULL,
+    `password_hash` varchar(100) DEFAULT NULL,
+    `salt` varchar(35) DEFAULT NULL,
+    `is_superuser` tinyint(1) DEFAULT 0,
+    `created` datetime DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `mqtt_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `mqtt_user` (id, username, password_hash, salt, is_superuser, created)
+VALUES
+    (1, 'admin', 'emqx@wrj', null, 1, '2025-04-10 17:58:22'),
+    (2, 'JavaServer', 'emqx@wrj', null, 0, '2025-04-10 17:58:22'),
+    (3, 'DockClient', 'emqx@wrj', null, 0, '2025-04-10 17:58:22')
+;
+
+
+-- # ------------------------------------------------------------
+-- # ------------------------------------------------------------
 
 
 # device_flight_area

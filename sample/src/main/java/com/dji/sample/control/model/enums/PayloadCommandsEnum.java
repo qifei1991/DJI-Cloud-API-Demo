@@ -1,7 +1,7 @@
 package com.dji.sample.control.model.enums;
 
 import com.dji.sample.control.service.impl.*;
-import com.dji.sdk.cloudapi.control.PayloadControlMethodEnum;
+import com.dji.sdk.cloudapi.control.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -26,7 +26,14 @@ public enum PayloadCommandsEnum {
 
     CAMERA_FOCAL_LENGTH_SET(PayloadControlMethodEnum.CAMERA_FOCAL_LENGTH_SET, CameraFocalLengthSetImpl.class),
 
-    GIMBAL_RESET(PayloadControlMethodEnum.GIMBAL_RESET, GimbalResetImpl.class);
+    GIMBAL_RESET(PayloadControlMethodEnum.GIMBAL_RESET, GimbalResetImpl.class),
+
+    IR_METERING_MODE_SET(PayloadControlMethodEnum.IR_METERING_MODE_SET, IrMeteringModeSetImpl.class),
+
+    IR_METERING_POINT_SET(PayloadControlMethodEnum.IR_METERING_POINT_SET, IrMeteringPointSetImpl.class),
+
+    IR_METERING_AREA_SET(PayloadControlMethodEnum.IR_METERING_AREA_SET, IrMeteringAreaSetImpl.class)
+    ;
 
     PayloadControlMethodEnum cmd;
 

@@ -436,7 +436,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3 })
     public TopicServicesResponse<ServicesReplyData> irMeteringModeSet(GatewayManager gateway, IrMeteringModeSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -450,7 +450,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3 })
     public TopicServicesResponse<ServicesReplyData> irMeteringPointSet(GatewayManager gateway, IrMeteringPointSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -464,7 +464,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3 })
     public TopicServicesResponse<ServicesReplyData> irMeteringAreaSet(GatewayManager gateway, IrMeteringAreaSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
