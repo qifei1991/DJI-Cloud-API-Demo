@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -134,7 +135,7 @@ public class FileServiceImpl implements IFileService {
                     .jobId(file.getExt().getFileGroupId())
                     .drone(file.getExt().getSn())
                     .tinnyFingerprint(file.getExt().getTinnyFingerprint())
-                    .payload(file.getExt().getPayloadModelKey().getDevice());
+                    .payload(Objects.isNull(file.getExt().getPayloadModelKey()) ? null : file.getExt().getPayloadModelKey().getDevice());
 
             // domain-type-subType
             DeviceEnum payloadModelKey = file.getExt().getPayloadModelKey();

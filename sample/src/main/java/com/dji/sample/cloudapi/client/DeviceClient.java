@@ -12,6 +12,7 @@ import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
+import com.dji.sdk.cloudapi.control.MeteringModeEnum;
 import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
 import lombok.RequiredArgsConstructor;
@@ -125,6 +126,15 @@ public class DeviceClient extends AbstractClient {
                 .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
                         .gimbalRoll(mainPayload.getGimbalRoll())
                         .gimbalYaw(mainPayload.getGimbalYaw()));
+
+        // 获取ir测距信息
+        Optional.ofNullable(data.getCameras())
+                .ifPresent(cameras -> {
+                    OsdCamera osdCamera = data.getCameras().get(0);
+                    builder.irMeteringMode(Objects.requireNonNullElse(osdCamera.getIrMeteringMode(), MeteringModeEnum.DISABLE))
+                            .irMeteringPoint(osdCamera.getIrMeteringPoint())
+                            .irMeteringArea(osdCamera.getIrMeteringArea());
+                });
 
         // 根据网关SN查询是否是机场飞行作业, 赋值作业ID
         Optional<EventsReceiver<FlighttaskProgress>> runningJobOpt = waylineRedisService.getRunningWaylineJob(dockSn);

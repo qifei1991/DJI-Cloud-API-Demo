@@ -1,7 +1,7 @@
 package com.dji.sample.control.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.cron.CronUtil;
-import cn.hutool.json.JSONObject;
 import com.dji.sample.component.mqtt.config.MqttPropertyConfiguration;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.mqtt.model.MapKeyConst;
@@ -32,9 +32,9 @@ import com.dji.sdk.cloudapi.control.api.AbstractControlService;
 import com.dji.sdk.cloudapi.device.DockModeCodeEnum;
 import com.dji.sdk.cloudapi.device.OsdDockDrone;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
-import com.dji.sdk.common.Common;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
+import com.dji.sdk.config.version.CloudSDKVersionEnum;
 import com.dji.sdk.config.version.Dock2ThingVersionEnum;
 import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.mqtt.TopicConst;
@@ -45,15 +45,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author sean
@@ -64,7 +63,8 @@ import java.util.Optional;
 @Slf4j
 public class DrcServiceImpl implements IDrcService {
 
-    private static String DRC_HEART_CRON = "0/2 * * * * ?";
+    // DRC heartbeat cron 没10秒一次
+    private static String DRC_HEART_CRON = "0/10 * * * * ?";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -173,28 +173,23 @@ public class DrcServiceImpl implements IDrcService {
         GatewayManager gatewayMgr = SDKManager.getDeviceSDK(param.getDockSn());
 
         // If the dock is in drc mode, refresh the permissions directly.
-        if (deviceService.checkDockDrcMode(param.getDockSn())
-                && param.getClientId().equals(this.getDrcModeInRedis(param.getDockSn()))) {
-            refreshAcl(param.getDockSn(), param.getClientId(), topic, subTopic);
+        if (deviceService.checkDockDrcMode(param.getDockSn()) && param.getClientId().equals(this.getDrcModeInRedis(param.getDockSn()))) {
+            refreshAcl(param.getDockSn(), param.getClientId(), pubTopic, subTopic);
             // 添加定时心跳任务，10秒一次
             if (checkHeartBeatSinceVersion(gatewayMgr)) {
-                CronUtil.remove(param.getDockSn()); // todo 去掉之前的心跳,临时处理方案
-                log.info("- [Drc HeartBeat] 先删除再添加, SN: {}", gatewayMgr.getGatewaySn());
-                CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () ->
-                        abstractControlService.heartBeatDown(gatewayMgr,
-                                new HeartBeatRequest()
-                                        .setSeq(0L)
-                                        .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())));
+                addDrcHeartBeat(param, gatewayMgr);
             }
             return JwtAclDTO.builder().sub(List.of(subTopic)).pub(List.of(pubTopic)).build();
         }
 
         checkDrcModeCondition(workspaceId, param.getDockSn());
 
+        String droneClientId = param.getDockSn() + "-" + System.currentTimeMillis();
+        setDroneClientDrcAcl(droneClientId, subTopic, pubTopic);    // 这里是飞机的授权，和web端的相反
         TopicServicesResponse<ServicesReplyData> reply = abstractControlService.drcModeEnter(
                 gatewayMgr,
                 new DrcModeEnterRequest()
-                        .setMqttBroker(MqttPropertyConfiguration.getMqttBrokerWithDrc(param.getDockSn() + "-" + System.currentTimeMillis(), param.getDockSn(),
+                        .setMqttBroker(MqttPropertyConfiguration.getMqttBrokerWithDrc(droneClientId, param.getDockSn(),
                                 RedisConst.DRC_MODE_ALIVE_SECOND.longValue(),
                                 Map.of(MapKeyConst.ACL, objectMapper.convertValue(JwtAclDTO.builder()
                                         .pub(List.of(subTopic))
@@ -210,15 +205,21 @@ public class DrcServiceImpl implements IDrcService {
         refreshAcl(param.getDockSn(), param.getClientId(), pubTopic, subTopic);
         // 添加定时心跳任务，10秒一次
         if (checkHeartBeatSinceVersion(gatewayMgr)) {
-            log.info("- [Drc HeartBeat] 先删除再添加, SN: {}", gatewayMgr.getGatewaySn());
-            CronUtil.remove(param.getDockSn()); // todo 去掉之前的心跳,临时处理方案
-            CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () ->
-                    abstractControlService.heartBeatDown(gatewayMgr,
-                            new HeartBeatRequest()
-                                    .setSeq(0L)
-                                    .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())));
+            addDrcHeartBeat(param, gatewayMgr);
         }
         return JwtAclDTO.builder().sub(List.of(subTopic)).pub(List.of(pubTopic)).build();
+    }
+
+    private void addDrcHeartBeat(DrcModeParam param, GatewayManager gatewayMgr) {
+        log.info("- [Drc HeartBeat] 先删除再添加, SN: {}", gatewayMgr.getGatewaySn());
+        CronUtil.remove(param.getDockSn());
+        CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () -> {
+            log.info("[Drc HeartBeat] 发送心跳, ID: {}", param.getDockSn());
+            abstractControlService.heartBeatDown(gatewayMgr,
+                    new HeartBeatRequest()
+                            .setSeq(0L)
+                            .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
+        });
     }
 
     /**
@@ -226,10 +227,7 @@ public class DrcServiceImpl implements IDrcService {
      * @param gatewayMgr 网关设备
      */
     private boolean checkHeartBeatSinceVersion(GatewayManager gatewayMgr) {
-        double sinceVersion = Double.parseDouble(Dock2ThingVersionEnum.V1_3_0.getThingVersion()
-                .substring(0, Dock2ThingVersionEnum.V1_3_0.getThingVersion().lastIndexOf(".")));
-        String thingVersion = gatewayMgr.getGatewayThingVersion().getThingVersion();
-        return Double.parseDouble(thingVersion.substring(0, thingVersion.lastIndexOf("."))) >= sinceVersion;
+        return null != gatewayMgr.getSdkVersion() && gatewayMgr.getSdkVersion().isSupported(CloudSDKVersionEnum.V1_0_3);
     }
 
     private void refreshAcl(String dockSn, String clientId, String pubTopic, String subTopic) {
@@ -240,6 +238,17 @@ public class DrcServiceImpl implements IDrcService {
         String key = RedisConst.MQTT_ACL_PREFIX + clientId;
         // RedisOpsUtils.hashSet(key, pubTopic, MqttAclAccessEnum.PUB.getValue());
         // RedisOpsUtils.hashSet(key, subTopic, MqttAclAccessEnum.SUB.getValue());
+        DrcAclRedisUtil.hashSet(key, pubTopic, new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.PUBLISH.getAction()));
+        DrcAclRedisUtil.hashSet(key, subTopic, new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.SUBSCRIBE.getAction()));
+        RedisOpsUtils.expireKey(key, RedisConst.DRC_MODE_ALIVE_SECOND);
+    }
+
+    private void setDroneClientDrcAcl(String clientId, String pubTopic, String subTopic) {
+        // assign acl，Match by clientId. https://docs.emqx.com/zh/emqx/v5.2/access-control/authz/redis.html
+        // scheme: HSET mqtt_acl:[clientid] [topic] [access]
+        String key = RedisConst.MQTT_ACL_PREFIX + clientId;
+        DrcAclRedisUtil.hashSet(RedisConst.MQTT_ACL_PREFIX + clientId, "",
+                new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.ALL.getAction()));
         DrcAclRedisUtil.hashSet(key, pubTopic, new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.PUBLISH.getAction()));
         DrcAclRedisUtil.hashSet(key, subTopic, new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.SUBSCRIBE.getAction()));
         RedisOpsUtils.expireKey(key, RedisConst.DRC_MODE_ALIVE_SECOND);
@@ -273,8 +282,29 @@ public class DrcServiceImpl implements IDrcService {
         RedisOpsUtils.del(RedisConst.MQTT_ACL_PREFIX + param.getClientId());
     }
 
+    /**
+     * 定时查看是否有无用的定时任务，如果设备下线，说明不需要执行DRC心跳检测则清除定时任务
+     */
+    @Scheduled(initialDelay = 10, fixedRate = 60, timeUnit = TimeUnit.SECONDS)
+    public void cleanDrcHeartBeatTask() {
+        log.info("- [Drc HeartBeat] 定时清除心跳任务");
+        List<String> ids = CronUtil.getScheduler().getTaskTable().getIds();
+        if (CollUtil.isEmpty(ids)) {
+            return;
+        }
+
+        log.info("- [Drc HeartBeat] 定时任务数量: {}", ids.size());
+        ids.forEach(dockSn -> {
+            Optional<DeviceDTO> deviceOnlineOpt = deviceRedisService.getDeviceOnline(dockSn);
+            if (deviceOnlineOpt.isEmpty() || Objects.isNull(deviceOnlineOpt.get().getChildren())
+                    || !deviceOnlineOpt.get().getChildren().getStatus()) {
+                log.info("- [Drc HeartBeat] 删除离线设备心跳，ID: {}", dockSn);
+                CronUtil.remove(dockSn);
+            }
+        });
+    }
+
     public static void main(String[] args) throws JsonProcessingException {
-        log.info("acl json: {}", Common.getObjectMapper().convertValue(
-                new MqttAclAccessRule().setAction(MqttAclAccessActionEnum.PUBLISH.getAction()), JSONObject.class));
+        log.info("version: {}", Dock2ThingVersionEnum.V1_3_0.compareTo(Dock2ThingVersionEnum.V1_3_1) >= 0);
     }
 }

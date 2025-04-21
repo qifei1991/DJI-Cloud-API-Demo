@@ -1,6 +1,9 @@
 package com.dji.sample.cloudapi.model.param;
 
+import com.dji.sdk.cloudapi.control.MeteringModeEnum;
 import com.dji.sdk.cloudapi.device.DroneModeCodeEnum;
+import com.dji.sdk.cloudapi.device.IrMeteringArea;
+import com.dji.sdk.cloudapi.device.IrMeteringPoint;
 import lombok.Builder;
 import lombok.Data;
 
@@ -44,4 +47,10 @@ public class AircraftOsdParam {
     private Integer modeCodeReason;
 
     private String trackId;
+
+    private MeteringModeEnum irMeteringMode;
+
+    private IrMeteringPoint irMeteringPoint;
+
+    private IrMeteringArea irMeteringArea;
 }

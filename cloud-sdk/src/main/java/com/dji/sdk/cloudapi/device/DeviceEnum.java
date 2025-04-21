@@ -4,6 +4,7 @@ import com.dji.sdk.exception.CloudSDKException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 
@@ -146,7 +147,11 @@ public enum DeviceEnum {
 
     @JsonCreator
     public static DeviceEnum find(String key) {
+        if (!StringUtils.hasText(key)) {
+            return null;
+        }
         return Arrays.stream(values()).filter(device -> device.getDevice().equals(key))
                 .findAny().orElseThrow(() -> new CloudSDKException(DeviceEnum.class, key));
     }
+
 }

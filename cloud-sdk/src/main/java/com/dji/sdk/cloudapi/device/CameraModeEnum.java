@@ -21,8 +21,10 @@ public enum CameraModeEnum {
 
     PANORAMA(3),
 
+    TIMING_PHOTO(4),    // 定时拍照
+
     UNSUPPORTED(-1),
-    
+
     ;
 
     private final int mode;
