@@ -20,6 +20,6 @@ public class RemoteDebugOpenState extends RemoteDebugHandler {
     public boolean canPublish(String sn) {
         IDeviceService deviceService = SpringBeanUtilsTest.getBean(IDeviceService.class);
         DockModeCodeEnum dockMode = deviceService.getDockMode(sn);
-        return DockModeCodeEnum.IDLE == dockMode;
+        return DockModeCodeEnum.IDLE == dockMode || DockModeCodeEnum.TO_BE_CALIBRATED == dockMode;
     }
 }

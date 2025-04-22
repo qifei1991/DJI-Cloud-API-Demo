@@ -669,7 +669,7 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         DockModeCodeEnum dockMode = this.getDockMode(dockSn);
-        if (DockModeCodeEnum.IDLE != dockMode) {
+        if (DockModeCodeEnum.IDLE != dockMode && DockModeCodeEnum.TO_BE_CALIBRATED != dockMode) {
             throw new RuntimeException("机场当前状态不能升级！");
         }
     }

@@ -78,7 +78,11 @@ public enum DockStateDataKeyEnum {
 
     AI_SPOTLIGHT_ZOOM_ON(Set.of("ai_spotlight_zoom_on"), AiSpotlightZoomOn.class),
 
-    AI_SPOTLIGHT_ZOOM_STATE(Set.of("ai_spotlight_zoom_state"), AiSpotlightZoomStatus.class)
+    AI_SPOTLIGHT_ZOOM_STATE(Set.of("ai_spotlight_zoom_state"), AiSpotlightZoomStatus.class),
+
+    MOBILITY_STATUS_NOTIFY(Set.of("mobility_status_notify"), MobilityStatusNotify.class),
+
+    AI_IDENTIFY_ON(Set.of("ai_identify_on"), AiIdentifyOn.class),
 
     ;
 

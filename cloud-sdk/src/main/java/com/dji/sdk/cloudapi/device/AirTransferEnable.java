@@ -7,6 +7,7 @@ import com.dji.sdk.common.BaseModel;
  * @date 2024/5/22 17:34
  */
 public class AirTransferEnable extends BaseModel {
+
     private boolean airTransferEnable;
 
     @Override
