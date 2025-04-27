@@ -24,6 +24,8 @@ public enum DeviceDomainEnum {
 
     DOCK (3),
 
+    D_RTK3(6)
+
     ;
 
     private final int domain;

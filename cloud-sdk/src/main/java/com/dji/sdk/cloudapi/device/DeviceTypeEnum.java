@@ -83,7 +83,9 @@ public enum DeviceTypeEnum {
 
     M4D_CAMERA(98),
 
-    M4TD_CAMERA(99)
+    M4TD_CAMERA(99),
+
+    D_RTK3(600),
 
     ;
 

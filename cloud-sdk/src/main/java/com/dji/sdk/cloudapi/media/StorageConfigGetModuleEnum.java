@@ -15,7 +15,9 @@ public enum StorageConfigGetModuleEnum {
 
     MEDIA(0),
 
-    PSDK_UI(1)
+    PSDK_UI(1),
+
+    Unknown(2),
     ;
 
     private final int module;

@@ -100,6 +100,10 @@ public enum DeviceEnum {
 
     M4TD_CAMERA(DeviceDomainEnum.PAYLOAD, DeviceTypeEnum.M4TD_CAMERA, DeviceSubTypeEnum.ZERO),
 
+    M4TD_CAMERA2(DeviceDomainEnum.PAYLOAD, DeviceTypeEnum.M4TD_CAMERA, DeviceSubTypeEnum.TWO),
+
+    D_RTK3(DeviceDomainEnum.D_RTK3, DeviceTypeEnum.D_RTK3, DeviceSubTypeEnum.ZERO),
+
     ;
 
     @Schema(enumAsRef = true)
