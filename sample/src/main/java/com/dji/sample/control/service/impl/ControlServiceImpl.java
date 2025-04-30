@@ -96,7 +96,7 @@ public class ControlServiceImpl implements IControlService {
 
         boolean isExist = deviceRedisService.checkDeviceOnline(sn);
         if (!isExist) {
-            return HttpResultResponse.error("机场已下线");
+            return HttpResultResponse.error("机场已离线");
         }
         TopicServicesResponse response;
         switch (controlMethodEnum) {

@@ -25,6 +25,8 @@ public enum PropertySetFieldEnum {
 
     OUT_OF_CONTROL_ACTION(PropertySetEnum.OUT_OF_CONTROL_ACTION, OutOfControlActionReceiver.class),
 
+    AIR_TRANSFER_ENABLE(PropertySetEnum.AIR_TRANSFER_ENABLE, AirTransferEnableReceiver.class),
+
 //    EXIT_WAYLINE_WHEN_RC_LOST(PropertySetEnum.EXIT_WAYLINE_WHEN_RC_LOST, .class),
 //
 //    THERMAL_CURRENT_PALETTE_STYLE(PropertySetEnum.THERMAL_CURRENT_PALETTE_STYLE, .class),

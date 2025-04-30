@@ -1,6 +1,7 @@
 package com.dji.sdk.cloudapi.device;
 
 import com.dji.sdk.common.BaseModel;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Qfei
@@ -8,7 +9,8 @@ import com.dji.sdk.common.BaseModel;
  */
 public class AirTransferEnable extends BaseModel {
 
-    private boolean airTransferEnable;
+    @JsonProperty("air_transfer_enable")
+    private Boolean airTransferEnable;
 
     @Override
     public String toString() {
@@ -17,11 +19,11 @@ public class AirTransferEnable extends BaseModel {
                 '}';
     }
 
-    public boolean isAirTransferEnable() {
+    public Boolean isAirTransferEnable() {
         return airTransferEnable;
     }
 
-    public AirTransferEnable setAirTransferEnable(boolean airTransferEnable) {
+    public AirTransferEnable setAirTransferEnable(Boolean airTransferEnable) {
         this.airTransferEnable = airTransferEnable;
         return this;
     }

@@ -3,6 +3,7 @@ package com.dji.sample.control.model.enums;
 import com.dji.sample.control.model.dto.*;
 import com.dji.sample.control.service.impl.RemoteDebugHandler;
 import com.dji.sdk.cloudapi.debug.DebugMethodEnum;
+import com.dji.sdk.cloudapi.wayline.WaylineMethodEnum;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 
@@ -25,9 +26,9 @@ public enum RemoteDebugMethodEnum {
 
     SUPPLEMENT_LIGHT_CLOSE(DebugMethodEnum.SUPPLEMENT_LIGHT_CLOSE, false, null),
 
-    RETURN_HOME("return_home", false, ReturnHomeState.class),
+    RETURN_HOME(WaylineMethodEnum.RETURN_HOME.getMethod(), false, ReturnHomeState.class),
 
-    RETURN_HOME_CANCEL("return_home_cancel", false, ReturnHomeCancelState.class),
+    RETURN_HOME_CANCEL(WaylineMethodEnum.RETURN_HOME_CANCEL.getMethod(), false, ReturnHomeCancelState.class),
 
     DEVICE_REBOOT(DebugMethodEnum.DEVICE_REBOOT, true, null),
 
