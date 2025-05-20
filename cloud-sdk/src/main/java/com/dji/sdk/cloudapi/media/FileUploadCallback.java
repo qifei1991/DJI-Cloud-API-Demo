@@ -13,6 +13,8 @@ public class FileUploadCallback {
 
     private FileUploadCallbackFile file;
 
+    private FileUploadCallbackFlightTask flightTask;
+
     public FileUploadCallback() {
     }
 
@@ -22,6 +24,7 @@ public class FileUploadCallback {
                 "result=" + result +
                 ", progress=" + progress +
                 ", file=" + file +
+                ", flightTask=" + flightTask +
                 '}';
     }
 
@@ -49,6 +52,15 @@ public class FileUploadCallback {
 
     public FileUploadCallback setFile(FileUploadCallbackFile file) {
         this.file = file;
+        return this;
+    }
+
+    public FileUploadCallbackFlightTask getFlightTask() {
+        return flightTask;
+    }
+
+    public FileUploadCallback setFlightTask(FileUploadCallbackFlightTask flightTask) {
+        this.flightTask = flightTask;
         return this;
     }
 }

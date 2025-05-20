@@ -8,6 +8,7 @@ import com.dji.sample.cloudapi.model.param.MediaFileParam;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.media.model.MediaFileCountDTO;
+import com.dji.sdk.cloudapi.media.FileUploadCallbackFlightTask;
 import com.dji.sdk.cloudapi.media.MediaUploadCallbackRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -42,11 +43,13 @@ public class MediaClient extends AbstractClient {
 
     /**
      * Media-file upload callback.
-     * @param jobId flight id
+     *
+     * @param jobId         flight id
      * @param fileUploadDTO uploaded file information.
+     * @param flightTask
      */
     @Async("asyncThreadPool")
-    public void uploadCallback(String flightId, MediaUploadCallbackRequest fileUploadCallbackFile) {
+    public void uploadCallback(String flightId, MediaUploadCallbackRequest fileUploadCallbackFile, FileUploadCallbackFlightTask flightTask) {
         try {
             String saveName = fileUploadCallbackFile.getObjectKey()
                     .substring(fileUploadCallbackFile.getObjectKey().lastIndexOf("/") + 1);
@@ -63,6 +66,7 @@ public class MediaClient extends AbstractClient {
                     .updateTime(LocalDateTime.now().format(FORMATTER))
                     .uploadStatus(2)
                     .platform(OssConfiguration.provider.getType())
+                    .flightType(flightTask.getFlightType().getType())
                     .build();
             this.applicationJsonPost(ClientUri.URI_MEDIA_UPLOAD_CALLBACK, Collections.singleton(fileParam));
         } catch (Exception e) {

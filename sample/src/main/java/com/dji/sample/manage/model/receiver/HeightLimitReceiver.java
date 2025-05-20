@@ -19,7 +19,7 @@ import java.util.Objects;
 @NoArgsConstructor
 public class HeightLimitReceiver extends BasicDeviceProperty {
 
-    private static final int HEIGHT_LIMIT_MAX = 1500;
+    private static final int HEIGHT_LIMIT_MAX = 15000;
 
     private static final int HEIGHT_LIMIT_MIN = 20;
 

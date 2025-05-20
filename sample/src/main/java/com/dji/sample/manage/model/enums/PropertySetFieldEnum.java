@@ -29,7 +29,7 @@ public enum PropertySetFieldEnum {
 
 //    EXIT_WAYLINE_WHEN_RC_LOST(PropertySetEnum.EXIT_WAYLINE_WHEN_RC_LOST, .class),
 //
-//    THERMAL_CURRENT_PALETTE_STYLE(PropertySetEnum.THERMAL_CURRENT_PALETTE_STYLE, .class),
+   THERMAL_CURRENT_PALETTE_STYLE(PropertySetEnum.THERMAL_CURRENT_PALETTE_STYLE, ThermalCurrentPaletteStyleReceiver.class),
 //
 //    THERMAL_GAIN_MODE(PropertySetEnum.THERMAL_GAIN_MODE, .class),
 //

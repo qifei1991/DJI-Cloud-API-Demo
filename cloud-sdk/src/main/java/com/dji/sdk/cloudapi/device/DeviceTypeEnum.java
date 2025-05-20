@@ -59,7 +59,7 @@ public enum DeviceTypeEnum {
 
     RC_PRO_TWO(174),
 
-    M4(99),
+    M4E(99),
 
     M4E_CAMERA(88),
 

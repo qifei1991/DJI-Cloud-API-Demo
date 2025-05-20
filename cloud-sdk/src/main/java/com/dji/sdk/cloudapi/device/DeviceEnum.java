@@ -68,9 +68,9 @@ public enum DeviceEnum {
 
     RC_PRO_TWO(DeviceDomainEnum.REMOTER_CONTROL, DeviceTypeEnum.RC_PRO_TWO, DeviceSubTypeEnum.ZERO),
 
-    M4E(DeviceDomainEnum.DRONE, DeviceTypeEnum.M4, DeviceSubTypeEnum.ZERO),
+    M4E(DeviceDomainEnum.DRONE, DeviceTypeEnum.M4E, DeviceSubTypeEnum.ZERO),
 
-    M4T(DeviceDomainEnum.DRONE, DeviceTypeEnum.M4, DeviceSubTypeEnum.ONE),
+    M4T(DeviceDomainEnum.DRONE, DeviceTypeEnum.M4E, DeviceSubTypeEnum.ONE),
 
     M4E_CAMERA(DeviceDomainEnum.PAYLOAD, DeviceTypeEnum.M4E_CAMERA, DeviceSubTypeEnum.ZERO),
 

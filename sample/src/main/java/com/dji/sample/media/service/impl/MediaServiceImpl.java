@@ -109,7 +109,7 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
         // duplicate data
         if (deviceOpt.isEmpty()
                 || (Objects.nonNull(mediaFileCount) && request.getBid().equals(mediaFileCount.getBid())
-                && request.getTid().equals(mediaFileCount.getTid()))) {
+                    && request.getTid().equals(mediaFileCount.getTid()))) {
             return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
         }
 
@@ -180,7 +180,7 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
                 .map(job -> Boolean.TRUE.equals(job.getContinuable()) ? job.getGroupId() : job.getJobId())
                 // 处理手控飞行上传的媒体文件, modify by Qfei, 2023-9-13 14:45:45.
                 .orElse(callback.getFile().getExt().getFlightId());
-        this.mediaClient.uploadCallback(flightId, file);
+        this.mediaClient.uploadCallback(flightId, file, callback.getFlightTask());
 
         return saved > 0;
     }

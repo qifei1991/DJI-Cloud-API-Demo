@@ -37,6 +37,8 @@ public class MediaFileParam {
 
     private String createTime;
     private String updateTime;
+
     private String platform;
 
+    private Integer flightType;
 }

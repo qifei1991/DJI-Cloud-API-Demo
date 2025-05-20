@@ -623,8 +623,12 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             // record the update of the media count.
             if (Objects.nonNull(job.getMediaCount()) && job.getMediaCount() != 0) {
                 mediaRedisService.setMediaCount(response.getGateway(), job.getJobId(),
-                        MediaFileCountDTO.builder().deviceSn(deviceOpt.get().getChildDeviceSn())
-                                .jobId(response.getBid()).mediaCount(job.getMediaCount()).uploadedCount(0).build());
+                        MediaFileCountDTO.builder()
+                                .deviceSn(deviceOpt.get().getChildDeviceSn())
+                                .jobId(response.getBid())
+                                .mediaCount(job.getMediaCount())
+                                .uploadedCount(0)
+                                .build());
             }
 
             Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(deviceOpt.get().getWorkspaceId(), response.getBid());

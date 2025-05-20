@@ -10,10 +10,12 @@ import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
 import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.control.model.enums.DroneAuthorityEnum;
+import com.dji.sample.manage.annotation.PropertyParamPosition;
 import com.dji.sample.manage.dao.IDeviceMapper;
 import com.dji.sample.manage.model.dto.*;
 import com.dji.sample.manage.model.entity.DeviceEntity;
 import com.dji.sample.manage.model.enums.DeviceFirmwareStatusEnum;
+import com.dji.sample.manage.model.enums.PropertyParamEnum;
 import com.dji.sample.manage.model.enums.PropertySetFieldEnum;
 import com.dji.sample.manage.model.enums.UserTypeEnum;
 import com.dji.sample.manage.model.param.DeviceHmsQueryParam;
@@ -699,10 +701,19 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!isPublish) {
             return PropertySetReplyResultEnum.SUCCESS.getResult();
         }
-        BaseModel baseModel = objectMapper.convertValue(param, propertyEnum.getProperty().getClazz());
+
+        // 判断参数是整个json对象，还是只取json的value值
+        JsonNode value = useChildValue(basicDeviceProperty) ? param.get(property) : param;
+
+        BaseModel baseModel = objectMapper.convertValue(value, propertyEnum.getProperty().getClazz());
         PropertySetReplyResultEnum result = abstractPropertyService.propertySet(
                 SDKManager.getDeviceSDK(dockSn), propertyEnum.getProperty(), baseModel);
         return result.getResult();
+    }
+
+    private Boolean useChildValue(BasicDeviceProperty basicDeviceProperty) {
+        return basicDeviceProperty.getClass().isAnnotationPresent(PropertyParamPosition.class)
+                && PropertyParamEnum.CHILD == basicDeviceProperty.getClass().getAnnotation(PropertyParamPosition.class).value();
     }
 
     @Override
@@ -784,4 +795,5 @@ public class DeviceServiceImpl implements IDeviceService {
                 .deviceDesc(dto.getDeviceDesc())
                 .build();
     }
+
 }
