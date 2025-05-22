@@ -58,6 +58,8 @@ public class OsdRcDrone {
 
     private RcDistanceLimitStatus distanceLimitStatus;
 
+    private List<OsdCamera> cameras;
+
     private String trackId;
 
     public OsdRcDrone() {
@@ -89,6 +91,7 @@ public class OsdRcDrone {
                 ", storage=" + storage +
                 ", heightLimit=" + heightLimit +
                 ", distanceLimitStatus=" + distanceLimitStatus +
+                ", cameras=" + cameras +
                 ", trackId='" + trackId + '\'' +
                 '}';
     }
@@ -297,6 +300,15 @@ public class OsdRcDrone {
 
     public OsdRcDrone setDistanceLimitStatus(RcDistanceLimitStatus distanceLimitStatus) {
         this.distanceLimitStatus = distanceLimitStatus;
+        return this;
+    }
+
+    public List<OsdCamera> getCameras() {
+        return cameras;
+    }
+
+    public OsdRcDrone setCameras(List<OsdCamera> cameras) {
+        this.cameras = cameras;
         return this;
     }
 

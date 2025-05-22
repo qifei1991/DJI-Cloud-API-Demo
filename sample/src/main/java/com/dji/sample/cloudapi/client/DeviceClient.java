@@ -89,14 +89,14 @@ public class DeviceClient extends AbstractClient {
     }
 
     /**
-     * Report the OSD information of drone.
+     * Report the OSD information of Dock drone.
      *
      * @param data     OSD data of MQTT received.
      * @param deviceSn Drone SN
      * @param dockSn Dock SN
      */
     @Async("asyncThreadPool")
-    public void reportDroneOsdInfo(OsdDockDrone data, String deviceSn, String dockSn) {
+    public void reportDockDroneOsdInfo(OsdDockDrone data, String deviceSn, String dockSn) {
 
         AircraftOsdParam.AircraftOsdParamBuilder builder = AircraftOsdParam.builder()
                 .sn(deviceSn)
@@ -139,6 +139,47 @@ public class DeviceClient extends AbstractClient {
         // 根据网关SN查询是否是机场飞行作业, 赋值作业ID
         Optional<EventsReceiver<FlighttaskProgress>> runningJobOpt = waylineRedisService.getRunningWaylineJob(dockSn);
         runningJobOpt.ifPresent(x -> builder.sortiesId(x.getOutput().getExt().getFlightId()));
+
+        this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
+    }
+
+    /**
+     * Report the OSD information of drone.
+     *
+     * @param data     OSD data of MQTT received.
+     * @param deviceSn Drone SN
+     */
+    @Async("asyncThreadPool")
+    public void reportRcDroneOsdInfo(OsdRcDrone data, String deviceSn) {
+
+        AircraftOsdParam.AircraftOsdParamBuilder builder = AircraftOsdParam.builder()
+                .sn(deviceSn)
+                .firmwareVersion(data.getFirmwareVersion())
+                .modelCode(data.getModeCode())
+                .longitude(data.getLongitude())
+                .latitude(data.getLatitude())
+                .horizontalSpeed(data.getHorizontalSpeed())
+                .verticalSpeed(data.getVerticalSpeed())
+                .elevation(data.getElevation())
+                .altitude(data.getHeight())
+                .battery(data.getBattery().getCapacityPercent())
+                .aircraftDirection(data.getAttitudeHead())
+                .aircraftCourse(Optional.ofNullable(data.getAttitudeHead()).map(ApiUtil::course2direction).orElse(null))
+                .aircraftPitch(data.getAttitudePitch())
+                .aircraftRoll(data.getAttitudeRoll())
+                .aircraftYaw(data.getAttitudeHead())
+                .homeDistance(data.getHomeDistance())
+                .time(System.currentTimeMillis())
+                .trackId(data.getTrackId());
+
+        // obtain main gimbal(the index of 0) osd information.
+        Optional.ofNullable(data.getPayloads())
+                .flatMap(payloads -> payloads.parallelStream()
+                        .filter(payload -> payload.getPayloadIndex().getPosition() == PayloadPositionEnum.FRONT_LEFT)
+                        .findAny())
+                .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
+                        .gimbalRoll(mainPayload.getGimbalRoll())
+                        .gimbalYaw(mainPayload.getGimbalYaw()));
 
         this.applicationJsonPost(ClientUri.URI_OSD_STATE, builder.build(), DeviceCategory.AIRCRAFT.getCode());
     }

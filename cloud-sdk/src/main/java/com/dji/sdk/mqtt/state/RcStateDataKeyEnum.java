@@ -2,6 +2,9 @@ package com.dji.sdk.mqtt.state;
 
 import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.cloudapi.livestream.RcLivestreamAbilityUpdate;
+import com.dji.sdk.cloudapi.property.DockDroneCommanderFlightHeight;
+import com.dji.sdk.cloudapi.property.DockDroneCommanderModeLostAction;
+import com.dji.sdk.cloudapi.property.DockDroneRthMode;
 import com.dji.sdk.exception.CloudSDKException;
 
 import java.util.Arrays;
@@ -24,7 +27,29 @@ public enum RcStateDataKeyEnum {
 
     LIVE_STATUS(Set.of("live_status"), RcLiveStatus.class),
 
+    WPMZ_VERSION(Set.of("wpmz_version"), DockDroneWpmzVersion.class),
+
     PAYLOAD_FIRMWARE(PayloadModelConst.getAllModelWithPosition(), PayloadFirmwareVersion.class),
+
+    RTH_MODE(Set.of("rth_mode"), DockDroneRthMode.class),
+
+    CURRENT_RTH_MODE(Set.of("current_rth_mode"), DockDroneCurrentRthMode.class),
+
+    COMMANDER_MODE_LOST_ACTION(Set.of("commander_mode_lost_action"), DockDroneCommanderModeLostAction.class),
+
+    CURRENT_COMMANDER_FLIGHT_MODE(Set.of("current_commander_flight_mode", "commander_flight_mode"), DockDroneCurrentCommanderFlightMode.class),
+
+    COMMANDER_FLIGHT_HEIGHT(Set.of("commander_flight_height"), DockDroneCommanderFlightHeight.class),
+
+    DONGLE_INFOS(Set.of("dongle_infos"), DongleInfos.class),
+
+    PSDK_UI_RESOURCE(Set.of("psdk_ui_resource"), PsdkUiResource.class),
+
+    PSDK_WIDGET_VALUES(Set.of("psdk_widget_values"), PsdkWidgetValues.class),
+
+    CAPABILITY_SET(Set.of("capability_set"), RcCapabilitySet.class),
+
+    IS_CLOUD_CONTROL_AUTH(Set.of("is_cloud_control_auth"), RcIsCloudControlAuth.class)
     ;
 
     private final Set<String> keys;

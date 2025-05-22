@@ -204,7 +204,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DEVICE_OSD, from, request.getData());
 
         // Report drone osd status.
-        this.deviceClient.reportDroneOsdInfo(request.getData(), device.getDeviceSn(), request.getGateway());
+        this.deviceClient.reportDockDroneOsdInfo(request.getData(), device.getDeviceSn(), request.getGateway());
     }
 
     @Override
@@ -266,6 +266,9 @@ public class SDKDeviceService extends AbstractDeviceService {
                         .setHorizontalSpeed(data.getHorizontalSpeed())
                         .setVerticalSpeed(data.getVerticalSpeed()));
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DEVICE_OSD, from, data);
+
+        // Report drone osd status.
+        this.deviceClient.reportRcDroneOsdInfo(request.getData(), device.getDeviceSn());
     }
 
     @Override
