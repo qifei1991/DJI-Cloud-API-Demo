@@ -53,6 +53,12 @@ public class MediaClient extends AbstractClient {
         try {
             String saveName = fileUploadCallbackFile.getObjectKey()
                     .substring(fileUploadCallbackFile.getObjectKey().lastIndexOf("/") + 1);
+
+            // mrk、nav、obs、rtk文件不上报
+            if (isUnusedFile(saveName)) {
+                return;
+            }
+
             MediaFileParam.MediaFileParamBuilder builder = MediaFileParam.builder();
             if (!isImageFile(saveName)) {
                 builder.type(MediaFileType.VIDEO.getCode());
@@ -74,7 +80,6 @@ public class MediaClient extends AbstractClient {
         }
     }
 
-
     /**
      * 是否是图片文件
      *
@@ -83,5 +88,14 @@ public class MediaClient extends AbstractClient {
      */
     public static boolean isImageFile(String fileName) {
         return FileNameUtil.isType(fileName, "jpeg", "jpg", "png");
+    }
+
+    /**
+     * 判断是否是无用的文件，机场3开始上传一些无用的文件，如：mrk、nav、obs、rtk
+     * @param fileName
+     * @return
+     */
+    public static boolean isUnusedFile(String fileName) {
+        return FileNameUtil.isType(fileName, "mrk", "nav", "obs", "rtk");
     }
 }

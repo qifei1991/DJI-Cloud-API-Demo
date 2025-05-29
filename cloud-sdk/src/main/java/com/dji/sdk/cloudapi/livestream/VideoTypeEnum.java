@@ -23,6 +23,10 @@ public enum VideoTypeEnum {
 
     IR("ir"),
 
+    RGB("rgb"),
+
+    MULTI_SPECTRAL("multi-spectral"),
+
     UNKNOWN("undefined");
 
     private final String type;

@@ -14,13 +14,15 @@ import java.util.Arrays;
  */
 public enum FlightTypeEnum {
 
+    UNKNOWN(-1),
+
     /**
      * 飞行类型枚举值
      * {"0":"航线任务","1":"一键起飞任务"}
      */
     WAYLINE_TASK(0),
 
-    takeoff_task(1),
+    TAKEOFF_TASK(1),
 
     ;
 

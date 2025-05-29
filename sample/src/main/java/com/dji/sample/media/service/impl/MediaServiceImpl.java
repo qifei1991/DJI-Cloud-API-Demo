@@ -185,7 +185,8 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
         return saved > 0;
     }
 
-    private void notifyUploadedCount(MediaFileCountDTO mediaFileCount, TopicEventsRequest<FileUploadCallback> request, String jobId, DeviceDTO dock) {
+    private void notifyUploadedCount(MediaFileCountDTO mediaFileCount, TopicEventsRequest<FileUploadCallback> request,
+            String jobId, DeviceDTO dock) {
         // Do not notify when files that do not belong to the route are uploaded.
         if (Objects.isNull(mediaFileCount)) {
             // add by Qfei, 手动飞行媒体文件上传.
@@ -199,7 +200,13 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
         }
         mediaFileCount.setBid(request.getBid());
         mediaFileCount.setTid(request.getTid());
-        mediaFileCount.setUploadedCount(mediaFileCount.getUploadedCount() + 1);
+
+        FileUploadCallbackFlightTask flightTask = request.getData().getFlightTask();
+        if (Objects.nonNull(flightTask) && Objects.nonNull(flightTask.getUploadedFileCount())) {
+            mediaFileCount.setUploadedCount(flightTask.getUploadedFileCount());
+        } else {
+            mediaFileCount.setUploadedCount(mediaFileCount.getUploadedCount() + 1);
+        }
 
         // After all the files of the job are uploaded, delete the media file key.
         if (mediaFileCount.getUploadedCount() >= mediaFileCount.getMediaCount()) {

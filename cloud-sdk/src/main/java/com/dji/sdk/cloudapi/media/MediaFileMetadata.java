@@ -22,7 +22,7 @@ public class MediaFileMetadata {
     private Double absoluteAltitude;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssVV")
-    @NotNull
+    // @NotNull
     @Schema(description = "media create time", example = "2023-01-01T20:00:00+08:00")
     @JsonProperty("created_time")
     private LocalDateTime createdTime;

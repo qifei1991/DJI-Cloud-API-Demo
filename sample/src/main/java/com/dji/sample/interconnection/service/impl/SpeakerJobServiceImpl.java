@@ -125,7 +125,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                 internectionPublishService.speakerAudioPlayStart(issueJobParam.getDeviceSn(),
                         new SpeakerAudioPlayStartRequest()
                                 .setJobId(jobId)
-                                .setPsdkIndex(0)
+                                .setPsdkIndex(issueJobParam.getPsdkIndex())
                                 .setFile(new PlayAudioFile()
                                         .setName(contentDTO.getName())
                                         .setFormat(contentDTO.getAudioFormat())
