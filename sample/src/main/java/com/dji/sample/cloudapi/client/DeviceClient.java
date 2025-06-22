@@ -10,7 +10,9 @@ import com.dji.sample.cloudapi.util.ApiUtil;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.manage.model.dto.DeviceDTO;
+import com.dji.sample.manage.model.dto.WorkspaceDTO;
 import com.dji.sample.manage.service.IDeviceRedisService;
+import com.dji.sample.manage.service.IWorkspaceService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.dji.sdk.cloudapi.control.MeteringModeEnum;
 import com.dji.sdk.cloudapi.device.*;
@@ -40,9 +42,14 @@ public class DeviceClient extends AbstractClient {
 
     private final IWaylineRedisService waylineRedisService;
     private final IDeviceRedisService deviceRedisService;
+    private final IWorkspaceService workspaceService;
 
     public void reportOnline(Optional<DeviceDTO> deviceDTO) {
-        reportDeviceBind(deviceDTO, null);
+        if (deviceDTO.isEmpty()) {
+            return;
+        }
+        Optional<WorkspaceDTO> workspace = workspaceService.getWorkspaceByWorkspaceId(deviceDTO.get().getWorkspaceId());
+        reportDeviceBind(deviceDTO, workspace.map(WorkspaceDTO::getBindCode).orElse(null));
     }
 
     @Async("asyncThreadPool")

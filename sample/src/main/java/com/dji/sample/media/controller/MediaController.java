@@ -47,6 +47,7 @@ public class MediaController implements IHttpMediaService {
      */
     @Override
     public HttpResultResponse<String> mediaUploadCallback(String workspaceId, @Valid MediaUploadCallbackRequest request, HttpServletRequest req, HttpServletResponse rsp) {
+        log.info("Media upload callback: {}", request);
         mediaService.saveMediaFile(workspaceId, request);
         return HttpResultResponse.success(request.getObjectKey());
     }

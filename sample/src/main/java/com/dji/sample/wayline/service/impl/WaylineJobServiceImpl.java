@@ -18,6 +18,7 @@ import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.service.IFileService;
+import com.dji.sample.media.service.IMediaRedisService;
 import com.dji.sample.wayline.dao.IWaylineJobMapper;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.entity.WaylineJobEntity;
@@ -84,6 +85,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     @Autowired
     private IWaylineRedisService waylineRedisService;
+
+    @Autowired
+    private IMediaRedisService mediaRedisService;
 
     private Optional<WaylineJobDTO> insertWaylineJob(WaylineJobEntity jobEntity) {
         int id = mapper.insert(jobEntity);
@@ -378,12 +382,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         }
 
         // sync the number of media files
-        String key = RedisConst.MEDIA_HIGHEST_PRIORITY_PREFIX + entity.getDockSn();
-        String countKey = RedisConst.MEDIA_FILE_PREFIX + entity.getDockSn();
-        Object mediaFileCount = RedisOpsUtils.hashGet(countKey, entity.getJobId());
+        MediaFileCountDTO mediaFileCount = mediaRedisService.getMediaCount(entity.getDockSn(), entity.getJobId());
         if (Objects.nonNull(mediaFileCount)) {
-            builder.uploadedCount(((MediaFileCountDTO) mediaFileCount).getUploadedCount())
-                    .uploading(RedisOpsUtils.checkExist(key) && entity.getJobId().equals(((MediaFileCountDTO)RedisOpsUtils.get(key)).getJobId()));
+            builder.uploadedCount(mediaFileCount.getUploadedCount())
+                    .uploading(RedisOpsUtils.checkExist(RedisConst.MEDIA_HIGHEST_PRIORITY_PREFIX + entity.getDockSn())
+                            && entity.getJobId().equals(mediaRedisService.getMediaHighestPriority(entity.getDockSn()).getJobId()));
             return builder.build();
         }
 
@@ -392,11 +395,13 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (uploadedSize >= entity.getMediaCount()) {
             return builder.uploadedCount(uploadedSize).build();
         }
-        RedisOpsUtils.hashSet(countKey, entity.getJobId(),
-                MediaFileCountDTO.builder()
-                        .jobId(entity.getJobId())
-                        .mediaCount(entity.getMediaCount())
-                        .uploadedCount(uploadedSize).build());
+        /* 暂时注释，在文件上传回调中来处理统计信息
+            mediaRedisService.setMediaCount(entity.getDockSn(), entity.getJobId(),
+                    MediaFileCountDTO.builder()
+                            .jobId(entity.getJobId())
+                            .mediaCount(entity.getMediaCount())
+                            .uploadedCount(uploadedSize).build());
+        */
         return builder.build();
     }
 }

@@ -72,6 +72,7 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
 
     @Override
     public Integer saveMediaFile(String workspaceId, MediaUploadCallbackRequest file) {
+        mediaClient.rcUploadCallback(file);
         return fileService.saveFile(workspaceId, file);
     }
 
@@ -180,15 +181,17 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
                 .map(job -> Boolean.TRUE.equals(job.getContinuable()) ? job.getGroupId() : job.getJobId())
                 // 处理手控飞行上传的媒体文件, modify by Qfei, 2023-9-13 14:45:45.
                 .orElse(callback.getFile().getExt().getFlightId());
-        this.mediaClient.uploadCallback(flightId, file, callback.getFlightTask());
+        this.mediaClient.dockUploadCallback(flightId, file, callback.getFlightTask());
 
         return saved > 0;
     }
 
     private void notifyUploadedCount(MediaFileCountDTO mediaFileCount, TopicEventsRequest<FileUploadCallback> request,
             String jobId, DeviceDTO dock) {
+        FileUploadCallbackFlightTask flightTask = request.getData().getFlightTask();
         // Do not notify when files that do not belong to the route are uploaded.
-        if (Objects.isNull(mediaFileCount)) {
+        if ((Objects.nonNull(flightTask) && FlightTypeEnum.TAKEOFF_TASK == flightTask.getFlightType())
+                || Objects.isNull(mediaFileCount)) {
             // add by Qfei, 手动飞行媒体文件上传.
             mediaFileCount = MediaFileCountDTO.builder()
                     .bid(request.getBid())
@@ -198,10 +201,11 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
             this.mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
             return;
         }
+
+        // wayline flight task media file upload.
         mediaFileCount.setBid(request.getBid());
         mediaFileCount.setTid(request.getTid());
 
-        FileUploadCallbackFlightTask flightTask = request.getData().getFlightTask();
         if (Objects.nonNull(flightTask) && Objects.nonNull(flightTask.getUploadedFileCount())) {
             mediaFileCount.setUploadedCount(flightTask.getUploadedFileCount());
         } else {

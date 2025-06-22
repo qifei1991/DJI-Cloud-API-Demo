@@ -17,6 +17,7 @@ import com.dji.sdk.cloudapi.tsa.IconUrlEnum;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.requests.TopicRequestsRequest;
 import com.dji.sdk.mqtt.requests.TopicRequestsResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import java.util.Optional;
  * @version 1.7
  * @date 2023/7/7
  */
+@Slf4j
 @Service
 public class SDKOrganizationService extends AbstractOrganizationService {
 
@@ -86,7 +88,13 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         OrganizationBindDevice dock = null;
         OrganizationBindDevice drone = null;
         for (OrganizationBindDevice device : devices) {
-            DeviceDomainEnum val = device.getDeviceModelKey().getDomain();
+            DeviceEnum deviceEnum = device.getDeviceModelKey();
+            if  (Objects.isNull(deviceEnum)) {
+                log.error("获取设备类型异常无法绑定到组织下, SN: {}, deviceModeKey: {}", device.getSn(), device.getDeviceModelKey());
+                continue;
+            }
+
+            DeviceDomainEnum val = deviceEnum.getDomain();
             if (val == DeviceDomainEnum.DOCK) {
                 dock = device;
             }

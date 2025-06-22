@@ -21,6 +21,7 @@ public class ClientUri {
     public static final String URI_SORTIES_PROGRESS = "/sorties/{sorties_id}/progress";
     public static final String URI_MEDIA_PROGRESS = "/media/{sorties_id}/progress";
     public static final String URI_MEDIA_UPLOAD_CALLBACK = "/media/upload-callback";
+    public static final String URI_MEDIA_RC_UPLOAD_CALLBACK = "/media/rc/upload-callback";
     public static final String URI_WAYLINE_REPORT = "/wayline/file/upload-report";
 
     public static final String URI_RECEIVE = "/tst/receive/{0}";

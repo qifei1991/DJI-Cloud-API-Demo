@@ -3,6 +3,7 @@ package com.dji.sample.cloudapi.client;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharPool;
+import com.dji.sample.cloudapi.config.MediaProperties;
 import com.dji.sample.cloudapi.model.enums.MediaFileType;
 import com.dji.sample.cloudapi.model.param.MediaFileParam;
 import com.dji.sample.cloudapi.util.ClientUri;
@@ -13,6 +14,7 @@ import com.dji.sdk.cloudapi.media.MediaUploadCallbackRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -44,30 +46,21 @@ public class MediaClient extends AbstractClient {
     /**
      * Media-file upload callback.
      *
-     * @param jobId         flight id
-     * @param fileUploadDTO uploaded file information.
+     * @param flightId         flight id
+     * @param fileUploadCallbackFile uploaded file information.
      * @param flightTask
      */
     @Async("asyncThreadPool")
-    public void uploadCallback(String flightId, MediaUploadCallbackRequest fileUploadCallbackFile, FileUploadCallbackFlightTask flightTask) {
+    public void dockUploadCallback(String flightId, MediaUploadCallbackRequest fileUploadCallbackFile, FileUploadCallbackFlightTask flightTask) {
         try {
-            String saveName = fileUploadCallbackFile.getObjectKey()
-                    .substring(fileUploadCallbackFile.getObjectKey().lastIndexOf("/") + 1);
-
-            // mrk、nav、obs、rtk文件不上报
-            if (isUnusedFile(saveName)) {
-                return;
-            }
-
-            MediaFileParam.MediaFileParamBuilder builder = MediaFileParam.builder();
-            if (!isImageFile(saveName)) {
-                builder.type(MediaFileType.VIDEO.getCode());
-            }
-            MediaFileParam fileParam = builder
+            String saveName = FileNameUtil.getName(fileUploadCallbackFile.getObjectKey());
+            MediaFileParam fileParam = MediaFileParam.builder()
                     .sortiesId(flightId)
                     .aircraftSn(fileUploadCallbackFile.getExt().getSn())
+                    .type(getFileType(saveName).getCode())
                     .filePath(OssConfiguration.objectDirPrefix + CharPool.SLASH + fileUploadCallbackFile.getPath())
                     .fileName(saveName)
+                    .objectKey(fileUploadCallbackFile.getObjectKey())
                     .createTime(DateUtil.formatLocalDateTime(fileUploadCallbackFile.getMetadata().getCreatedTime()))
                     .updateTime(LocalDateTime.now().format(FORMATTER))
                     .uploadStatus(2)
@@ -81,21 +74,64 @@ public class MediaClient extends AbstractClient {
     }
 
     /**
+     * Media-file upload callback.
+     *
+     * @param callbackRequest uploaded file information.
+     */
+    @Async("asyncThreadPool")
+    public void rcUploadCallback(MediaUploadCallbackRequest callbackRequest) {
+        try {
+            String objectKey = callbackRequest.getObjectKey();
+            String filename = FileNameUtil.getName(objectKey);
+            this.applicationJsonPost(ClientUri.URI_MEDIA_RC_UPLOAD_CALLBACK, MediaFileParam.builder()
+                    .sortiesId(callbackRequest.getExt().getFileGroupId())
+                    .aircraftSn(callbackRequest.getExt().getSn())
+                    .type(getFileType(filename).getCode())
+                    .filePath(objectKey.substring(0, objectKey.indexOf(filename)))
+                    .fileName(filename)
+                    .objectKey(objectKey)
+                    .createTime(DateUtil.formatLocalDateTime(callbackRequest.getMetadata().getCreatedTime()))
+                    .updateTime(LocalDateTime.now().format(FORMATTER))
+                    .uploadStatus(2)
+                    .platform(OssConfiguration.provider.getType())
+                    .build());
+        } catch (Exception e) {
+            log.error("上传文件上报出错", e);
+        }
+    }
+
+    private MediaFileType getFileType(String filename) {
+        if (StringUtils.hasText(filename)) {
+            return MediaFileType.UNKNOWN;
+        }
+        if (isUnusedFile(filename)) {
+            return MediaFileType.UNKNOWN;
+        } else if (isImageFile(filename)) {
+            return MediaFileType.IMAGE;
+        } else {
+            return MediaFileType.VIDEO;
+        }
+    }
+
+    /**
      * 是否是图片文件
      *
      * @param fileName 文件名
      * @return java.lang.Boolean
      */
     public static boolean isImageFile(String fileName) {
-        return FileNameUtil.isType(fileName, "jpeg", "jpg", "png");
+        return FileNameUtil.isType(fileName, MediaProperties.imageTypes);
     }
 
     /**
-     * 判断是否是无用的文件，机场3开始上传一些无用的文件，如：mrk、nav、obs、rtk
+     * 判断是否是无用的文件
+     * 1. 机场3开始上传一些无用的文件：mrk、nav、obs、rtk
+     * 2. Pilot上传的无用文件：tif、tiff
      * @param fileName
      * @return
      */
     public static boolean isUnusedFile(String fileName) {
-        return FileNameUtil.isType(fileName, "mrk", "nav", "obs", "rtk");
+        return FileNameUtil.isType(fileName, MediaProperties.unusedFileTypes);
     }
+
 }

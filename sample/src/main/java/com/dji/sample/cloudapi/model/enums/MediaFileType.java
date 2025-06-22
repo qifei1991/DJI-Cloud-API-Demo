@@ -13,7 +13,10 @@ public enum MediaFileType {
     /**
      * 媒体文件分类
      */
-    IMAGE(1),VIDEO(2);
+    UNKNOWN(0),
+    IMAGE(1),
+    VIDEO(2)
+    ;
 
     private final int code;
 

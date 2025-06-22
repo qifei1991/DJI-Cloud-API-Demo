@@ -35,6 +35,11 @@ public class MediaFileParam {
      */
     private String fileName;
 
+    /**
+     * 对象存储地址，扩展参数，2025-6-6 15:04:14
+     */
+    private String objectKey;
+
     private String createTime;
     private String updateTime;
 

@@ -237,16 +237,9 @@ VALUES
     (39, 0, 100, 1, 'M4TD', NULL),
     (40, 1, 98, 0, 'M4D Camera', NULL),
     (41, 1, 99, 0, 'M4TD Camera', NULL),
-    (42, 3, 3, 0, 'Dock3', NULL)
+    (42, 3, 3, 0, 'Dock3', NULL),
+    (43, 6, 600, 0, 'D-RTK 3', NULL)
 ;
-
-/*机场3修改内容*/
-INSERT INTO `manage_device_dictionary` (`id`, `domain`, `device_type`, `sub_type`, `device_name`, `device_desc`)
-VALUES (38, 0, 100, 0, 'M4D', NULL),
-(39, 0, 100, 1, 'M4TD', NULL),
-(40, 1, 98, 0, 'M4D Camera', NULL),
-(41, 1, 99, 0, 'M4TD Camera', NULL),
-(42, 3, 3, 0, 'Dock3', NULL);
 
 /*!40000 ALTER TABLE `manage_device_dictionary` ENABLE KEYS */;
 UNLOCK TABLES;

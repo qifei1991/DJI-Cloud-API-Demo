@@ -19,6 +19,8 @@ public enum SimTypeEnum {
 
     THREE_NETWORK_MODES(2),
 
+    THREE(3),   // 未知，茂名M3TD机型上传的类型
+
     ;
 
     private final int type;

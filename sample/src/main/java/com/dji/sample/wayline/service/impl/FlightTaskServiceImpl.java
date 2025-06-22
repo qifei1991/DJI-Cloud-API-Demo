@@ -601,7 +601,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         FlighttaskProgress output = eventsReceiver.getOutput();
         log.info("Task progress: {}", output.getProgress().toString());
         if (!eventsReceiver.getResult().isSuccess()) {
-            log.error("Task progress ===> Error: " + eventsReceiver.getResult());
+            log.error("Task progress ===> Error: {}", eventsReceiver.getResult());
         }
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(response.getGateway());
@@ -621,7 +621,8 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                     .build();
 
             // record the update of the media count.
-            if (Objects.nonNull(job.getMediaCount()) && job.getMediaCount() != 0) {
+            MediaFileCountDTO mediaCount = mediaRedisService.getMediaCount(response.getGateway(), response.getBid());
+            if (Objects.isNull(mediaCount) && Objects.nonNull(job.getMediaCount()) && job.getMediaCount() != 0) {
                 mediaRedisService.setMediaCount(response.getGateway(), job.getJobId(),
                         MediaFileCountDTO.builder()
                                 .deviceSn(deviceOpt.get().getChildDeviceSn())
