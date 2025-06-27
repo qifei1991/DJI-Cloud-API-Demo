@@ -3,9 +3,9 @@ package com.dji.sample.interconnection.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
@@ -16,8 +16,8 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @TableName("speaker_content")
+@Accessors(chain = true)
 public class SpeakerContentEntity implements Serializable {
 
     @TableId(type = IdType.AUTO)
@@ -88,4 +88,9 @@ public class SpeakerContentEntity implements Serializable {
      */
     @TableField("organization_code")
     private String organizationCode;
+
+    /**
+     * 如果是tts，那就是文本内容
+     */
+    private String content;
 }

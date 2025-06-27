@@ -212,6 +212,7 @@ public class WaylineFileServiceImpl implements IWaylineFileService {
     private Optional<WaylineFileDTO> validKmzFile(MultipartFile file) {
         String filename = file.getOriginalFilename();
         if (Objects.nonNull(filename) && !filename.endsWith(WAYLINE_FILE_SUFFIX)) {
+            log.warn("航线文件格式错误. filename: {}", filename);
             throw new RuntimeException("航线文件格式错误!");
         }
         try (ZipInputStream unzipFile = new ZipInputStream(file.getInputStream(), StandardCharsets.UTF_8)) {

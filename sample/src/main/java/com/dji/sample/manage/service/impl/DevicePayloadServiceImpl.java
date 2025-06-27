@@ -139,8 +139,9 @@ public class DevicePayloadServiceImpl implements IDevicePayloadService {
      * @param payloads
      */
     public void updatePayloadControl(DeviceDTO drone, List<DevicePayloadReceiver> payloads) {
-        boolean match = payloads.stream().peek(p -> p.setSn(Objects.requireNonNullElse(p.getSn(),
-                p.getDeviceSn() + "-" + p.getPayloadIndex().getPosition().getPosition())))
+        boolean match = payloads.stream()
+                .peek(p -> p.setSn(Objects.requireNonNullElse(p.getSn(),
+                        p.getDeviceSn() + "-" + p.getPayloadIndex().getPosition().getPosition())))
                 .anyMatch(p -> ControlSourceEnum.UNKNOWN == p.getControlSource());
         if (match) {
             return;

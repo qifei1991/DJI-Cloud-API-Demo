@@ -65,9 +65,9 @@ public abstract class AbstractInterconnectionPublishService {
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0)
-    public TopicServicesResponse<ServicesReplyData> speakerAudioPlayStart(String droneSn, SpeakerAudioPlayStartRequest request) {
+    public TopicServicesResponse<ServicesReplyData> speakerAudioPlayStart(GatewayManager gateway, SpeakerAudioPlayStartRequest request) {
         return servicesPublish.publish(
-                droneSn,
+                gateway.getGatewaySn(),
                 InterconnectionMethodEnum.SPEAKER_AUDIO_PLAY_START.getMethod(),
                 request,
                 request.getJobId());
@@ -90,9 +90,9 @@ public abstract class AbstractInterconnectionPublishService {
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayStop(String droneSn, SpeakerPlayRequest request) {
+    public TopicServicesResponse<ServicesReplyData> speakerPlayStop(GatewayManager gateway, SpeakerPlayRequest request) {
         return servicesPublish.publish(
-                droneSn,
+                gateway.getGatewaySn(),
                 InterconnectionMethodEnum.SPEAKER_PLAY_STOP.getMethod(),
                 request);
     }

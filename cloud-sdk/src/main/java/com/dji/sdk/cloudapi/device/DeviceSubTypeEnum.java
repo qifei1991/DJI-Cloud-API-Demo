@@ -15,11 +15,13 @@ import java.util.Arrays;
 @Schema(description = "device subType", enumAsRef = true)
 public enum DeviceSubTypeEnum {
 
-    ZERO(0),
+    ZERO(0),    // 机身下方左云台或主云台
 
-    ONE(1),
+    ONE(1),     // 机身下方右云台
 
-    TWO(2),
+    TWO(2),     // 机身上方云台
+
+    SEVEN(7),   // FPV相机
 
     _65535(65535);
 

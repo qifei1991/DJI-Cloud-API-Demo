@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.controller;
 
+import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
 import com.dji.sample.interconnection.model.dto.SpeakerContentDTO;
 import com.dji.sample.interconnection.model.param.SpeakerPlayParam;
 import com.dji.sample.interconnection.model.param.SpeakerPlaySetParam;
@@ -43,43 +44,53 @@ public class InterconnectionApiController {
         return speakerJobService.issueCreateAudioJob(workspaceId, deviceSn, file, creator, organizationCode);
     }
 
-    @PostMapping("{workspace_id}/audio/play-start")
-    public HttpResultResponse speakerAudioPlayStart(@PathVariable("workspace_id") String workspaceId, @RequestBody SpeakerPlayParam speakerPlayParam) {
+    @PostMapping("{workspace_id}/speaker/play/start")
+    public HttpResultResponse speakerPlayStart(@PathVariable("workspace_id") String workspaceId,
+            @RequestBody SpeakerPlayParam speakerPlayParam) {
         return speakerJobService.speakerAudioPlayStart(workspaceId, speakerPlayParam);
     }
 
-    @PostMapping("{workspace_id}/audio/play-stop")
-    public HttpResultResponse speakerAudioPlayStop(@PathVariable("workspace_id") String workspaceId, @RequestBody SpeakerPlayParam speakerPlayParam) {
+    @PostMapping("{workspace_id}/speaker/play/stop")
+    public HttpResultResponse speakerPlayStop(@PathVariable("workspace_id") String workspaceId,
+            @RequestBody SpeakerPlayParam speakerPlayParam) {
         return speakerJobService.speakerPlayStop(workspaceId, speakerPlayParam);
     }
 
     @PostMapping("/{workspace_id}/speaker/play/set-mode")
-    public HttpResultResponse setPlayMode(@PathVariable("workspace_id") String workspaceId, @RequestBody SpeakerPlaySetParam setParam) {
+    public HttpResultResponse setPlayMode(@PathVariable("workspace_id") String workspaceId,
+            @RequestBody SpeakerPlaySetParam setParam) {
         return speakerPlayService.setPlayMode(workspaceId, setParam);
     }
 
     @PostMapping("/{workspace_id}/speaker/play/set-volume")
-    public HttpResultResponse setPlayVolume(@PathVariable("workspace_id") String workspaceId, @RequestBody SpeakerPlaySetParam setParam) {
+    public HttpResultResponse setPlayVolume(@PathVariable("workspace_id") String workspaceId,
+            @RequestBody SpeakerPlaySetParam setParam) {
         return speakerPlayService.setPlayVolume(workspaceId, setParam);
     }
 
     @GetMapping("/{workspace_id}/contents")
-    public HttpResultResponse<PaginationData<SpeakerContentDTO>> contents(@PathVariable("workspace_id") String workspaceId,
-            @RequestParam(defaultValue = "1") Long page, @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
-            @RequestParam("code") String organizationCode, @RequestParam(name = "key", required = false) String key) {
+    public HttpResultResponse<PaginationData<SpeakerContentDTO>> contents(
+            @PathVariable("workspace_id") String workspaceId,
+            @RequestParam(defaultValue = "1") Long page,
+            @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
+            @RequestParam(name = "code", required = false) String organizationCode,
+            @RequestParam(name = "key", required = false) String key) {
         return HttpResultResponse.success(speakerContentService.getSpeakerContents(workspaceId, page, pageSize, key, organizationCode));
     }
 
     @PostMapping("/{workspace_id}/contents")
-    public HttpResultResponse create(@PathVariable("workspace_id") String workspaceId, MultipartFile file,
-            @RequestParam(name = "creator", defaultValue = "manager-server") String creator,
-            @RequestParam("code") String organizationCode) {
-        return HttpResultResponse.success(speakerContentService.create(workspaceId, file, creator, organizationCode));
+    public HttpResultResponse create(
+            @PathVariable("workspace_id") String workspaceId,
+            @RequestPart(name = "file", required = false) MultipartFile file,
+            @RequestPart("param") CreateSpeakerContentParam param) {
+        return HttpResultResponse.success(speakerContentService.create(workspaceId, file, param));
     }
 
     @PutMapping("/{workspace_id}/contents/rename")
     public HttpResultResponse<Boolean> rename(@PathVariable("workspace_id") String workspaceId,
-            @RequestParam("content_id") String contentId, @RequestParam("name") String name, @RequestParam("update_user") String updateUser) {
+            @RequestParam("content_id") String contentId,
+            @RequestParam("name") String name,
+            @RequestParam("update_user") String updateUser) {
         return HttpResultResponse.success(speakerContentService.rename(workspaceId, contentId, name, updateUser));
     }
 
