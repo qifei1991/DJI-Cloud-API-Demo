@@ -462,7 +462,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     .firmwareStatus(DeviceFirmwareStatusEnum.NOT_UPGRADE)
                     .thingVersion(entity.getVersion()).build();
         } catch (CloudSDKException e) {
-            log.error(e.getLocalizedMessage() + "Entity: {}", entity);
+            log.error("{} Entity: {}", e.getLocalizedMessage(), entity);
         }
         DeviceDTO deviceDTO = builder.build();
         addFirmwareStatus(deviceDTO, entity);

@@ -206,7 +206,6 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         param.setTaskPeriods(List.of(List.of(now)));
     }
 
-
     private void addConditions(WaylineJobDTO waylineJob, CreateJobParam param, Long beginTime, Long endTime) {
         if (TaskTypeEnum.CONDITIONAL != param.getTaskType()) {
             return;

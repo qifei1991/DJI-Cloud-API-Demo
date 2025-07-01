@@ -393,15 +393,17 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         int uploadedSize = fileService.getFilesByWorkspaceAndJobId(entity.getWorkspaceId(), entity.getJobId()).size();
         // All media for this job have been uploaded.
         if (uploadedSize >= entity.getMediaCount()) {
+            mediaRedisService.delMediaCount(entity.getDockSn(), entity.getJobId());
+            mediaRedisService.delMediaHighestPriority(entity.getDockSn());
             return builder.uploadedCount(uploadedSize).build();
+
         }
-        /* 暂时注释，在文件上传回调中来处理统计信息
-            mediaRedisService.setMediaCount(entity.getDockSn(), entity.getJobId(),
-                    MediaFileCountDTO.builder()
-                            .jobId(entity.getJobId())
-                            .mediaCount(entity.getMediaCount())
-                            .uploadedCount(uploadedSize).build());
-        */
+        // 暂时注释，在文件上传回调中来处理统计信息
+        mediaRedisService.setMediaCount(entity.getDockSn(), entity.getJobId(),
+                MediaFileCountDTO.builder()
+                        .jobId(entity.getJobId())
+                        .mediaCount(entity.getMediaCount())
+                        .uploadedCount(uploadedSize).build());
         return builder.build();
     }
 }

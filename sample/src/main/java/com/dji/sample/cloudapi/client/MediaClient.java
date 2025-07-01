@@ -101,7 +101,7 @@ public class MediaClient extends AbstractClient {
     }
 
     private MediaFileType getFileType(String filename) {
-        if (StringUtils.hasText(filename)) {
+        if (!StringUtils.hasText(filename)) {
             return MediaFileType.UNKNOWN;
         }
         if (isUnusedFile(filename)) {
