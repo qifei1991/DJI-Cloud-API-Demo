@@ -32,7 +32,11 @@ public enum PayloadCommandsEnum {
 
     IR_METERING_POINT_SET(PayloadControlMethodEnum.IR_METERING_POINT_SET, IrMeteringPointSetImpl.class),
 
-    IR_METERING_AREA_SET(PayloadControlMethodEnum.IR_METERING_AREA_SET, IrMeteringAreaSetImpl.class)
+    IR_METERING_AREA_SET(PayloadControlMethodEnum.IR_METERING_AREA_SET, IrMeteringAreaSetImpl.class),
+
+    CAMERA_FOCUS_MODE_SET(PayloadControlMethodEnum.CAMERA_FOCUS_MODE_SET, CameraFocusModeSetImpl.class),
+
+    CAMERA_POINT_FOCUS_ACTION(PayloadControlMethodEnum.CAMERA_POINT_FOCUS_ACTION, CameraPointFocusActionImpl.class),
     ;
 
     PayloadControlMethodEnum cmd;

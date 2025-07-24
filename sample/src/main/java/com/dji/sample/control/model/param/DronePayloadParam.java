@@ -1,6 +1,7 @@
 package com.dji.sample.control.model.param;
 
 import com.dji.sdk.cloudapi.control.CameraTypeEnum;
+import com.dji.sdk.cloudapi.control.FocusModeEnum;
 import com.dji.sdk.cloudapi.control.GimbalResetModeEnum;
 import com.dji.sdk.cloudapi.control.MeteringModeEnum;
 import com.dji.sdk.cloudapi.device.CameraModeEnum;
@@ -71,4 +72,9 @@ public class DronePayloadParam extends AuthorityBaseParam {
      */
     @Range(min = 0, max = 1)
     private Double height;
+
+    /**
+     * 对焦模式 {"0":"MF","1":"AFS","2":"AFC"}
+     */
+    private FocusModeEnum focusMode;
 }
