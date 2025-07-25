@@ -67,7 +67,8 @@ public class GatewayManager {
     }
 
     public boolean isTypeSupport(CloudSDKVersion version) {
-        return null != version && Arrays.stream(version.exclude()).noneMatch(typeEnum -> typeEnum == this.getType())
+        return null != version
+                && Arrays.stream(version.exclude()).noneMatch(typeEnum -> typeEnum == this.getType())
                 && (version.include().length == 0
                     || Arrays.stream(version.include()).anyMatch(typeEnum -> typeEnum == this.getType()));
     }

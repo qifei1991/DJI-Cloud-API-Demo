@@ -380,7 +380,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> cameraExposureSet(GatewayManager gateway, CameraExposureSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -394,7 +394,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> cameraExposureModeSet(GatewayManager gateway, CameraExposureModeSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -408,7 +408,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> cameraFocusModeSet(GatewayManager gateway, CameraFocusModeSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -422,7 +422,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> cameraFocusValueSet(GatewayManager gateway, CameraFocusValueSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -478,7 +478,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> cameraPointFocusAction(GatewayManager gateway, CameraPointFocusActionRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -496,7 +496,7 @@ public abstract class AbstractControlService {
         try {
             AbstractControlService abstractControlService = SpringBeanUtils.getBean(this.getClass());
             Method method = abstractControlService.getClass().getDeclaredMethod(
-                    Common.convertSnake(methodEnum.getPayloadMethod().getMethod()),GatewayManager.class, methodEnum.getClazz());
+                    Common.convertSnake(methodEnum.getPayloadMethod().getMethod()), GatewayManager.class, methodEnum.getClazz());
             return (TopicServicesResponse<ServicesReplyData>) method.invoke(abstractControlService, gateway, request);
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new CloudSDKException(e);
