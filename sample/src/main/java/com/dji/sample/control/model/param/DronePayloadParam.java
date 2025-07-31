@@ -77,4 +77,9 @@ public class DronePayloadParam extends AuthorityBaseParam {
      * 对焦模式 {"0":"MF","1":"AFS","2":"AFC"}
      */
     private FocusModeEnum focusMode;
+
+    /**
+     * 是否使能分屏
+     */
+    private Boolean enable;
 }
