@@ -37,6 +37,8 @@ public enum PayloadCommandsEnum {
     CAMERA_FOCUS_MODE_SET(PayloadControlMethodEnum.CAMERA_FOCUS_MODE_SET, CameraFocusModeSetImpl.class),
 
     CAMERA_POINT_FOCUS_ACTION(PayloadControlMethodEnum.CAMERA_POINT_FOCUS_ACTION, CameraPointFocusActionImpl.class),
+
+    CAMERA_SCREEN_SPLIT(PayloadControlMethodEnum.CAMERA_SCREEN_SPLIT, CameraScreenSplitImpl.class),
     ;
 
     PayloadControlMethodEnum cmd;

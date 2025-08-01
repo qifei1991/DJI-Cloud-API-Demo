@@ -33,19 +33,19 @@ public abstract class PayloadCommandsHandler {
         Optional<OsdDockDrone> deviceOpt = SpringBeanUtilsTest.getBean(IDeviceRedisService.class)
                 .getDeviceOsd(deviceSn, OsdDockDrone.class);
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("The device is offline.");
+            throw new RuntimeException("机场不在线。");
         }
         osdCamera = deviceOpt.get().getCameras().stream()
                 .filter(osdCamera -> param.getPayloadIndex().equals(osdCamera.getPayloadIndex().toString()))
                 .findAny()
-                .orElseThrow(() -> new RuntimeException("Did not receive osd information about the camera, please check the cache data."));
+                .orElseThrow(() -> new RuntimeException("未收到关于相机的 OSD 信息, 请检查缓存数据。"));
         return true;
     }
 
     private String checkDockOnline(String dockSn) {
         Optional<DeviceDTO> deviceOpt = SpringBeanUtilsTest.getBean(IDeviceRedisService.class).getDeviceOnline(dockSn);
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("The dock is offline.");
+            throw new RuntimeException("机场不在线。");
         }
         return deviceOpt.get().getChildDeviceSn();
     }
@@ -53,7 +53,7 @@ public abstract class PayloadCommandsHandler {
     private void checkDeviceOnline(String deviceSn) {
         boolean isOnline = SpringBeanUtilsTest.getBean(IDeviceRedisService.class).checkDeviceOnline(deviceSn);
         if (!isOnline) {
-            throw new RuntimeException("The device is offline.");
+            throw new RuntimeException("飞行器已离线。");
         }
     }
 
@@ -61,13 +61,13 @@ public abstract class PayloadCommandsHandler {
         boolean hasAuthority = SpringBeanUtilsTest.getBean(IDevicePayloadService.class)
                 .checkAuthorityPayload(deviceSn, param.getPayloadIndex());
         if (!hasAuthority) {
-            throw new RuntimeException("The device does not have payload control authority.");
+            throw new RuntimeException("当前设备没有负载的控制权, 请检查负载控制权。");
         }
     }
 
     public final void checkCondition(String dockSn) {
         if (!valid()) {
-            throw new RuntimeException("illegal argument");
+            throw new RuntimeException("下发指令的参数错误, 请检查必要参数。");
         }
 
         String deviceSn = checkDockOnline(dockSn);
@@ -75,7 +75,8 @@ public abstract class PayloadCommandsHandler {
         checkAuthority(deviceSn);
 
         if (!canPublish(deviceSn)) {
-            throw new RuntimeException("The current state of the drone does not support this function, please try again later.");
+            // throw new RuntimeException("The current state of the drone does not support this function or operation, please try again later.");
+            throw new RuntimeException("飞行器当前状态不支持下发的指令或操作, 请稍后重试。");
         }
     }
 
