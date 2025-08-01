@@ -15,5 +15,7 @@ public enum MqttUseEnum {
     /**
      * This broker is used for the drc link.
      */
-    DRC
+    DRC,
+
+    WEB
 }

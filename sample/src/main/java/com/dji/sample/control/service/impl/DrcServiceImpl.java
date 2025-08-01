@@ -129,7 +129,7 @@ public class DrcServiceImpl implements IDrcService {
         try {
             RedisOpsUtils.expireKey(key, RedisConst.DRC_MODE_ALIVE_SECOND);
 
-            return MqttPropertyConfiguration.getMqttBrokerWithDrc(
+            return MqttPropertyConfiguration.getWebMqttBrokerWithDrc(
                     clientId, username, param.getExpireSec(), Collections.emptyMap());
         } catch (RuntimeException e) {
             RedisOpsUtils.del(key);
