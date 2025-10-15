@@ -23,6 +23,8 @@ public class ClientUri {
     public static final String URI_MEDIA_UPLOAD_CALLBACK = "/media/upload-callback";
     public static final String URI_MEDIA_RC_UPLOAD_CALLBACK = "/media/rc/upload-callback";
     public static final String URI_WAYLINE_REPORT = "/wayline/file/upload-report";
+    public static final String URI_TAKEOFF_TO_PROGRESS = "/flight-task/takeoff-to-progress";
+    public static final String URI_IN_FLIGHT_WAYLINE_PROGRESS = "/flight-task/in-flight-wayline-progress";
 
     public static final String URI_RECEIVE = "/tst/receive/{0}";
 }

@@ -18,7 +18,9 @@ import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineTaskConditionDTO;
 import com.dji.sample.wayline.model.enums.WaylineErrorCodeEnum;
 import com.dji.sample.wayline.model.enums.WaylineJobStatusEnum;
+import com.dji.sample.wayline.model.param.CreateInFlightWaylineTask;
 import com.dji.sample.wayline.model.param.CreateJobParam;
+import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sample.wayline.service.IFlightTaskService;
 import com.dji.sample.wayline.service.IWaylineFileService;
@@ -774,4 +776,162 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         return new TopicEventsResponse<MqttReply>();
     }
 
+    @Override
+    public TopicRequestsResponse<MqttReply<FlightTaskProgressGetResponse>> flightTaskProgressGet(TopicRequestsRequest<FlightTaskProgressGetRequest> request, MessageHeaders headers) {
+        log.error("*************** flightTaskProgressGet not implemented! ***************");
+        log.info("- Return home information: gateway: {}, data: {}", request.getGateway(), request.getData());
+
+        return new TopicRequestsResponse<>();
+    }
+
+    @Override
+    public HttpResultResponse inFlightWaylineDeliver(CreateInFlightWaylineTask param, CustomClaim customClaim) throws SQLException {
+        param.setWorkspaceId(customClaim.getWorkspaceId());
+        param.setInFlightWaylineId(UUID.randomUUID().toString());
+
+        boolean isOnline = deviceRedisService.checkDeviceOnline(param.getDockSn());
+        if (!isOnline) {
+            throw new RuntimeException("机场已离线。");
+        }
+
+        boolean isSuccess = pushInFlightWayline(param);
+        if (!isSuccess) {
+            return HttpResultResponse.error("下发空中航线任务失败。");
+        }
+        return HttpResultResponse.success(param.getInFlightWaylineId());
+    }
+
+    private Boolean pushInFlightWayline(CreateInFlightWaylineTask param) throws SQLException {
+        // get wayline file
+        Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(param.getWorkspaceId(), param.getFileId());
+        if (waylineFile.isEmpty()) {
+            throw new SQLException("无法获取飞行任务的航线文件，请查证。");
+        }
+        URL url = waylineFileService.getObjectUrl(param.getWorkspaceId(), waylineFile.get().getId());
+
+        InFlightWaylineDeliverRequest flightTask = new InFlightWaylineDeliverRequest()
+                .setInFlightWaylineId(param.getInFlightWaylineId())
+                .setRthAltitude(param.getRthAltitude())
+                .setOutOfControlAction(param.getOutOfControlAction())
+                .setExitWaylineWhenRcLost(ExitWaylineWhenRcLostEnum.EXECUTE_RC_LOST_ACTION)
+                .setFile(new FlighttaskFile()
+                        .setUrl(url.toString())
+                        .setFingerprint(waylineFile.get().getSign()))
+                .setWaylinePrecisionType(param.getWaylinePrecisionType());
+        if (Objects.nonNull(param.getRthMode())) {
+            flightTask.setRthMode(param.getRthMode());
+        }
+
+        log.info(":: 下发空中航线: {}", flightTask);
+
+        TopicServicesResponse<ServicesReplyData> serviceReply = abstractWaylineService.inFlightWaylineDeliver(
+                SDKManager.getDeviceSDK(param.getDockSn()), flightTask);
+        if (!serviceReply.getData().getResult().isSuccess()) {
+            log.error("InFlightWayline task ====> Error code: {}", serviceReply.getData().getResult());
+            return false;
+        }
+        Optional<InFlightWaylineProgress> runningOpt = waylineRedisService.getRunningInFlightWayline(param.getDockSn());
+        if (runningOpt.isEmpty()) {
+            waylineRedisService.setRunningInFlightWayline(param.getDockSn(),
+                    new InFlightWaylineProgress().setInFlightWaylineId(param.getInFlightWaylineId()));
+        }
+        return true;
+    }
+
+    @Override
+    public void updateInFlightWaylineStatus(String workspaceId, String inFlightWaylineId, UpdateInFlightWaylineParam param) {
+        Optional<InFlightWaylineProgress> runningJob = waylineRedisService.getRunningInFlightWayline(param.getDockSn());
+        if (runningJob.isEmpty()) {
+            throw new RuntimeException("操作失败，空中航线任务不存在。");
+        }
+        InFlightWaylineProgress progress = runningJob.get();
+        InFlightWaylineStatusEnum statusEnum = progress.getStatus();
+        if (Objects.isNull(statusEnum) || statusEnum.getEnd()) {
+            throw new RuntimeException("空中航线任务已结束，不能执行当前操作。");
+        }
+        switch (param.getStatus()) {
+            case STOP:
+                pauseInFlightWayline(param.getDockSn(), inFlightWaylineId, statusEnum);
+                break;
+            case RECOVER:
+                recoverInFlightWayline(param.getDockSn(), inFlightWaylineId, statusEnum);
+                break;
+            case CANCEL:
+                cancelInFlightWayline(param.getDockSn(), inFlightWaylineId, statusEnum);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void pauseInFlightWayline(String dockSn, String inFlightWaylineId, InFlightWaylineStatusEnum statusEnum) {
+        if (statusEnum == InFlightWaylineStatusEnum.WAYLINE_PAUSED) {
+            waylineRedisService.setPausedInFlightWayline(dockSn, inFlightWaylineId);
+        }
+        TopicServicesResponse<ServicesReplyData> reply = abstractWaylineService.inFlightWaylineStop(
+                SDKManager.getDeviceSDK(dockSn), new InFlightWaylineRequest().setInFlightWaylineId(inFlightWaylineId));
+        if (!reply.getData().getResult().isSuccess()) {
+            log.error("inFlightWayline stop ===> Error: {}", reply.getData().getResult());
+            throw new RuntimeException("Failed to stop in flight wayline job. Error: " + reply.getData().getResult().getCode());
+        }
+        waylineRedisService.delRunningInFlightWayline(dockSn);
+        waylineRedisService.setPausedInFlightWayline(dockSn, inFlightWaylineId);
+    }
+
+    private void recoverInFlightWayline(String dockSn, String inFlightWaylineId, InFlightWaylineStatusEnum statusEnum) {
+        Optional<InFlightWaylineProgress> runningOpt = waylineRedisService.getRunningInFlightWayline(dockSn);
+        if (InFlightWaylineStatusEnum.WAYLINE_PROGRESS == statusEnum
+                && inFlightWaylineId.equals(runningOpt.map(InFlightWaylineProgress::getInFlightWaylineId).get())) {
+            waylineRedisService.setRunningInFlightWayline(dockSn, runningOpt.get());
+            return;
+        }
+        TopicServicesResponse<ServicesReplyData> reply = abstractWaylineService.inFlightWaylineRecover(
+                SDKManager.getDeviceSDK(dockSn), new InFlightWaylineRequest().setInFlightWaylineId(inFlightWaylineId));
+        if (!reply.getData().getResult().isSuccess()) {
+            log.error("inFlightWayline recover ===> Error: {}", reply.getData().getResult());
+            throw new RuntimeException("Failed to recover in flight wayline job. Error: " + reply.getData().getResult().getCode());
+        }
+        waylineRedisService.delPausedInFlightWayline(dockSn);
+    }
+
+    private void cancelInFlightWayline(String dockSn, String inFlightWaylineId, InFlightWaylineStatusEnum statusEnum) {
+        Optional<InFlightWaylineProgress> runningOpt = waylineRedisService.getRunningInFlightWayline(dockSn);
+        if (InFlightWaylineStatusEnum.WAYLINE_CANCEL == statusEnum || runningOpt.isEmpty()) {
+            return;
+        }
+        TopicServicesResponse<ServicesReplyData> reply = abstractWaylineService.inFlightWaylineCancel(
+                SDKManager.getDeviceSDK(dockSn), new InFlightWaylineRequest().setInFlightWaylineId(inFlightWaylineId));
+        if (!reply.getData().getResult().isSuccess()) {
+            log.error("inFlightWayline Cancel ===> Error: {}", reply.getData().getResult());
+            throw new RuntimeException("Failed to cancel in flight wayline job. Error: " + reply.getData().getResult().getCode());
+        }
+        waylineRedisService.delPausedInFlightWayline(dockSn);
+        waylineRedisService.delRunningInFlightWayline(dockSn);
+    }
+
+    @Override
+    public TopicEventsResponse<MqttReply> inFlightWaylineProgress(TopicEventsRequest<InFlightWaylineProgress> response, MessageHeaders headers) {
+        InFlightWaylineProgress eventData = response.getData();
+        log.info("inFlightWaylineProgress: {}", eventData);
+
+        if (MqttReply.CODE_SUCCESS != eventData.getResult()) {
+            log.error("inFlightWayline progress ===> Error: {}", eventData.getResult());
+        }
+
+        Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(response.getGateway());
+        if (deviceOpt.isEmpty()) {
+            return new TopicEventsResponse<>();
+        }
+        waylineRedisService.setRunningInFlightWayline(response.getGateway(), eventData);
+
+        if (eventData.getStatus().getEnd()) {
+            waylineRedisService.delRunningInFlightWayline(response.getGateway());
+            waylineRedisService.delPausedInFlightWayline(response.getGateway());
+        }
+
+        // add by Qfei, report flight task progress.
+        this.flightTaskClient.inFlightWaylineProgress(response.getGateway(), response);
+
+        return new TopicEventsResponse<>();
+    }
 }

@@ -3,9 +3,10 @@ package com.dji.sample.wayline.service;
 import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.param.CreateInFlightWaylineTask;
 import com.dji.sample.wayline.model.param.CreateJobParam;
+import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
-import com.dji.sdk.cloudapi.wayline.SimulateMission;
 import com.dji.sdk.common.HttpResultResponse;
 
 import java.sql.SQLException;
@@ -84,4 +85,8 @@ public interface IFlightTaskService {
      * @return ResponseResult
      */
     HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId) throws SQLException;
+
+    HttpResultResponse inFlightWaylineDeliver(CreateInFlightWaylineTask param, CustomClaim customClaim) throws SQLException;
+
+    void updateInFlightWaylineStatus(String workspaceId, String jobId, UpdateInFlightWaylineParam param);
 }

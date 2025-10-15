@@ -81,6 +81,7 @@ public class DeviceClient extends AbstractClient {
                             .time(LocalDateTime.now().format(FORMATTER))
                             .orgCode(deviceDTO.getOrganizationId())
                             .bindCode(bindCode)
+                            .childDeviceSn(deviceDTO.getChildDeviceSn())
                             .build());
                 }
             });
@@ -123,16 +124,25 @@ public class DeviceClient extends AbstractClient {
                 .aircraftYaw(data.getAttitudeHead())
                 .homeDistance(data.getHomeDistance())
                 .time(System.currentTimeMillis())
-                .trackId(data.getTrackId());
+                .trackId(data.getTrackId())
+                .parentSn(dockSn);
 
         // obtain main gimbal(the index of 0) osd information.
         Optional.ofNullable(data.getPayloads())
                 .flatMap(payloads -> payloads.parallelStream()
                         .filter(payload -> payload.getPayloadIndex().getPosition() == PayloadPositionEnum.FRONT_LEFT)
                         .findAny())
-                .ifPresent(mainPayload -> builder.gimbalPitch(mainPayload.getGimbalPitch())
+                .ifPresent(mainPayload -> builder
+                        .payloadIndex(mainPayload.getPayloadIndex().toString())
+                        .gimbalPitch(mainPayload.getGimbalPitch())
                         .gimbalRoll(mainPayload.getGimbalRoll())
-                        .gimbalYaw(mainPayload.getGimbalYaw()));
+                        .gimbalYaw(mainPayload.getGimbalYaw())
+                        .measureTargetAltitude(mainPayload.getMeasureTargetAltitude())
+                        .measureTargetDistance(mainPayload.getMeasureTargetDistance())
+                        .measureTargetLatitude(mainPayload.getMeasureTargetLatitude())
+                        .measureTargetLongitude(mainPayload.getMeasureTargetLongitude())
+                        .measureTargetErrorState(Optional.ofNullable(mainPayload.getMeasureTargetErrorState())
+                                .map(MeasureTargetStateEnum::getState).orElse(null)));
 
         // 获取ir测距信息
         Optional.ofNullable(data.getCameras())

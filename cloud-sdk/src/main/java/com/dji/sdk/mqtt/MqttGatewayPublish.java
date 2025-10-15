@@ -41,7 +41,7 @@ public class MqttGatewayPublish {
             byte[] payload = Common.getObjectMapper().writeValueAsBytes(request);
             messageGateway.publish(topic, payload, qos);
         } catch (JsonProcessingException e) {
-            log.error("Failed to publish the message. {}", request.toString());
+            log.error("Failed to publish the message. {}", request);
             e.printStackTrace();
         }
     }
@@ -52,7 +52,7 @@ public class MqttGatewayPublish {
             byte[] payload = Common.getObjectMapper().writeValueAsBytes(response);
             messageGateway.publish(topic, payload, qos);
         } catch (JsonProcessingException e) {
-            log.error("Failed to publish the message. {}", response.toString());
+            log.error("Failed to publish the message. {}", response);
             e.printStackTrace();
         }
     }

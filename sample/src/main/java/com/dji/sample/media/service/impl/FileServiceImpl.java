@@ -139,10 +139,12 @@ public class FileServiceImpl implements IFileService {
 
             // domain-type-subType
             DeviceEnum payloadModelKey = file.getExt().getPayloadModelKey();
-            Optional<DeviceDictionaryDTO> payloadDict = deviceDictionaryService
-                    .getOneDictionaryInfoByTypeSubType(payloadModelKey.getDomain().getDomain(),
-                            payloadModelKey.getType().getType(), payloadModelKey.getSubType().getSubType());
-            payloadDict.ifPresent(payload -> builder.payload(payload.getDeviceName()));
+            if (Objects.nonNull(payloadModelKey)) {
+                Optional<DeviceDictionaryDTO> payloadDict = deviceDictionaryService
+                        .getOneDictionaryInfoByTypeSubType(payloadModelKey.getDomain().getDomain(),
+                                payloadModelKey.getType().getType(), payloadModelKey.getSubType().getSubType());
+                payloadDict.ifPresent(payload -> builder.payload(payload.getDeviceName()));
+            }
         }
         return builder.build();
     }

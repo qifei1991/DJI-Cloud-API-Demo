@@ -1,6 +1,8 @@
 package com.dji.sample.cloudapi.controller;
 
 import com.dji.sample.common.model.CustomClaim;
+import com.dji.sample.wayline.model.param.CreateInFlightWaylineTask;
+import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
 import com.dji.sample.wayline.service.IFlightTaskService;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
@@ -115,6 +117,29 @@ public class WaylineJobApiController {
             return flightTaskService.breakPointContinueFlight(workspaceId, jobId);
         }
         flightTaskService.updateJobStatus(workspaceId, jobId, param);
+        return HttpResultResponse.success();
+    }
+
+    /**
+     * Create a wayline task in flight for the Dock.
+     * @param param
+     * @param workspaceId
+     * @return
+     */
+    @PostMapping("/{workspace_id}/in-flight-wayline/jobs")
+    public HttpResultResponse publishCreateJob(@PathVariable(name = "workspace_id") String workspaceId,
+            @Valid @RequestBody CreateInFlightWaylineTask param) throws SQLException {
+        CustomClaim customClaim = new CustomClaim();
+        customClaim.setWorkspaceId(workspaceId);
+        customClaim.setUsername(param.getUsername());
+        return flightTaskService.inFlightWaylineDeliver(param, customClaim);
+    }
+
+    @PutMapping("/{workspace_id}/in-flight-wayline/jobs/{job_id}")
+    public HttpResultResponse updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
+            @PathVariable(name = "job_id") String inFlightWaylineId,
+            @Valid @RequestBody UpdateInFlightWaylineParam param) {
+        flightTaskService.updateInFlightWaylineStatus(workspaceId, inFlightWaylineId, param);
         return HttpResultResponse.success();
     }
 }

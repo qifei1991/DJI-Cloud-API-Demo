@@ -47,7 +47,6 @@ spring:
           log-slow-sql: true #
       mysql:
         usePingMethod: false
-
   redis:
     host: 192.168.1.230
     port: 6379
@@ -59,11 +58,14 @@ spring:
         max-active: 8
         max-idle: 8
         min-idle: 0
-
   servlet:
     multipart:
       max-file-size: 2GB
       max-request-size: 2GB
+
+springdoc:
+  api-docs:
+    enabled: false
 
 jwt:
   issuer: MapzoneUavUser

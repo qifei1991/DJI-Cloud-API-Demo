@@ -4,6 +4,7 @@ import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.cloudapi.wayline.InFlightWaylineProgress;
 import com.dji.sdk.cloudapi.wayline.ProgressExtBreakPoint;
 
 import java.util.Optional;
@@ -119,4 +120,17 @@ public interface IWaylineRedisService {
      * @return 是否删除
      */
     Boolean delProgressExtBreakPoint(String jobId);
+
+
+    void setRunningInFlightWayline(String gateway, InFlightWaylineProgress eventData);
+
+    Optional<InFlightWaylineProgress> getRunningInFlightWayline(String gateway);
+
+    Boolean delRunningInFlightWayline(String gateway);
+
+    void setPausedInFlightWayline(String gateway, String jobId);
+
+    String getPausedInFlightWayline(String gateway);
+
+    Boolean delPausedInFlightWayline(String gateway);
 }

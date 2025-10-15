@@ -1,6 +1,8 @@
 package com.dji.sample.interconnection.service.impl;
 
+import com.dji.sample.interconnection.service.IPsdkWidgetRedisService;
 import com.dji.sample.interconnection.service.ISpeakerJobService;
+import com.dji.sdk.cloudapi.device.PsdkWidgetValues;
 import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromEsdk;
 import com.dji.sdk.cloudapi.interconnection.SpeakerPlayTaskNotify;
 import com.dji.sdk.cloudapi.interconnection.api.AbstractInterconnectionService;
@@ -8,6 +10,7 @@ import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.events.EventsDataRequest;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
+import com.dji.sdk.mqtt.state.TopicStateRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
@@ -23,6 +26,8 @@ public class SDKInterconnectionService extends AbstractInterconnectionService {
 
     @Autowired
     private ISpeakerJobService speakerJobService;
+    @Autowired
+    private IPsdkWidgetRedisService psdkWidgetRedisService;
 
     /**
      * cloud-custom data transmit from psdk
@@ -47,5 +52,12 @@ public class SDKInterconnectionService extends AbstractInterconnectionService {
         speakerJobService.updateJobStatus(request.getBid(), output.getStatus());
 
         return new TopicEventsResponse<>();
+    }
+
+    @Override
+    public void dockDronePsdkWidgetValues(TopicStateRequest<PsdkWidgetValues> request, MessageHeaders headers) {
+        log.info("DockPsdkWidgetValues: from: {}, data: {}", request.getFrom(), request.getData());
+
+        psdkWidgetRedisService.setPsdkWidgetValues(request.getFrom(), request.getData().getPsdkWidgetValues());
     }
 }

@@ -21,8 +21,8 @@ import javax.validation.constraints.Pattern;
 @EqualsAndHashCode(callSuper = true)
 public class DronePayloadParam extends AuthorityBaseParam {
 
-    @Pattern(regexp = "\\d+-\\d+-\\d+")
     @NotNull
+    @Pattern(regexp = "\\d+-\\d+-\\d+")
     private String payloadIndex;
 
     private CameraTypeEnum cameraType;
@@ -33,6 +33,7 @@ public class DronePayloadParam extends AuthorityBaseParam {
     private CameraModeEnum cameraMode;
 
     /**
+     * Whether the relative location of drone head and gimbal is locked
      * true: Lock the gimbal, the gimbal and the drone rotate together.
      * false: Only the gimbal rotates, but the drone does not.
      */
@@ -68,9 +69,9 @@ public class DronePayloadParam extends AuthorityBaseParam {
     private Double width;
 
     /**
-     * 测温区域高度 {"max":1,"min":0}
+     * 1.测温区域高度 {"max":1,"min":0}
+     * 2. LookAt高度 Ellipsoid height
      */
-    @Range(min = 0, max = 1)
     private Double height;
 
     /**
@@ -82,4 +83,21 @@ public class DronePayloadParam extends AuthorityBaseParam {
      * 是否使能分屏
      */
     private Boolean enable;
+
+    /**
+     * The latitude of target point is angular values.
+     * Negative values for south latitude and positive values for north latitude.
+     * It is accurate to six decimal places.
+     */
+    @Range(min = -90, max = 90)
+    private Float latitude;
+
+    /**
+     * The latitude of target point is angular values.
+     * Negative values for west longitude and positive values for east longitude.
+     * It is accurate to six decimal places.
+     */
+    @Range(min = -180, max = 180)
+    private Float longitude;
+
 }

@@ -296,7 +296,7 @@ public class ControlServiceImpl implements IControlService {
     private void saveDrcAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param) {
         if (Objects.nonNull(param)) {
             String key = RedisConst.DRC_AUTHORITY_PREFIX + sn + RedisConst.DELIMITER + authority.getVal();
-            log.info("Authority key: " + key);
+            log.info("Authority key: {}", key);
             RedisOpsUtils.hashSet(key, param.getId(), param.getUsername());
             RedisOpsUtils.expireKey(key, RedisConst.DRC_MODE_ALIVE_SECOND);
         }

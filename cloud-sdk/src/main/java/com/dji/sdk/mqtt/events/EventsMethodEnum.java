@@ -14,10 +14,7 @@ import com.dji.sdk.cloudapi.log.FileUploadProgress;
 import com.dji.sdk.cloudapi.map.OfflineMapSyncProgress;
 import com.dji.sdk.cloudapi.media.FileUploadCallback;
 import com.dji.sdk.cloudapi.media.HighestPriorityUploadFlightTaskMedia;
-import com.dji.sdk.cloudapi.wayline.DeviceExitHomingNotify;
-import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
-import com.dji.sdk.cloudapi.wayline.FlighttaskReady;
-import com.dji.sdk.cloudapi.wayline.ReturnHomeInfo;
+import com.dji.sdk.cloudapi.wayline.*;
 import com.dji.sdk.mqtt.ChannelName;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -101,6 +98,8 @@ public enum EventsMethodEnum {
     POI_STATUS_NOTIFY("poi_status_notify", ChannelName.INBOUND_EVENTS_POI_STATUS_NOTIFY, new TypeReference<PoiStatusNotify>() {}),
 
     CAMERA_PHOTO_TAKE_PROGRESS("camera_photo_take_progress", ChannelName.INBOUND_EVENTS_CAMERA_PHOTO_TAKE_PROGRESS, new TypeReference<EventsDataRequest<CameraPhotoTakeProgress>>() {}),
+
+    IN_FLIGHT_WAYLINE_PROGRESS("in_flight_wayline_progress", ChannelName.INBOUND_EVENTS_IN_FLIGHT_WAYLINE_PROGRESS, new TypeReference<InFlightWaylineProgress>() {}),
 
     UNKNOWN("", ChannelName.DEFAULT, new TypeReference<>() {});
 

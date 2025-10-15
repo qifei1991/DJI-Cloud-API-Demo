@@ -135,4 +135,57 @@ public class AbstractWaylinePublishService {
             Common.validateModel(request.getReadyConditions());
         }
     }
+
+    /**
+     * Issue wayline in flight.
+     * @param gateway
+     * @return  services_reply
+     */
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> inFlightWaylineDeliver(GatewayManager gateway, InFlightWaylineDeliverRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                WaylineMethodEnum.IN_FLIGHT_WAYLINE_DELIVER.getMethod(),
+                request,
+                request.getInFlightWaylineId());
+    }
+
+    /**
+     * Stop wayline in flight.
+     * @param gateway
+     * @return  services_reply
+     */
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> inFlightWaylineStop(GatewayManager gateway, InFlightWaylineRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                WaylineMethodEnum.IN_FLIGHT_WAYLINE_STOP.getMethod(),
+                request);
+    }
+
+    /**
+     * Recover wayline in flight.
+     * @param gateway
+     * @return  services_reply
+     */
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> inFlightWaylineRecover(GatewayManager gateway, InFlightWaylineRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                WaylineMethodEnum.IN_FLIGHT_WAYLINE_RECOVER.getMethod(),
+                request);
+    }
+
+    /**
+     * Cancel wayline in flight.
+     * @param gateway
+     * @return  services_reply
+     */
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> inFlightWaylineCancel(GatewayManager gateway, InFlightWaylineRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                WaylineMethodEnum.IN_FLIGHT_WAYLINE_CANCEL.getMethod(),
+                request);
+    }
 }

@@ -84,6 +84,8 @@ public enum DockStateDataKeyEnum {
 
     AI_IDENTIFY_ON(Set.of("ai_identify_on"), AiIdentifyOn.class),
 
+    AI_MODEL_LIST(Set.of("ai_model_list"), AiModelList.class)
+
     ;
 
     private final Set<String> keys;

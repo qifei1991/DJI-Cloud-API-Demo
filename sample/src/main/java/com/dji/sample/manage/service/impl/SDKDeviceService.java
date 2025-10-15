@@ -1,5 +1,7 @@
 package com.dji.sample.manage.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.dji.sample.cloudapi.client.DeviceClient;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
 import com.dji.sample.component.websocket.service.IWebSocketMessageService;
@@ -111,6 +113,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         // Subscribe to topic related to drone devices.
         deviceService.subDeviceOnlineSubscribeTopic(gatewayManager);
         deviceService.pushDeviceOnlineTopo(gateway.getWorkspaceId(), gateway.getDeviceSn(), subDevice.getDeviceSn());
+        log.info("Drone {} online.", subDevice.getDeviceSn());
 
         // add by Qfei, report device online.
         try {
@@ -119,8 +122,6 @@ public class SDKDeviceService extends AbstractDeviceService {
         } catch (Exception e) {
             log.error("上报失败");
         }
-
-        log.info("Drone {} online.", subDevice.getDeviceSn());
         return new TopicStatusResponse<MqttReply>().setData(MqttReply.success());
     }
 
@@ -159,7 +160,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         if (deviceOpt.isEmpty() || !StringUtils.hasText(deviceOpt.get().getWorkspaceId())) {
             deviceOpt = deviceService.getDeviceBySn(from);
             if (deviceOpt.isEmpty()) {
-                log.error("Please restart the drone.");
+                log.error("Please restart the Dock.");
                 return;
             }
         }
@@ -200,6 +201,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         DeviceDTO device = deviceOpt.get();
         deviceRedisService.setDeviceOnline(device);
         deviceRedisService.setDeviceOsd(from, request.getData());
+        log.info("*** Drone mode, code: {}, Tid: {}", request.getData().getModeCode(), request.getTid());
 
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DEVICE_OSD, from, request.getData());
 
@@ -430,8 +432,15 @@ public class SDKDeviceService extends AbstractDeviceService {
         if (StringUtils.hasText(workspaceId)) {
             deviceService.subDeviceOnlineSubscribeTopic(SDKManager.getDeviceSDK(gatewaySn));
         }
-
         log.warn("{} is already online.", deviceSn);
+
+        // add by Qfei, report device online.
+        try {
+            this.deviceClient.reportOnline(Optional.of(gateway));
+            this.deviceClient.reportOnline(Optional.of(device));
+        } catch (Exception e) {
+            log.error("上报失败");
+        }
     }
 
     /**
@@ -512,23 +521,18 @@ public class SDKDeviceService extends AbstractDeviceService {
 
     private void fillDockOsd(String dockSn, OsdDock dock) {
         Optional<OsdDock> oldDockOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDock.class);
-        if (Objects.nonNull(dock.getJobNumber())) {
-            return;
-        }
         if (oldDockOpt.isEmpty()) {
             deviceRedisService.setDeviceOsd(dockSn, dock);
             return;
         }
+
         OsdDock oldDock = oldDockOpt.get();
-        if (Objects.nonNull(dock.getModeCode())) {
-            dock.setDrcState(oldDock.getDrcState());
-            deviceRedisService.setDeviceOsd(dockSn, dock);
-            return;
-        }
-        if (Objects.nonNull(dock.getDrcState()) ) {
+        // 复制非空属性到oldDock对象
+        BeanUtil.copyProperties(dock, oldDock, CopyOptions.create().setIgnoreNullValue(true));
+        if (Objects.nonNull(dock.getDrcState())) {
             oldDock.setDrcState(dock.getDrcState());
-            deviceRedisService.setDeviceOsd(dockSn, oldDock);
         }
+        deviceRedisService.setDeviceOsd(dockSn, oldDock);
     }
 
     /**

@@ -66,4 +66,10 @@ public final class RedisConst {
     public static final String WAYLINE_JOB_BREAKPOINT_PREFIX = "wayline_job_breakpoint" + DELIMITER;
 
     public static final String DRC_AUTHORITY_PREFIX = DRC_PREFIX  + "authority" + DELIMITER;
+
+    public static final String PSDK_WIDGET_VALUES = "psdk_widget_values";
+
+    public static final String IN_FLIGHT_WAYLINE_RUNNING_PREFIX = "in_flight_wayline_running" + DELIMITER;
+
+    public static final String IN_FLIGHT_WAYLINE_PAUSED_PREFIX = "in_flight_wayline_paused" + DELIMITER;
 }

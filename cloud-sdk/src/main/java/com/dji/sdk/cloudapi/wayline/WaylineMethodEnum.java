@@ -23,7 +23,17 @@ public enum WaylineMethodEnum {
 
     RETURN_HOME("return_home"),
 
-    RETURN_HOME_CANCEL("return_home_cancel");
+    RETURN_HOME_CANCEL("return_home_cancel"),
+
+    // 空中航线
+    IN_FLIGHT_WAYLINE_DELIVER("in_flight_wayline_deliver"),
+
+    IN_FLIGHT_WAYLINE_STOP("in_flight_wayline_stop"),
+
+    IN_FLIGHT_WAYLINE_RECOVER("in_flight_wayline_recover"),
+
+    IN_FLIGHT_WAYLINE_CANCEL("in_flight_wayline_cancel")
+    ;
 
     private final String method;
 

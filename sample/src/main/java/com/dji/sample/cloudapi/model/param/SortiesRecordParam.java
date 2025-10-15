@@ -1,5 +1,6 @@
 package com.dji.sample.cloudapi.model.param;
 
+import com.dji.sdk.cloudapi.media.FlightTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -51,4 +52,8 @@ public class SortiesRecordParam {
      * 针对一个飞行数据多次飞行完成情况
      */
     private String groupId;
+
+    private String dockSn;
+
+    private FlightTypeEnum flightTaskType;
 }

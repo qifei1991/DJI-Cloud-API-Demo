@@ -1,8 +1,10 @@
 package com.dji.sample.cloudapi.controller;
 
+import com.dji.sample.interconnection.model.dto.PsdkWidgetValuesDTO;
 import com.dji.sample.interconnection.model.dto.SpeakerContentDTO;
 import com.dji.sample.interconnection.model.param.SpeakerPlayParam;
 import com.dji.sample.interconnection.model.param.SpeakerPlaySetParam;
+import com.dji.sample.interconnection.service.IPsdkService;
 import com.dji.sample.interconnection.service.ISpeakerContentService;
 import com.dji.sample.interconnection.service.ISpeakerJobService;
 import com.dji.sample.interconnection.service.ISpeakerPlayService;
@@ -14,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -32,6 +35,7 @@ public class InterconnectionApiController {
     private final ISpeakerJobService speakerJobService;
     private final ISpeakerContentService speakerContentService;
     private final ISpeakerPlayService speakerPlayService;
+    private final IPsdkService psdkService;
 
     @PostMapping("/{workspace_id}/devices/{device_sn}/issue/audio")
     public HttpResultResponse issueCreateAudioJob(@PathVariable("workspace_id") String workspaceId, @PathVariable("device_sn") String deviceSn,
@@ -87,5 +91,10 @@ public class InterconnectionApiController {
     public HttpResultResponse<Boolean> delete(@PathVariable("workspace_id") String workspaceId,
             @RequestParam("content_id") String contentId) {
         return HttpResultResponse.success(speakerContentService.delete(workspaceId, contentId));
+    }
+
+    @GetMapping("/{workspace_id}/psdk-widgets")
+    public HttpResultResponse<List<PsdkWidgetValuesDTO>> getPsdkWidgetValues(@PathVariable("workspace_id") String workspaceId) {
+        return HttpResultResponse.success(psdkService.getPsdkWidgetValues(workspaceId));
     }
 }

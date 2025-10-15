@@ -87,9 +87,11 @@ public class SDKControlService extends AbstractControlService {
                         .result(eventsReceiver.getResult().getCode())
                         .build());
 
-        // add by Qfei, 判断是否飞行完成
-        if (List.of(TakeoffStatusEnum.WAYLINE_OK, TakeoffStatusEnum.WAYLINE_CANCEL, TakeoffStatusEnum.TASK_FINISH)
-                .contains(eventsReceiver.getStatus())) {
+        // 一键起飞任务进度通知
+        flightTaskClient.takeoffToProgress(dockSn, request);
+
+        // add by Qfei, 一键起飞任务整个完成之后的通知
+        if (TakeoffStatusEnum.TASK_FINISH == eventsReceiver.getStatus()) {
             this.flightTaskClient.finishTakeoffTo(dockSn, eventsReceiver);
         }
 

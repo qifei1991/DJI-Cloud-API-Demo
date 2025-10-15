@@ -3,7 +3,9 @@ package com.dji.sample.cloudapi.client;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.dji.sample.cloudapi.model.enums.WaylineType;
+import com.dji.sample.cloudapi.model.param.InFlightWaylineProgressParam;
 import com.dji.sample.cloudapi.model.param.SortiesRecordParam;
+import com.dji.sample.cloudapi.model.param.TakeoffToProgressParam;
 import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.control.model.param.TakeoffToPointParam;
 import com.dji.sample.manage.model.dto.DeviceDTO;
@@ -11,7 +13,10 @@ import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sdk.cloudapi.control.FlyToPointProgress;
 import com.dji.sdk.cloudapi.control.TakeoffToPointProgress;
+import com.dji.sdk.cloudapi.media.FlightTypeEnum;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.cloudapi.wayline.InFlightWaylineProgress;
+import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -56,7 +61,7 @@ public class FlightTaskClient extends AbstractClient {
                 .userName(job.getUsername())
                 .groupId(job.getGroupId())
                 .build();
-        obtainDroneSn(job.getDockSn(), recordParam);
+        recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
     }
 
@@ -66,7 +71,6 @@ public class FlightTaskClient extends AbstractClient {
      */
     @Async("asyncThreadPool")
     public void flightTaskCompleted(WaylineJobDTO job) {
-
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
                 .groupId(job.getGroupId())
@@ -74,15 +78,17 @@ public class FlightTaskClient extends AbstractClient {
                 .fileTotal(job.getMediaCount())
                 .state(job.getStatus())
                 .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
+                .dockSn(job.getDockSn())
+                .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
                 .build();
-        obtainDroneSn(job.getDockSn(), recordParam);
+        recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
-    private void obtainDroneSn(String dockSn, SortiesRecordParam recordParam) {
+    private String obtainDroneSn(String dockSn) {
         // Set the drone sn that shoots the media
         Optional<DeviceDTO> dockDTO = deviceService.getDeviceBySn(dockSn);
-        dockDTO.ifPresent(deviceDTO -> recordParam.setAircraftSn(deviceDTO.getChildDeviceSn()));
+        return dockDTO.map(DeviceDTO::getChildDeviceSn).orElse(null);
     }
 
     /**
@@ -106,18 +112,25 @@ public class FlightTaskClient extends AbstractClient {
                 .peekHeight(params.getSecurityTakeoffHeight())
                 .userName(params.getUsername())
                 .build();
-        obtainDroneSn(dockSn, recordParam);
+        recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
     }
 
+    /**
+     * 一键起飞任务结束
+     * @param dockSn
+     * @param receiver
+     */
     public void finishTakeoffTo(String dockSn, TakeoffToPointProgress receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlightId())
                 .groupId(receiver.getFlightId())
                 .state(2)
                 .endTime(DateUtil.now())
+                .dockSn(dockSn)
+                .flightTaskType(FlightTypeEnum.TAKEOFF_TASK)
                 .build();
-        obtainDroneSn(dockSn, recordParam);
+        recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
@@ -128,8 +141,41 @@ public class FlightTaskClient extends AbstractClient {
                 .state(2)
                 .endTime(DateUtil.now())
                 .build();
-        obtainDroneSn(dockSn, recordParam);
+        recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
+    public void takeoffToProgress(String dockSn, TopicEventsRequest<TakeoffToPointProgress> request) {
+        TakeoffToPointProgress receiver = request.getData();
+        applicationJsonPost(ClientUri.URI_TAKEOFF_TO_PROGRESS,
+                new TakeoffToProgressParam()
+                        .setTid(request.getTid())
+                        .setBid(request.getBid())
+                        .setDockSn(dockSn)
+                        .setDroneSn(obtainDroneSn(dockSn))
+                        .setResult(receiver.getResult().getCode())
+                        .setFlightId(receiver.getFlightId())
+                        .setRemainingDistance(receiver.getRemainingDistance())
+                        .setRemainingTime(receiver.getRemainingTime())
+                        .setStatus(receiver.getStatus())
+                        .setTrackId(receiver.getTrackId())
+                        .setWayPointIndex(receiver.getWayPointIndex())
+                        .setPlannedPathPoints(receiver.getPlannedPathPoints())
+        );
+    }
+
+    public void inFlightWaylineProgress(String dockSn, TopicEventsRequest<InFlightWaylineProgress> request) {
+        InFlightWaylineProgress eventData = request.getData();
+        applicationJsonPost(ClientUri.URI_IN_FLIGHT_WAYLINE_PROGRESS,
+                new InFlightWaylineProgressParam()
+                        .setTid(request.getTid())
+                        .setBid(request.getBid())
+                        .setDockSn(dockSn)
+                        .setDroneSn(obtainDroneSn(dockSn))
+                        .setInFlightWaylineId(eventData.getInFlightWaylineId())
+                        .setProgress(eventData.getProgress())
+                        .setStatus(eventData.getStatus())
+                        .setResult(eventData.getResult())
+                        .setWayPointIndex(eventData.getWayPointIndex()));
+    }
 }

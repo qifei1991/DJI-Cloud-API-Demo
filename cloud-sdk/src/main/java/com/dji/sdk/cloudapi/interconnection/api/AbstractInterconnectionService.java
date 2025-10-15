@@ -1,6 +1,7 @@
 package com.dji.sdk.cloudapi.interconnection.api;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
+import com.dji.sdk.cloudapi.device.PsdkWidgetValues;
 import com.dji.sdk.cloudapi.interconnection.CustomDataTransmissionFromEsdk;
 import com.dji.sdk.cloudapi.interconnection.SpeakerPlayTaskNotify;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
@@ -9,12 +10,10 @@ import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.events.EventsDataRequest;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
-import com.dji.sdk.mqtt.services.ServicesPublish;
+import com.dji.sdk.mqtt.state.TopicStateRequest;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-
-import javax.annotation.Resource;
 
 /**
  * @author sean
@@ -22,9 +21,6 @@ import javax.annotation.Resource;
  * @date 2023/10/16
  */
 public abstract class AbstractInterconnectionService {
-
-    @Resource
-    private ServicesPublish servicesPublish;
 
     /**
      * cloud-custom data transmit from esdk
@@ -56,4 +52,9 @@ public abstract class AbstractInterconnectionService {
         throw new UnsupportedOperationException("speakerPlayTaskStatusNotify not implemented.");
     }
 
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2)
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_DRONE_PSDK_WIDGET_VALUES)
+    public void dockDronePsdkWidgetValues(TopicStateRequest<PsdkWidgetValues> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("dockPsdkWidgetValues not implemented");
+    }
 }

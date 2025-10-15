@@ -104,34 +104,13 @@ public class MediaClient extends AbstractClient {
         if (!StringUtils.hasText(filename)) {
             return MediaFileType.UNKNOWN;
         }
-        if (isUnusedFile(filename)) {
-            return MediaFileType.UNKNOWN;
-        } else if (isImageFile(filename)) {
+        if (MediaProperties.isImageFile(filename)) {
             return MediaFileType.IMAGE;
-        } else {
+        } else if (MediaProperties.isVideoFile(filename)) {
             return MediaFileType.VIDEO;
+        } else {
+            return MediaFileType.UNKNOWN;
         }
-    }
-
-    /**
-     * 是否是图片文件
-     *
-     * @param fileName 文件名
-     * @return java.lang.Boolean
-     */
-    public static boolean isImageFile(String fileName) {
-        return FileNameUtil.isType(fileName, MediaProperties.imageTypes);
-    }
-
-    /**
-     * 判断是否是无用的文件
-     * 1. 机场3开始上传一些无用的文件：mrk、nav、obs、rtk
-     * 2. Pilot上传的无用文件：tif、tiff
-     * @param fileName
-     * @return
-     */
-    public static boolean isUnusedFile(String fileName) {
-        return FileNameUtil.isType(fileName, MediaProperties.unusedFileTypes);
     }
 
 }

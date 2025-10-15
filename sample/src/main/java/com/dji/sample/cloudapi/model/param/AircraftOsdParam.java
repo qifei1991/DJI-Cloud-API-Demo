@@ -35,9 +35,6 @@ public class AircraftOsdParam {
     private Double aircraftPitch;
     private Double aircraftRoll;
     private Float aircraftYaw;
-    private Float gimbalPitch;
-    private Float gimbalRoll;
-    private Float gimbalYaw;
     private Double homeLongitude;
     private Double homeLatitude;
     private Double homeHeight;
@@ -53,4 +50,20 @@ public class AircraftOsdParam {
     private IrMeteringPoint irMeteringPoint;
 
     private IrMeteringArea irMeteringArea;
+
+    private String parentSn;    // 网关设备sn（机场或者遥控器）
+
+    // 云台负载信息 start
+    private String payloadIndex;
+
+    private Float gimbalPitch;
+    private Float gimbalRoll;
+    private Float gimbalYaw;
+
+    private Float measureTargetAltitude;
+    private Float measureTargetDistance;
+    private Float measureTargetLatitude;
+    private Float measureTargetLongitude;
+    private Integer measureTargetErrorState;
+    // 云台负载信息 end
 }

@@ -17,7 +17,12 @@ public enum TaskTypeEnum {
 
     TIMED(1),
 
-    CONDITIONAL(2);
+    CONDITIONAL(2),
+
+    // 空中任务
+    IN_FLIGHT_WAYLINE(3),
+
+    ;
 
     private final int type;
 

@@ -77,4 +77,25 @@ public abstract class AbstractWaylineService {
         throw new UnsupportedOperationException("returnHomeInfo not implemented");
     }
 
+    /**
+     * Get the wayline task progress 蛙跳任务中，机场需要请求另一机场的任务执行状态
+     * @param request  data
+     * @param headers   The headers for a {@link Message}.
+     * @return events_reply
+     */
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_REQUESTS_FLIGHTTASK_PROGRESS_GET, outputChannel = ChannelName.OUTBOUND_REQUESTS)
+    public TopicRequestsResponse<MqttReply<FlightTaskProgressGetResponse>> flightTaskProgressGet(TopicRequestsRequest<FlightTaskProgressGetRequest> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("flightTaskProgressGet not implemented");
+    }
+
+    /**
+     * Report wayline task progress
+     * @param request  data
+     * @param headers   The headers for a {@link Message}.
+     * @return events_reply
+     */
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_IN_FLIGHT_WAYLINE_PROGRESS, outputChannel = ChannelName.OUTBOUND_EVENTS)
+    public TopicEventsResponse<MqttReply> inFlightWaylineProgress(TopicEventsRequest<InFlightWaylineProgress> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("inFlightWaylineProgress not implemented");
+    }
 }

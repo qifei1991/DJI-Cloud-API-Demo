@@ -94,4 +94,5 @@ public interface IWaylineJobService {
     Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn);
 
     void deleteJob(String workspaceId, String jobId);
+
 }

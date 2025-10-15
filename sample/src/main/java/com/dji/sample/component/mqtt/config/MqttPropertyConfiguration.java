@@ -77,7 +77,7 @@ public class MqttPropertyConfiguration {
             String username, Long age, Map<String, ?> map) {
 
         Algorithm algorithm = JwtUtil.algorithm;
-        String token = JwtUtil.createToken(map, age, algorithm, null, null);
+        String token = JwtUtil.createToken(map, age * 1000L, algorithm, null, null);
         return new DrcModeMqttBroker()
                 .setAddress(mqttAddress)
                 .setUsername(username)

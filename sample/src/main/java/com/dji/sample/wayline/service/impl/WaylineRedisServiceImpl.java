@@ -7,6 +7,7 @@ import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.cloudapi.wayline.InFlightWaylineProgress;
 import com.dji.sdk.cloudapi.wayline.ProgressExtBreakPoint;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -126,4 +127,33 @@ public class WaylineRedisServiceImpl implements IWaylineRedisService {
         return RedisOpsUtils.del(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + jobId);
     }
 
+    @Override
+    public void setRunningInFlightWayline(String gateway, InFlightWaylineProgress eventData) {
+        RedisOpsUtils.setWithExpire(RedisConst.IN_FLIGHT_WAYLINE_RUNNING_PREFIX + gateway, eventData, RedisConst.DRC_MODE_ALIVE_SECOND);
+    }
+
+    @Override
+    public Optional<InFlightWaylineProgress> getRunningInFlightWayline(String gateway) {
+        return Optional.ofNullable((InFlightWaylineProgress) RedisOpsUtils.get(RedisConst.IN_FLIGHT_WAYLINE_RUNNING_PREFIX + gateway));
+    }
+
+    @Override
+    public Boolean delRunningInFlightWayline(String gateway) {
+        return RedisOpsUtils.del(RedisConst.IN_FLIGHT_WAYLINE_RUNNING_PREFIX + gateway);
+    }
+
+    @Override
+    public void setPausedInFlightWayline(String gateway, String inFlightWaylineId) {
+        RedisOpsUtils.setWithExpire(RedisConst.IN_FLIGHT_WAYLINE_PAUSED_PREFIX + gateway, inFlightWaylineId, RedisConst.DRC_MODE_ALIVE_SECOND);
+    }
+
+    @Override
+    public String getPausedInFlightWayline(String gateway) {
+        return (String) RedisOpsUtils.get(RedisConst.IN_FLIGHT_WAYLINE_PAUSED_PREFIX + gateway);
+    }
+
+    @Override
+    public Boolean delPausedInFlightWayline(String gateway) {
+        return RedisOpsUtils.del(RedisConst.IN_FLIGHT_WAYLINE_PAUSED_PREFIX + gateway);
+    }
 }

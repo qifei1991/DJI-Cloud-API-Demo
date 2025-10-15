@@ -37,4 +37,6 @@ public class DeviceOnlineParam {
 
     // 机场api中绑定码，工作空间表中bind_code值
     private String bindCode;
+
+    private String childDeviceSn;
 }

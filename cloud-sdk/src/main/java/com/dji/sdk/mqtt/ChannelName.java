@@ -66,6 +66,8 @@ public class ChannelName {
 
     public static final String INBOUND_STATE_DOCK_SILENT_MODE = "inboundStateDockSilentMode";
 
+    public static final String INBOUND_STATE_DOCK_DRONE_PSDK_WIDGET_VALUES = "inboundStateDockDronePsdkWidgetValues";
+
 
     public static final String OUTBOUND_STATE = "outboundState";
 
@@ -101,6 +103,8 @@ public class ChannelName {
 
     public static final String INBOUND_REQUESTS_FLIGHTTASK_RESOURCE_GET = "inboundRequestsFlightTaskResourceGet";
 
+    public static final String INBOUND_REQUESTS_FLIGHTTASK_PROGRESS_GET = "inboundRequestsFlightTaskProgressGet";
+
     public static final String INBOUND_REQUESTS_FLIGHT_AREAS_GET = "inboundRequestsFlightAreasGet";
 
     public static final String INBOUND_REQUESTS_OFFLINE_MAP_GET = "inboundRequestsOfflineMapGet";
@@ -117,6 +121,8 @@ public class ChannelName {
     public static final String INBOUND_EVENTS_DEVICE_EXIT_HOMING_NOTIFY = "inboundEventsDeviceExitHomingNotify";
 
     public static final String INBOUND_EVENTS_FLIGHTTASK_PROGRESS = "inboundEventsFlighttaskProgress";
+
+    public static final String INBOUND_EVENTS_IN_FLIGHT_WAYLINE_PROGRESS = "inboundEventsInFlightWaylineProgress";
 
     public static final String INBOUND_EVENTS_FLIGHTTASK_READY = "inboundEventsFlighttaskReady";
 

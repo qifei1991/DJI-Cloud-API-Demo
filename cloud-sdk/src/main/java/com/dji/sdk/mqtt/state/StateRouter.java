@@ -59,7 +59,8 @@ public class StateRouter {
                     }
                 }, null)
                 .<TopicStateRequest, StateDataKeyEnum>route(response -> StateDataKeyEnum.find(response.getData().getClass()),
-                        mapping -> Arrays.stream(StateDataKeyEnum.values()).forEach(key -> mapping.channelMapping(key, key.getChannelName())))
+                        mapping -> Arrays.stream(StateDataKeyEnum.values())
+                                .forEach(key -> mapping.channelMapping(key, key.getChannelName())))
                 .get();
     }
 

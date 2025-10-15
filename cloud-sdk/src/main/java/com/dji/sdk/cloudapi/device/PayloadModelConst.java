@@ -20,7 +20,7 @@ public class PayloadModelConst {
         Set<String> position = Arrays.stream(PayloadPositionEnum.values()).map(PayloadPositionEnum::getPosition)
                 .map(String::valueOf).collect(Collectors.toSet());
         return Arrays.stream(DeviceEnum.values()).filter(device -> DeviceDomainEnum.PAYLOAD == device.getDomain())
-                .map(Enum::name).map(name -> name.replace("_CAMERA", ""))
+                .map(Enum::name).map(name -> name.replaceAll("_CAMERA(\\d+)?", ""))
                 .flatMap(m -> position.stream().map(p -> m.concat("-").concat(p))).collect(Collectors.toSet());
     }
 

@@ -33,7 +33,7 @@ public abstract class PayloadCommandsHandler {
         Optional<OsdDockDrone> deviceOpt = SpringBeanUtilsTest.getBean(IDeviceRedisService.class)
                 .getDeviceOsd(deviceSn, OsdDockDrone.class);
         if (deviceOpt.isEmpty()) {
-            throw new RuntimeException("机场不在线。");
+            throw new RuntimeException("飞机不在线。");
         }
         osdCamera = deviceOpt.get().getCameras().stream()
                 .filter(osdCamera -> param.getPayloadIndex().equals(osdCamera.getPayloadIndex().toString()))
