@@ -19,6 +19,8 @@ public enum Dock2ThingVersionEnum implements IThingVersion {
     V1_3_0("1.3.0", CloudSDKVersionEnum.V1_0_3),
 
     V1_3_1("1.3.1", CloudSDKVersionEnum.V1_0_3),
+
+    V1_3_2("1.3.2", CloudSDKVersionEnum.V1_0_3),
     ;
 
     private final String thingVersion;
@@ -40,7 +42,9 @@ public enum Dock2ThingVersionEnum implements IThingVersion {
     }
 
     public static Dock2ThingVersionEnum find(String thingVersion) {
-        return Arrays.stream(values()).filter(thingVersionEnum -> thingVersionEnum.thingVersion.equals(thingVersion))
-                .findAny().orElseThrow(() -> new CloudSDKVersionException(thingVersion));
+        return Arrays.stream(values())
+                .filter(thingVersionEnum -> thingVersionEnum.thingVersion.equals(thingVersion))
+                .findAny()
+                .orElseThrow(() -> new CloudSDKVersionException(thingVersion));
     }
 }
