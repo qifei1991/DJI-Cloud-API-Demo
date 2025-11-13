@@ -4,7 +4,6 @@ import com.dji.sdk.exception.CloudSDKVersionException;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * @author sean
@@ -57,11 +56,9 @@ public enum DroneThingVersionEnum implements IThingVersion {
     }
 
     public static DroneThingVersionEnum find(String thingVersion) {
-        Optional<DroneThingVersionEnum> opt = Arrays.stream(values())
-                .filter(thingVersionEnum -> thingVersionEnum.thingVersion.equals(thingVersion)).findAny();
-        if (opt.isPresent()) {
-            return opt.get();
-        }
-        throw new CloudSDKVersionException(thingVersion);
+        return Arrays.stream(values())
+                .filter(thingVersionEnum -> thingVersionEnum.thingVersion.equals(thingVersion))
+                .findAny()
+                .orElseThrow(() -> new CloudSDKVersionException(thingVersion));
     }
 }
