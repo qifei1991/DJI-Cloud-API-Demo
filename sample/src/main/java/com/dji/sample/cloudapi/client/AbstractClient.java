@@ -1,6 +1,7 @@
 package com.dji.sample.cloudapi.client;
 
 import cn.hutool.core.util.StrUtil;
+import com.dji.sample.cloudapi.config.ClientConfig;
 import com.dji.sample.cloudapi.model.vo.ResultView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,10 @@ public abstract class AbstractClient {
     protected RestTemplate mzRestTemplate;
 
     protected <T> ResultView applicationJsonPost(String uri, T body, Object... uriVariables) {
+        if (ClientConfig.isExcludePath(uri)) {
+            log.info(">> The interface can not support, URI: {}", uri);
+            return new ResultView(ResultView.STATUS.FAIL);
+        }
 
         String url = this.getManagerServerBaseUrl(uri);
         if (log.isDebugEnabled()) {
@@ -69,5 +74,11 @@ public abstract class AbstractClient {
 
     protected String getManagerServerBaseUrl(String uri) {
         return this.url + this.apiPrefix + this.apiVersion + uri;
+    }
+
+    public static void main(String[] args) {
+        ClientConfig.excludePath = new String[0];
+
+        log.info("is match: {}", ClientConfig.isExcludePath("/flight-task/{takeoff-to-progress}"));
     }
 }

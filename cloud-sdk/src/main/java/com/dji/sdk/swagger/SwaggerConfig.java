@@ -36,19 +36,21 @@ public class SwaggerConfig {
         }
 
         return new OpenAPI()
-                .info(new Info().title("CloudSDK API").description("All HTTP interfaces encapsulated by CloudSDK.")
-                        .license(new License().name("LICENSE").url("https://github.com/dji-sdk/DJI-Cloud-API-Demo/blob/main/LICENSE"))
+                .info(new Info()
+                        .title("CloudSDK API")
+                        .description("All HTTP interfaces encapsulated by CloudSDK.")
+                        .license(new License()
+                                .name("LICENSE")
+                                .url("https://github.com/dji-sdk/DJI-Cloud-API-Demo/blob/main/LICENSE"))
                         .version("1.0.0")).components(components());
     }
 
     @Bean
     public SecurityScheme securityScheme() {
-        // 检查是否为生产环境，如果是则不加载安全配置
-        if (isProdEnvironment()) {
-            return new SecurityScheme();
-        }
-
-        return new SecurityScheme().type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name("x-auth-token");
+        return new SecurityScheme()
+                .type(SecurityScheme.Type.APIKEY)
+                .in(SecurityScheme.In.HEADER)
+                .name("x-auth-token");
     }
 
     @Bean
@@ -58,8 +60,7 @@ public class SwaggerConfig {
             return new Components();
         }
 
-        return new Components()
-                .addSecuritySchemes("default", securityScheme());
+        return new Components().addSecuritySchemes("default", securityScheme());
     }
 
     @Bean
@@ -93,7 +94,7 @@ public class SwaggerConfig {
      * 检查是否为生产环境
      * @return 如果是生产环境返回true，否则返回false
      */
-    private boolean isProdEnvironment() {
+    public boolean isProdEnvironment() {
         for (String profile : environment.getActiveProfiles()) {
             if ("dev".equals(profile)) {
                 return false;
