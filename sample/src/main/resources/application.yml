@@ -67,6 +67,12 @@ springdoc:
   api-docs:
     enabled: false
 
+client:
+  # 云服务不访问的外部接口（针对云服务版本高而外部系统没有对应的接口场景）
+  exclude-path:
+    - "/flight-task/takeoff-to-progress"
+    - "/flight-task/in-flight-wayline-progress"
+
 jwt:
   issuer: MapzoneUavUser
   subject: CloudApiSample
