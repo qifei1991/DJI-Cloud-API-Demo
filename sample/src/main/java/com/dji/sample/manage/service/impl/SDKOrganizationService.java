@@ -110,26 +110,26 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         String organizationId = Objects.isNull(dock) ? null : dock.getOrganizationId();
         OrganizationBindDevice finalDrone = drone;
         droneOpt.ifPresent(droneDto -> {
+            droneDto.setOrganizationId(organizationId);
             dockOpt.get().setChildDeviceSn(droneDto.getDeviceSn());
             boolean success = deviceService.saveOrUpdateDevice(droneDto);
-            bindResult.add(success ?
-                    OrganizationBindInfo.success(droneDto.getDeviceSn()) :
+            bindResult.add(success ? OrganizationBindInfo.success(droneDto.getDeviceSn()) :
                     new OrganizationBindInfo(droneDto.getDeviceSn(),
                             CommonErrorEnum.DEVICE_BINDING_FAILED.getCode())
             );
 
             // add by Qfei, Device register.
-            droneDto.setOrganizationId(organizationId);
-            Optional.of(success).ifPresent(x -> deviceClient.reportDeviceBind(Optional.of(droneDto),
+            Optional.of(success).ifPresent(x ->
+                    deviceClient.reportDeviceBind(Optional.of(droneDto),
                     Optional.ofNullable(finalDrone).map(OrganizationBindDevice::getDeviceBindingCode).orElse(null)));
         });
-        boolean success = deviceService.saveOrUpdateDevice(dockOpt.get());
 
+        dockOpt.get().setOrganizationId(organizationId);
+        boolean success = deviceService.saveOrUpdateDevice(dockOpt.get());
         bindResult.add(success ? OrganizationBindInfo.success(dock.getSn()) :
                 new OrganizationBindInfo(dock.getSn(), CommonErrorEnum.DEVICE_BINDING_FAILED.getCode()));
 
         // add by Qfei, Device register.
-        dockOpt.get().setOrganizationId(organizationId);
         OrganizationBindDevice finalDock = dock;
         Optional.of(success).ifPresent(x -> deviceClient.reportDeviceBind(dockOpt, finalDock.getDeviceBindingCode()));
 
@@ -172,12 +172,13 @@ public class SDKOrganizationService extends AbstractOrganizationService {
                 .iconUrl(new DeviceIconUrl()
                         .setSelectIconUrl(IconUrlEnum.SELECT_EQUIPMENT.getUrl())
                         .setNormalIconUrl(IconUrlEnum.NORMAL_EQUIPMENT.getUrl()))
+                .organizationId(receiver.getOrganizationId())
                 .build();
         if (StringUtils.hasText(receiver.getDeviceCallsign())) {
             dto.setNickname(receiver.getDeviceCallsign());
         } else {
             Optional<DeviceDTO> deviceOpt = deviceService.getDeviceBySn(receiver.getSn());
-            dto.setNickname(deviceOpt.map(DeviceDTO::getNickname).orElse(dto.getNickname()));
+            dto.setNickname(deviceOpt.map(DeviceDTO::getNickname).orElse(dto.getDeviceName()));
         }
         return Optional.of(dto);
     }

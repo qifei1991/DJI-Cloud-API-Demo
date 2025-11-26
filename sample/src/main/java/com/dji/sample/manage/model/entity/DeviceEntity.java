@@ -88,4 +88,7 @@ public class DeviceEntity implements Serializable {
     @TableField(value = "login_time")
     private Long loginTime;
 
+    // modify Qfei, 2025-11-24 14:33:11
+    @TableField(value = "organization_id")
+    private String organizationId;
 }

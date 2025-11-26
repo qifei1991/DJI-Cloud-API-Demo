@@ -460,7 +460,9 @@ public class DeviceServiceImpl implements IDeviceService {
                             workspaceService.getWorkspaceByWorkspaceId(entity.getWorkspaceId())
                                     .map(WorkspaceDTO::getWorkspaceName).orElse("") : "")
                     .firmwareStatus(DeviceFirmwareStatusEnum.NOT_UPGRADE)
-                    .thingVersion(entity.getVersion()).build();
+                    .thingVersion(entity.getVersion())
+                    .organizationId(entity.getOrganizationId())
+                    .build();
         } catch (CloudSDKException e) {
             log.error("{} Entity: {}", e.getLocalizedMessage(), entity);
         }
@@ -793,6 +795,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 .compatibleStatus(dto.getFirmwareStatus() == null ? null :
                         DeviceFirmwareStatusEnum.CONSISTENT_UPGRADE != dto.getFirmwareStatus())
                 .deviceDesc(dto.getDeviceDesc())
+                .organizationId(dto.getOrganizationId())    // modify by Qfei, 2025-11-24 14:33:51
                 .build();
     }
 
