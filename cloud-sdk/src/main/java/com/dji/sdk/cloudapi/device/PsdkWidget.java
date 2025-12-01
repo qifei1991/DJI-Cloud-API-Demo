@@ -1,7 +1,7 @@
 package com.dji.sdk.cloudapi.device;
 
-import com.dji.sdk.cloudapi.interconnection.Searchlight;
-import com.dji.sdk.cloudapi.interconnection.Speaker;
+import com.dji.sdk.cloudapi.psdk.Searchlight;
+import com.dji.sdk.cloudapi.psdk.Speaker;
 
 import java.util.List;
 

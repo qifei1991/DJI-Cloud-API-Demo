@@ -14,8 +14,8 @@
     <name>cloud-api-sample</name>
 
     <properties>
-        <revision>1.10.35</revision>
-        <cloud-sdk.revision>1.0.17</cloud-sdk.revision>
+        <revision>1.10.34</revision>
+        <cloud-sdk.revision>1.0.16</cloud-sdk.revision>
 
         <java.version>11</java.version>
         <maven.compiler.source>11</maven.compiler.source>
