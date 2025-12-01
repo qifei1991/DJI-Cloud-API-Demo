@@ -10,14 +10,18 @@ import com.dji.sample.psdk.model.dto.SpeakerContentDTO;
 import com.dji.sample.psdk.model.dto.SpeakerJobDTO;
 import com.dji.sample.psdk.model.entity.SpeakerJobEntity;
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
+import com.dji.sample.psdk.service.IPsdkWidgetRedisService;
 import com.dji.sample.psdk.service.ISpeakerContentService;
 import com.dji.sample.psdk.service.ISpeakerJobService;
+import com.dji.sdk.cloudapi.device.PsdkNameEnum;
+import com.dji.sdk.cloudapi.device.PsdkWidget;
 import com.dji.sdk.cloudapi.psdk.PlayAudioFile;
 import com.dji.sdk.cloudapi.psdk.SpeakerAudioPlayStartRequest;
 import com.dji.sdk.cloudapi.psdk.SpeakerJobStatusEnum;
 import com.dji.sdk.cloudapi.psdk.SpeakerPlayRequest;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
+import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +31,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author Qfei
@@ -46,6 +47,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
     private final SDKPsdkPublishService sdkPsdkPublishService;
     private final ISpeakerContentService speakerContentService;
     private final ISpeakerJobMapper speakerJobMapper;
+    private final IPsdkWidgetRedisService psdkWidgetRedisService;
 
     @Override
     public HttpResultResponse issueCreateAudioJob(String workspaceId, String deviceSn, MultipartFile file,
@@ -84,9 +86,19 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
         if (contentOpt.isEmpty()) {
             return HttpResultResponse.error("音频文件不存在，下发喊话失败。");
         }
-
-        SpeakerContentDTO contentDTO = contentOpt.get();
+        GatewayManager gatewayManager = SDKManager.getDeviceSDK(issueJobParam.getDeviceSn());
+        Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
+        if (dronePsdkValues.isEmpty()) {
+            return HttpResultResponse.error("设备不存在psdk负载");
+        }
+        Optional<PsdkWidget> speakerOpt = dronePsdkValues.get()
+                .stream()
+                .filter(x -> PsdkNameEnum.SPEAKER == x.getPsdkName()).findFirst();
+        if (speakerOpt.isEmpty()) {
+            return HttpResultResponse.error("设备不存在喊话器");
+        }
         // 创建喊话任务
+        SpeakerContentDTO contentDTO = contentOpt.get();
         String jobId = UUID.randomUUID().toString();
         insertSpeakerJob(new SpeakerJobEntity()
                 .setJobId(jobId)
@@ -97,13 +109,12 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                 .setDeviceSn(issueJobParam.getDeviceSn())
                 .setStatus(SpeakerJobStatusEnum.PREPARE.getStatus())
                 .setUsername(issueJobParam.getUsername()));
-
         URL url = speakerContentService.getAudioFileUrl(workspaceId, issueJobParam.getContentId());
         TopicServicesResponse<ServicesReplyData> serviceReply = sdkPsdkPublishService.speakerAudioPlayStart(
-                SDKManager.getDeviceSDK(issueJobParam.getDeviceSn()),
+                gatewayManager,
                 new SpeakerAudioPlayStartRequest()
                         .setJobId(jobId)
-                        .setPsdkIndex(issueJobParam.getPsdkIndex())
+                        .setPsdkIndex(speakerOpt.get().getPsdkIndex())
                         .setFile(new PlayAudioFile()
                                 .setName(contentDTO.getName())
                                 .setFormat(contentDTO.getAudioFormat())
@@ -118,9 +129,20 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
 
     @Override
     public HttpResultResponse speakerPlayStop(String workspaceId, SpeakerPlayParam speakerPlayParam) {
+        GatewayManager gatewayManager = SDKManager.getDeviceSDK(speakerPlayParam.getDeviceSn());
+        Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
+        if (dronePsdkValues.isEmpty()) {
+            return HttpResultResponse.error("设备不存在psdk负载");
+        }
+        Optional<PsdkWidget> speakerOpt = dronePsdkValues.get()
+                .stream()
+                .filter(x -> PsdkNameEnum.SPEAKER == x.getPsdkName()).findFirst();
+        if (speakerOpt.isEmpty()) {
+            return HttpResultResponse.error("设备不存在喊话器");
+        }
         TopicServicesResponse<ServicesReplyData> serviceReply = sdkPsdkPublishService.speakerPlayStop(
-                SDKManager.getDeviceSDK(speakerPlayParam.getDeviceSn()),
-                new SpeakerPlayRequest().setPsdkIndex(speakerPlayParam.getPsdkIndex()));
+                gatewayManager,
+                new SpeakerPlayRequest().setPsdkIndex(speakerOpt.get().getPsdkIndex()));
         if (!serviceReply.getData().getResult().isSuccess()) {
             updateJobStatus(serviceReply.getBid(), SpeakerJobStatusEnum.PLAY_STOP_FAIL);
             return HttpResultResponse.error(serviceReply.getData().getResult().getMessage());

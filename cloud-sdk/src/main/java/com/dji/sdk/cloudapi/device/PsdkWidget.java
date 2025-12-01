@@ -13,7 +13,7 @@ public class PsdkWidget {
 
     private Integer psdkIndex;
 
-    private String psdkName;
+    private PsdkNameEnum psdkName;
 
     private PsdkTypeEnum psdkType;
 
@@ -36,7 +36,7 @@ public class PsdkWidget {
     public String toString() {
         return "PsdkWidget{" +
                 "psdkIndex=" + psdkIndex +
-                ", psdkName='" + psdkName + '\'' +
+                ", psdkName=" + psdkName +
                 ", psdkType=" + psdkType +
                 ", psdkSn='" + psdkSn + '\'' +
                 ", psdkVersion='" + psdkVersion + '\'' +
@@ -56,11 +56,11 @@ public class PsdkWidget {
         return this;
     }
 
-    public String getPsdkName() {
+    public PsdkNameEnum getPsdkName() {
         return psdkName;
     }
 
-    public PsdkWidget setPsdkName(String psdkName) {
+    public PsdkWidget setPsdkName(PsdkNameEnum psdkName) {
         this.psdkName = psdkName;
         return this;
     }

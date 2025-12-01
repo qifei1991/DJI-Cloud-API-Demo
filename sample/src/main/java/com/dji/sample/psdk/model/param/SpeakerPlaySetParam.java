@@ -2,11 +2,9 @@ package com.dji.sample.psdk.model.param;
 
 import com.dji.sdk.cloudapi.psdk.PlayModeEnum;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 /**
  * 喊话器设置参数对象
@@ -19,14 +17,10 @@ import javax.validation.constraints.NotNull;
 public class SpeakerPlaySetParam {
 
     /**
-     * 设备SN
+     * 机场设备SN
      */
     @NotBlank
     private String deviceSn;
-
-    @NotNull
-    @Range(min = 0, max = 3)
-    private Integer psdkIndex = 0;
 
     /**
      * 喊话器播放模式

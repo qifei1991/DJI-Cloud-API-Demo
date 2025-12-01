@@ -27,15 +27,10 @@ public class SpeakerPlayParam {
     private String jobId;
 
     /**
-     * device SN.
+     * Dock SN.
      */
-    @NotBlank(message = "接收命令的设备SN不能为空")
+    @NotBlank(message = "设备SN不能为空")
     private String deviceSn;
-
-    /**
-     * psdk 索引位置，默认0；
-     */
-    private Integer psdkIndex = 0;
 
     /**
      * The name of the creator.
