@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 public interface ISpeakerJobService {
 
-    /**
+    /** 保存并下发音频文件
      * @param workspaceId
      * @param deviceSn
      * @param file

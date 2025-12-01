@@ -5,20 +5,19 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.StrPool;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
 import com.dji.sample.psdk.dao.ISpeakerJobMapper;
 import com.dji.sample.psdk.model.dto.SpeakerContentDTO;
 import com.dji.sample.psdk.model.dto.SpeakerJobDTO;
 import com.dji.sample.psdk.model.entity.SpeakerJobEntity;
+import com.dji.sample.psdk.model.enums.SpeakerContentTypeEnum;
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
 import com.dji.sample.psdk.service.IPsdkWidgetRedisService;
 import com.dji.sample.psdk.service.ISpeakerContentService;
 import com.dji.sample.psdk.service.ISpeakerJobService;
 import com.dji.sdk.cloudapi.device.PsdkNameEnum;
 import com.dji.sdk.cloudapi.device.PsdkWidget;
-import com.dji.sdk.cloudapi.psdk.PlayAudioFile;
-import com.dji.sdk.cloudapi.psdk.SpeakerAudioPlayStartRequest;
-import com.dji.sdk.cloudapi.psdk.SpeakerJobStatusEnum;
-import com.dji.sdk.cloudapi.psdk.SpeakerPlayRequest;
+import com.dji.sdk.cloudapi.psdk.*;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
 import com.dji.sdk.config.version.GatewayManager;
@@ -53,11 +52,14 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
     public HttpResultResponse issueCreateAudioJob(String workspaceId, String deviceSn, MultipartFile file,
             String creator, String organizationCode) {
 
-        String contentId = speakerContentService.create(workspaceId, file, creator, organizationCode);
+        String contentId = speakerContentService.create(workspaceId, file,
+                new CreateSpeakerContentParam()
+                        .setType(SpeakerContentTypeEnum.AUDIO)
+                        .setCreator(creator)
+                        .setCode(organizationCode));
         if (!StringUtils.hasText(contentId)) {
             return HttpResultResponse.error("音频文件保存失败，喊话失败。");
         }
-
         Optional<SpeakerContentDTO> contentOpt = speakerContentService.getSpeakerContentById(workspaceId, contentId);
         if (contentOpt.isEmpty()) {
             return HttpResultResponse.error("音频文件不存在，喊话失败。");
@@ -109,17 +111,34 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                 .setDeviceSn(issueJobParam.getDeviceSn())
                 .setStatus(SpeakerJobStatusEnum.PREPARE.getStatus())
                 .setUsername(issueJobParam.getUsername()));
-        URL url = speakerContentService.getAudioFileUrl(workspaceId, issueJobParam.getContentId());
-        TopicServicesResponse<ServicesReplyData> serviceReply = sdkPsdkPublishService.speakerAudioPlayStart(
-                gatewayManager,
-                new SpeakerAudioPlayStartRequest()
-                        .setJobId(jobId)
-                        .setPsdkIndex(speakerOpt.get().getPsdkIndex())
-                        .setFile(new PlayAudioFile()
-                                .setName(contentDTO.getName())
-                                .setFormat(contentDTO.getAudioFormat())
-                                .setMd5(contentDTO.getSign())
-                                .setUrl(url.toString())));
+
+        // 根据内容类型创建不同任务
+        TopicServicesResponse<ServicesReplyData> serviceReply;
+        switch (contentDTO.getType()) {
+            case AUDIO:
+                URL url = speakerContentService.getAudioFileUrl(workspaceId, issueJobParam.getContentId());
+                serviceReply = sdkPsdkPublishService.speakerAudioPlayStart(SDKManager.getDeviceSDK(issueJobParam.getDeviceSn()),
+                        new SpeakerAudioPlayStartRequest()
+                                .setJobId(jobId)
+                                .setPsdkIndex(speakerOpt.get().getPsdkIndex())
+                                .setFile(new PlayAudioFile()
+                                        .setName(contentDTO.getName())
+                                        .setFormat(contentDTO.getAudioFormat())
+                                        .setMd5(contentDTO.getSign())
+                                        .setUrl(url.toString())));
+                break;
+            case TTS:
+                serviceReply = sdkPsdkPublishService.speakerTtsPlayStart(SDKManager.getDeviceSDK(issueJobParam.getDeviceSn()),
+                                new SpeakerTtsPlayStartRequest()
+                                        .setPsdkIndex(speakerOpt.get().getPsdkIndex())
+                                        .setTts(new PlayTtsFile()
+                                                .setName(contentDTO.getName())
+                                                .setMd5(contentDTO.getSign())
+                                                .setText(contentDTO.getContent())));
+                break;
+            default:
+                return HttpResultResponse.error("不支持的喊话器内容文件类型，喊话失败。");
+        }
         if (!serviceReply.getData().getResult().isSuccess()) {
             updateJobStatus(jobId, SpeakerJobStatusEnum.PLAY_START_FAIL);
             return HttpResultResponse.error(serviceReply.getData().getResult().getMessage());

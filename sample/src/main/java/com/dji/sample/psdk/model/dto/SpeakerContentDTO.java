@@ -71,4 +71,6 @@ public class SpeakerContentDTO {
     private Long updateTime;
 
     private String organizationCode;
+
+    private String content;
 }

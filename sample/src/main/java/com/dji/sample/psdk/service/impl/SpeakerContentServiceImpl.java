@@ -1,11 +1,13 @@
 package com.dji.sample.psdk.service.impl;
 
+import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
 import com.dji.sample.component.oss.model.OssConfiguration;
 import com.dji.sample.component.oss.service.impl.OssServiceContext;
 import com.dji.sample.psdk.dao.ISpeakerContentMapper;
@@ -21,15 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.dji.sample.psdk.service.impl.SpeakerJobServiceImpl.AUDIO_FILE_PREFIX;
@@ -82,12 +82,12 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
     }
 
     @Override
-    public PaginationData<SpeakerContentDTO> getSpeakerContents(String workspaceId, Long page, Long pageSize, String key, String organizationCode) {
+    public PaginationData<SpeakerContentDTO> getSpeakerContents(String workspaceId, Long page, Long pageSize, String key, String orgCode) {
 
         Page<SpeakerContentEntity> pageData = mapper.selectPage(new Page<>(page, pageSize), new QueryWrapper<SpeakerContentEntity>()
                 .lambda()
                 .eq(SpeakerContentEntity::getWorkspaceId, workspaceId)
-                .likeRight(SpeakerContentEntity::getOrganizationCode, organizationCode)
+                .likeRight(CharSequenceUtil.isNotBlank(orgCode), SpeakerContentEntity::getOrganizationCode, orgCode)
                 .like(CharSequenceUtil.isNotBlank(key), SpeakerContentEntity::getName, key)
                 .orderByDesc(SpeakerContentEntity::getCreateTime));
         List<SpeakerContentDTO> records = pageData.getRecords()
@@ -125,42 +125,66 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
     }
 
     @Override
-    public String create(String workspaceId, MultipartFile file, String creator, String organizationCode) {
-        String filename = file.getOriginalFilename();
-        Assert.isTrue(isAudioFile(filename), "音频文件格式错误。");
+    public String create(String workspaceId, MultipartFile file, CreateSpeakerContentParam param) {
+
+        if (Objects.isNull(param.getType())) {
+            throw new RuntimeException("无法判断新建喊话器内容的类型，请查证");
+        }
 
         String contentId = UUID.randomUUID().toString();
-        String objectKey = OssConfiguration.objectDirPrefix + AUDIO_FILE_PREFIX + FileNameUtil.UNIX_SEPARATOR + filename;
-        try {
-            ossService.putObject(OssConfiguration.bucket, objectKey, file.getInputStream());
-        } catch (IOException e) {
-            log.error("喊话器文件上传失败，喊话失败。", e);
-            throw new RuntimeException("喊话文件上传失败");
+        SpeakerContentDTO.SpeakerContentDTOBuilder contentDTO = SpeakerContentDTO.builder()
+                .contentId(UUID.randomUUID().toString())
+                .workspaceId(workspaceId)
+                .type(param.getType())
+                .username(param.getCreator())
+                .organizationCode(param.getCode())
+                .name(param.getName());
+
+        switch (param.getType()) {
+            case AUDIO:
+                if (Objects.isNull(file)) {
+                    throw new RuntimeException("类型为pcm音频时，file文件不能为空");
+                }
+                String filename = file.getOriginalFilename();
+                Assert.isTrue(isAudioFile(filename), "音频文件格式错误。");
+
+                String objectKey = OssConfiguration.objectDirPrefix + AUDIO_FILE_PREFIX + FileNameUtil.UNIX_SEPARATOR + filename;
+                try {
+                    ossService.putObject(OssConfiguration.bucket, objectKey, file.getInputStream());
+                } catch (IOException e) {
+                    log.error("喊话器文件上传失败，喊话失败。", e);
+                    throw new RuntimeException("喊话文件上传失败");
+                }
+                contentDTO.name(FileNameUtil.getName(FileNameUtil.getPrefix(filename)))
+                        .objectKey(objectKey)
+                        .audioFormat(PlayAudioFormatEnum.find(FileNameUtil.getSuffix(filename).toLowerCase()));
+
+                try (InputStream object = ossService.getObject(OssConfiguration.bucket, objectKey)) {
+                    if (object.available() == 0) {
+                        throw new RuntimeException(String.format("无法获取播放文件, objectKey:[%s], bucket[%s].",
+                                contentId, OssConfiguration.bucket));
+                    }
+                    contentDTO.sign(DigestUtils.md5DigestAsHex(object));
+                } catch (IOException e) {
+                    log.error("喊话内容保存失败", e);
+                    ossService.deleteObject(OssConfiguration.bucket, objectKey);
+                    throw new RuntimeException("喊话内容保存失败");
+                }
+                break;
+            case TTS:
+                if (!StringUtils.hasText(param.getContent())) {
+                    throw new RuntimeException("请输入正确的喊话内容类型。");
+                }
+                if (!StringUtils.hasText(param.getName())) {
+                    contentDTO.name("TTS-" + DatePattern.PURE_DATETIME_FORMAT.format(new Date()));
+                }
+                contentDTO.content(param.getContent()).sign(DigestUtils.md5DigestAsHex(param.getContent().getBytes()));
+                break;
+            default:
+                return null;
         }
 
-        SpeakerContentEntity entity = fileDto2Entity(SpeakerContentDTO.builder()
-                .name(FileNameUtil.getName(FileNameUtil.getPrefix(filename)))
-                .type(SpeakerContentTypeEnum.AUDIO)
-                .objectKey(objectKey)
-                .audioFormat(PlayAudioFormatEnum.find(FileNameUtil.getSuffix(filename).toLowerCase()))
-                .username(creator)
-                .organizationCode(organizationCode)
-                .build());
-        entity.setContentId(contentId);
-        entity.setWorkspaceId(workspaceId);
-        try (InputStream object = ossService.getObject(OssConfiguration.bucket, objectKey)) {
-            if (object.available() == 0) {
-                throw new RuntimeException(String.format("无法获取播放文件, objectKey:[%s], bucket[%s].",
-                        contentId, OssConfiguration.bucket));
-            }
-            entity.setSign(DigestUtils.md5DigestAsHex(object));
-        } catch (IOException e) {
-            log.error("喊话内容保存失败", e);
-            ossService.deleteObject(OssConfiguration.bucket, objectKey);
-            throw new RuntimeException("喊话内容保存失败");
-        }
-
-        return mapper.insert(entity) > 0 ? contentId : null;
+        return mapper.insert(fileDto2Entity(contentDTO.build())) > 0 ? contentId : null;
     }
 
     private boolean isAudioFile(String filename) {
@@ -168,15 +192,24 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
     }
 
     private SpeakerContentEntity fileDto2Entity(SpeakerContentDTO fileDTO) {
-        return SpeakerContentEntity.builder()
-                .workspaceId(fileDTO.getWorkspaceId())
-                .name(fileDTO.getName())
-                .type(fileDTO.getType().getType())
-                .objectKey(fileDTO.getObjectKey())
-                .audioFormat(fileDTO.getAudioFormat().getFormat())
-                .sign(fileDTO.getSign())
-                .username(fileDTO.getUsername())
-                .organizationCode(fileDTO.getOrganizationCode())
-                .build();
+        SpeakerContentEntity entity = new SpeakerContentEntity()
+                .setWorkspaceId(fileDTO.getWorkspaceId())
+                .setContentId(fileDTO.getContentId())
+                .setName(fileDTO.getName())
+                .setType(fileDTO.getType().getType())
+                .setObjectKey(fileDTO.getObjectKey())
+                .setSign(fileDTO.getSign())
+                .setContent(fileDTO.getContent())
+                .setUsername(fileDTO.getUsername())
+                .setOrganizationCode(fileDTO.getOrganizationCode())
+                ;
+        if (Objects.nonNull(fileDTO.getAudioFormat())) {
+            entity.setAudioFormat(fileDTO.getAudioFormat().getFormat());
+        }
+        return entity;
+    }
+
+    public static void main(String[] args) {
+        log.info("md5: {}", DigestUtils.md5DigestAsHex("大家不要聚集了啊".getBytes()));
     }
 }
