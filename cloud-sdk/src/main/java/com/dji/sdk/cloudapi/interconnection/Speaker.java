@@ -1,5 +1,12 @@
 package com.dji.sdk.cloudapi.interconnection;
 
+import com.dji.sdk.cloudapi.device.TtsLanguageEnum;
+import com.dji.sdk.cloudapi.device.TtsPlayTypeEnum;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+
 /**
  * @author Qfei
  * @date 2025/8/8 16:51
@@ -10,13 +17,28 @@ public class Speaker {
 
     private PlayModeEnum playMode;
 
+    @Min(0)
+    @Max(100)
     private Integer playVolume;
 
     private SpeakerSystemStatus systemStatus;
 
     private String playFileName;
 
+    @JsonProperty("play_file_md5")
     private String playFileMd5;
+
+    @Min(0)
+    @Max(100)
+    private Integer ttsVolume;
+
+    private TtsPlayTypeEnum ttsType;
+
+    private TtsLanguageEnum ttsLanguage;
+
+    @Min(1)
+    @Max(100)
+    private Integer ttsSpeed;
 
     public Speaker() {
     }
@@ -30,6 +52,10 @@ public class Speaker {
                 ", systemStatus=" + systemStatus +
                 ", playFileName='" + playFileName + '\'' +
                 ", playFileMd5='" + playFileMd5 + '\'' +
+                ", ttsVolume=" + ttsVolume +
+                ", ttsType=" + ttsType +
+                ", ttsLanguage=" + ttsLanguage +
+                ", ttsSpeed=" + ttsSpeed +
                 '}';
     }
 
@@ -84,6 +110,42 @@ public class Speaker {
 
     public Speaker setPlayFileMd5(String playFileMd5) {
         this.playFileMd5 = playFileMd5;
+        return this;
+    }
+
+    public Integer getTtsVolume() {
+        return ttsVolume;
+    }
+
+    public Speaker setTtsVolume(Integer ttsVolume) {
+        this.ttsVolume = ttsVolume;
+        return this;
+    }
+
+    public TtsPlayTypeEnum getTtsType() {
+        return ttsType;
+    }
+
+    public Speaker setTtsType(TtsPlayTypeEnum ttsType) {
+        this.ttsType = ttsType;
+        return this;
+    }
+
+    public TtsLanguageEnum getTtsLanguage() {
+        return ttsLanguage;
+    }
+
+    public Speaker setTtsLanguage(TtsLanguageEnum ttsLanguage) {
+        this.ttsLanguage = ttsLanguage;
+        return this;
+    }
+
+    public Integer getTtsSpeed() {
+        return ttsSpeed;
+    }
+
+    public Speaker setTtsSpeed(Integer ttsSpeed) {
+        this.ttsSpeed = ttsSpeed;
         return this;
     }
 }

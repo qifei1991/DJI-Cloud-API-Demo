@@ -583,3 +583,39 @@ CREATE TABLE `wayline_job` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
+DROP TABLE IF EXISTS `speaker_content`;
+create table `speaker_content`(
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `content_id`        varchar(64)  default '' not null comment 'uuid',
+  `name`              varchar(64)  default '' not null comment 'interconnection name',
+  `type`              int                     null comment 'The play content type. 0: tts; 1: audio.',
+  `object_key`        varchar(200) default '' not null comment 'The key of the file in the bucket.',
+  `sign`              varchar(64)  default '' not null comment 'The md5 of the interconnection file.',
+  `audio_format`      varchar(16)             null comment '音频文件格式',
+  `workspace_id`      varchar(64)  default '' not null comment 'Which workspace the current wayline belongs to.',
+  `user_name`         varchar(64)  default '' not null comment 'The name of the creator.',
+  `create_time`       bigint                  not null,
+  `update_time`       bigint                  not null comment 'required, can''t modify.',
+  `organization_code` varchar(32)             null,
+  `content`           text                    null comment '内容',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `content_id_UNIQUE` (`content_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='互联互通文件';
+
+
+DROP TABLE IF EXISTS `speaker_job`;
+CREATE TABLE `speaker_job` (
+   `id` int unsigned NOT NULL AUTO_INCREMENT,
+   `job_id` varchar(64) NOT NULL DEFAULT '' COMMENT 'uuid',
+    `name` varchar(150) NOT NULL DEFAULT '' COMMENT 'interconnection job name',
+    `content_id` varchar(64) NOT NULL DEFAULT '' COMMENT 'interconnection file id',
+    `device_sn` varchar(64) NOT NULL DEFAULT '' COMMENT 'device sn.',
+    `workspace_id` varchar(64) NOT NULL DEFAULT '' COMMENT 'Which workspace the current wayline belongs to.',
+    `status` int DEFAULT NULL COMMENT '执行状态',
+    `user_name` varchar(64) NOT NULL DEFAULT '' COMMENT 'The name of the creator.',
+    `create_time` bigint NOT NULL,
+    `update_time` bigint NOT NULL COMMENT 'required, can''t modify.',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `interconnection_id_UNIQUE` (`job_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='互联互通任务'
+

@@ -12,9 +12,18 @@ import java.util.Arrays;
  */
 public enum SpeakerWorkMode {
 
-    TTS(1),
+    /**
+     * {"0": "TTS模式", "1":"实时喊话","4": "边传边播", "5":"航线喊话"}
+     */
+    TTS(0),
+
+    REALTIME_SPEAKER(1),
 
     RECORD_AUDIO(2),
+
+    TRANSFER_AND_PLAY(4),
+
+    WAYLINE_SPEAKER(5),
     ;
 
     private final Integer mode;

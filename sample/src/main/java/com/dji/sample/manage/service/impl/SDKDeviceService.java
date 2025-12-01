@@ -75,16 +75,19 @@ public class SDKDeviceService extends AbstractDeviceService {
 
         Optional<DeviceDTO> deviceOpt = deviceRedisService.getDeviceOnline(deviceSn);
         Optional<DeviceDTO> gatewayOpt = deviceRedisService.getDeviceOnline(request.getFrom());
+        log.info("- [设备上线]判断设备是否在线，dock: {}, subDevice: {}.", gatewayOpt.isPresent(), deviceOpt.isPresent());
+
         GatewayManager gatewayManager = SDKManager.registerDevice(request.getFrom(), deviceSn,
                 request.getData().getDomain(), request.getData().getType(),
                 request.getData().getSubType(), request.getData().getThingVersion(), updateTopoSubDevice.getThingVersion());
 
-        log.info("- [设备上线]判断设备是否在线，dock: {}, subDevice: {}.", gatewayOpt.isPresent(), deviceOpt.isPresent());
+        // 设备都在线的情况下更新设备上线状态和时间
         if (deviceOpt.isPresent() && gatewayOpt.isPresent()) {
             deviceOnlineAgain(deviceOpt.get().getWorkspaceId(), request.getFrom(), deviceSn);
             return new TopicStatusResponse<MqttReply>().setData(MqttReply.success());
         }
 
+        // 更新绑定飞机的所有网关信息，避免飞机在别的机场绑定过
         changeSubDeviceParent(deviceSn, request.getFrom());
 
         DeviceDTO gateway = deviceGatewayConvertToDevice(request.getFrom(), request.getData());
@@ -95,6 +98,10 @@ public class SDKDeviceService extends AbstractDeviceService {
             return null;
         }
         DeviceDTO subDevice = subDeviceConvertToDevice(updateTopoSubDevice);
+        if (!StringUtils.hasText(subDevice.getOrganizationId())) {
+            subDevice.setOrganizationId(gateway.getOrganizationId());
+        }
+        // 如果机场是在飞机未开机状态下绑定的，飞机上线的时候需要设置绑定的组织ID
         Optional<DeviceDTO> subDeviceEntityOpt = onlineSaveDevice(subDevice, null, gateway.getDeviceSn());
         log.info("- [设备上线]保存飞行器设备信息，{}.", subDeviceEntityOpt);
         if (subDeviceEntityOpt.isEmpty()) {

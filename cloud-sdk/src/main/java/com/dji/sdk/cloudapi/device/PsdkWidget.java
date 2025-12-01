@@ -1,5 +1,6 @@
 package com.dji.sdk.cloudapi.device;
 
+import com.dji.sdk.cloudapi.interconnection.Searchlight;
 import com.dji.sdk.cloudapi.interconnection.Speaker;
 
 import java.util.List;
@@ -24,6 +25,8 @@ public class PsdkWidget {
 
     private Speaker speaker;
 
+    private Searchlight searchlight;
+
     private List<Object> values;
 
     public PsdkWidget() {
@@ -39,6 +42,7 @@ public class PsdkWidget {
                 ", psdkVersion='" + psdkVersion + '\'' +
                 ", psdkLibVersion='" + psdkLibVersion + '\'' +
                 ", speaker=" + speaker +
+                ", searchlight=" + searchlight +
                 ", values=" + values +
                 '}';
     }
@@ -103,6 +107,15 @@ public class PsdkWidget {
 
     public PsdkWidget setSpeaker(Speaker speaker) {
         this.speaker = speaker;
+        return this;
+    }
+
+    public Searchlight getSearchlight() {
+        return searchlight;
+    }
+
+    public PsdkWidget setSearchlight(Searchlight searchlight) {
+        this.searchlight = searchlight;
         return this;
     }
 

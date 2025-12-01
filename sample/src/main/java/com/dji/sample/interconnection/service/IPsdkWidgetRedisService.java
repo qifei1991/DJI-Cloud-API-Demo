@@ -11,7 +11,7 @@ import java.util.Optional;
  */
 public interface IPsdkWidgetRedisService {
 
-    void setPsdkWidgetValues(String deviceSn, List<Object> psdkWidgetValues);
+    void setPsdkWidgetValues(String deviceSn, List<PsdkWidget> psdkWidgetValues);
 
     Optional<List<PsdkWidget>> getPsdkWidgetValues(String deviceSn);
 

@@ -7,21 +7,24 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 /**
+ * tts播放类型
+ *
  * @author Qfei
- * @date 2025/8/4 14:36
+ * @date 2025/11/27 16:52
  */
-public enum PsdkTypeEnum {
+public enum TtsPlayTypeEnum {
 
     /**
-     * {"4":"三方","5":"大疆自研"}
+     * {"0":"男声","1":"女声"}
      */
-    THIRD_PARTY(4),
 
-    DJI_CUSTOM(5);
+    MALE(0),
+
+    FEMALE(1);
 
     private final int type;
 
-    PsdkTypeEnum(int type) {
+    TtsPlayTypeEnum(int type) {
         this.type = type;
     }
 
@@ -31,10 +34,10 @@ public enum PsdkTypeEnum {
     }
 
     @JsonCreator
-    public static PsdkTypeEnum find(int type) {
+    public static TtsPlayTypeEnum find(int type) {
         return Arrays.stream(values())
                 .filter(typeEnum -> typeEnum.getType() == type)
                 .findFirst()
-                .orElseThrow(() -> new CloudSDKException(PsdkTypeEnum.class, type));
+                .orElseThrow(() -> new CloudSDKException(TtsPlayTypeEnum.class, type));
     }
 }

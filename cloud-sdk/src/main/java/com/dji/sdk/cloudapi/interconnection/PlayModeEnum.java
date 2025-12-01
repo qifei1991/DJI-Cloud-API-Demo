@@ -12,6 +12,9 @@ import java.util.Arrays;
  */
 public enum PlayModeEnum {
 
+    /**
+     * {"0":"单曲播放","1":"循环播放"}
+     */
     SINGLE(0),
 
     LOOP(1)
@@ -31,7 +34,9 @@ public enum PlayModeEnum {
 
     @JsonCreator
     public static PlayModeEnum find(int mode) {
-        return Arrays.stream(values()).filter(modeEnum -> modeEnum.mode == mode).findAny()
+        return Arrays.stream(values())
+                .filter(modeEnum -> modeEnum.mode == mode)
+                .findFirst()
                 .orElseThrow(() -> new CloudSDKException(PlayModeEnum.class, mode));
     }
 }

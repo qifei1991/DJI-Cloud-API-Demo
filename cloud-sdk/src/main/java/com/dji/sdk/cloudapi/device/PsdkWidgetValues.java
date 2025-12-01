@@ -9,7 +9,8 @@ import java.util.List;
  * @date 2024/5/22 19:17
  */
 public class PsdkWidgetValues extends BaseModel {
-    private List<Object> psdkWidgetValues;
+
+    private List<PsdkWidget> psdkWidgetValues;
 
     @Override
     public String toString() {
@@ -18,11 +19,11 @@ public class PsdkWidgetValues extends BaseModel {
                 '}';
     }
 
-    public List<Object> getPsdkWidgetValues() {
+    public List<PsdkWidget> getPsdkWidgetValues() {
         return psdkWidgetValues;
     }
 
-    public PsdkWidgetValues setPsdkWidgetValues(List<Object> psdkWidgetValues) {
+    public PsdkWidgetValues setPsdkWidgetValues(List<PsdkWidget> psdkWidgetValues) {
         this.psdkWidgetValues = psdkWidgetValues;
         return this;
     }
