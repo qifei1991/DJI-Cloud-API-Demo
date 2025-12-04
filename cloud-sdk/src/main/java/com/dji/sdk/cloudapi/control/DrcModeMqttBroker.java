@@ -28,6 +28,9 @@ public class DrcModeMqttBroker {
     @Max(9999999999L)
     private Long expireTime;
 
+    /**
+     * TLS. 传输层安全协议
+     */
     @NotNull
     private Boolean enableTls;
 

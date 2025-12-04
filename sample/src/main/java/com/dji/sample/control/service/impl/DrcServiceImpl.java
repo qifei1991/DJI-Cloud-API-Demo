@@ -195,7 +195,8 @@ public class DrcServiceImpl implements IDrcService {
                                         .pub(List.of(subTopic))
                                         .sub(List.of(pubTopic))
                                         .build(), new TypeReference<Map<String, ?>>() {}))))
-                        .setHsiFrequency(1).setOsdFrequency(10));
+                        .setHsiFrequency(1)
+                        .setOsdFrequency(10));
 
         if (!reply.getData().getResult().isSuccess()) {
             log.error("[Drc Enter] DrcModeEnter: DockSn: {}, Reply: {}", param.getDockSn(), reply);
@@ -287,18 +288,17 @@ public class DrcServiceImpl implements IDrcService {
      */
     @Scheduled(initialDelay = 10, fixedRate = 60, timeUnit = TimeUnit.SECONDS)
     public void cleanDrcHeartBeatTask() {
-        log.info("- [Drc HeartBeat] 定时清除心跳任务");
         List<String> ids = CronUtil.getScheduler().getTaskTable().getIds();
         if (CollUtil.isEmpty(ids)) {
             return;
         }
-
         log.info("- [Drc HeartBeat] 定时任务数量: {}", ids.size());
         ids.forEach(dockSn -> {
             Optional<DeviceDTO> deviceOnlineOpt = deviceRedisService.getDeviceOnline(dockSn);
-            if (deviceOnlineOpt.isEmpty() || Objects.isNull(deviceOnlineOpt.get().getChildren())
+            if (deviceOnlineOpt.isEmpty() || !deviceService.checkDockDrcMode(dockSn)
+                    || Objects.isNull(deviceOnlineOpt.get().getChildren())
                     || !deviceOnlineOpt.get().getChildren().getStatus()) {
-                log.info("- [Drc HeartBeat] 删除离线设备心跳，ID: {}", dockSn);
+                log.info("- [Drc HeartBeat] 删除设备心跳，ID: {}", dockSn);
                 CronUtil.remove(dockSn);
             }
         });
