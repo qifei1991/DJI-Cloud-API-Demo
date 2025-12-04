@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2024/4/24 14:02
  */
 @RestController
-@RequestMapping("${url.manage.prefix}${url.manage.version}/interconnections")
+@RequestMapping("${url.manage.prefix}${url.manage.version}/psdk")
 public class SpeakerContentController {
 
 }

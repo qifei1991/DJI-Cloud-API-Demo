@@ -1,18 +1,19 @@
 package com.dji.sample.component;
 
+import cn.hutool.cron.CronUtil;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sdk.cloudapi.device.DeviceDomainEnum;
 import com.dji.sdk.mqtt.IMqttTopicService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,10 +45,16 @@ public class GlobalScheduleService {
                 if (null == device) {
                     return;
                 }
+                String sn = key.substring(start);
                 if (DeviceDomainEnum.DRONE == device.getDomain()) {
-                    deviceService.subDeviceOffline(key.substring(start));
+                    deviceService.subDeviceOffline(sn);
                 } else {
-                    deviceService.gatewayOffline(key.substring(start));
+                    deviceService.gatewayOffline(sn);
+                    // 如果有DRC心跳定时任务，删除
+                    List<String> ids = CronUtil.getScheduler().getTaskTable().getIds();
+                    if (ids.contains(sn)) {
+                        CronUtil.remove(sn);
+                    }
                 }
                 RedisOpsUtils.del(key);
             }

@@ -3,6 +3,7 @@ package com.dji.sample.manage.service.impl;
 import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dji.sample.cloudapi.client.DeviceClient;
 import com.dji.sample.common.error.CommonErrorEnum;
@@ -239,6 +240,27 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    public List<DeviceDTO> getSimpleDevicesByParams(DeviceQueryParam param) {
+        return mapper.selectList(
+                        Wrappers.lambdaQuery(new DeviceEntity())
+                                .eq(StringUtils.hasText(param.getDeviceSn()), DeviceEntity::getDeviceSn, param.getDeviceSn())
+                                .eq(param.getDeviceType() != null, DeviceEntity::getDeviceType, param.getDeviceType())
+                                .eq(param.getSubType() != null, DeviceEntity::getSubType, param.getSubType())
+                                .eq(StringUtils.hasText(param.getChildSn()), DeviceEntity::getChildSn, param.getChildSn())
+                                .and(!CollectionUtils.isEmpty(param.getDomains()), wrapper -> {
+                                    for (Integer domain : param.getDomains()) {
+                                        wrapper.eq(DeviceEntity::getDomain, domain).or();
+                                    }
+                                })
+                                .eq(StringUtils.hasText(param.getWorkspaceId()), DeviceEntity::getWorkspaceId, param.getWorkspaceId())
+                                .eq(param.getBoundStatus() != null, DeviceEntity::getBoundStatus, param.getBoundStatus())
+                                .orderBy(param.isOrderBy(), param.isAsc(), DeviceEntity::getId))
+                .stream()
+                .map(x -> deviceEntityConvertToDTO(x, false))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<DeviceDTO> getDevicesTopoForWeb(String workspaceId) {
         List<DeviceDTO> devicesList = this.getDevicesByParams(
                 DeviceQueryParam.builder()
@@ -423,19 +445,22 @@ public class DeviceServiceImpl implements IDeviceService {
         return mapper.insert(entity) > 0 ? entity.getId() : -1;
     }
 
+    private DeviceDTO deviceEntityConvertToDTO(DeviceEntity entity) {
+        return deviceEntityConvertToDTO(entity, true);
+    }
+
     /**
      * Convert database entity object into device data transfer object.
      * @param entity
      * @return
      */
-    private DeviceDTO deviceEntityConvertToDTO(DeviceEntity entity) {
+    private DeviceDTO deviceEntityConvertToDTO(DeviceEntity entity, boolean addFirmwareStatus) {
         if (entity == null) {
             return null;
         }
         DeviceDTO.DeviceDTOBuilder builder = DeviceDTO.builder();
         try {
-            builder
-                    .deviceSn(entity.getDeviceSn())
+            builder.deviceSn(entity.getDeviceSn())
                     .childDeviceSn(entity.getChildSn())
                     .deviceName(entity.getDeviceName())
                     .deviceDesc(entity.getDeviceDesc())
@@ -467,7 +492,9 @@ public class DeviceServiceImpl implements IDeviceService {
             log.error("{} Entity: {}", e.getLocalizedMessage(), entity);
         }
         DeviceDTO deviceDTO = builder.build();
-        addFirmwareStatus(deviceDTO, entity);
+        if (addFirmwareStatus) {
+            addFirmwareStatus(deviceDTO, entity);
+        }
         return deviceDTO;
     }
 

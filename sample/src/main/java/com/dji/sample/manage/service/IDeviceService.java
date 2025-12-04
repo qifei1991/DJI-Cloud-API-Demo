@@ -60,6 +60,7 @@ public interface IDeviceService {
      * @return
      */
     List<DeviceDTO> getDevicesByParams(DeviceQueryParam param);
+    List<DeviceDTO> getSimpleDevicesByParams(DeviceQueryParam param);
 
     /**
      * The business interface on the web side. Get all information about all devices in this workspace.

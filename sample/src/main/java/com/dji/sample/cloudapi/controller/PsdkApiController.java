@@ -3,6 +3,7 @@ package com.dji.sample.cloudapi.controller;
 import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
 import com.dji.sample.psdk.model.dto.PsdkWidgetValuesDTO;
 import com.dji.sample.psdk.model.dto.SpeakerContentDTO;
+import com.dji.sample.psdk.model.enums.SpeakerContentTypeEnum;
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
 import com.dji.sample.psdk.model.param.SpeakerPlaySetParam;
 import com.dji.sample.psdk.service.IPsdkService;
@@ -85,12 +86,22 @@ public class PsdkApiController {
     }
 
     @PostMapping("/{workspace_id}/contents")
-    public HttpResultResponse create(
-            @PathVariable("workspace_id") String workspaceId,
+    public HttpResultResponse create(@PathVariable("workspace_id") String workspaceId,
             @RequestPart(name = "file", required = false) MultipartFile file,
-            @RequestPart("param") CreateSpeakerContentParam param) {
-        return HttpResultResponse.success(speakerContentService.create(workspaceId, file, param));
-    }
+            @RequestParam("type") Integer type,
+            @RequestParam(value = "creator", defaultValue = "manager-server") String creator,
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "content", required = false) String content) {
+        return HttpResultResponse.success(
+                speakerContentService.create(workspaceId, file, new CreateSpeakerContentParam()
+                        .setType(SpeakerContentTypeEnum.find(type))
+                        .setCreator(creator)
+                        .setCode(code)
+                        .setName(name)
+                        .setContent(content)));
+}
+
 
     @PutMapping("/{workspace_id}/contents/rename")
     public HttpResultResponse<Boolean> rename(

@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.dji.sample.cloudapi.client.DeviceClient;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
-import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.dto.DevicePayloadReceiver;
 import com.dji.sample.manage.model.enums.DeviceFirmwareStatusEnum;
@@ -20,8 +19,8 @@ import com.dji.sdk.cloudapi.property.DockDroneCommanderModeLostAction;
 import com.dji.sdk.cloudapi.property.DockDroneRthMode;
 import com.dji.sdk.cloudapi.tsa.DeviceIconUrl;
 import com.dji.sdk.cloudapi.tsa.IconUrlEnum;
-import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.common.SDKManager;
+import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.osd.TopicOsdRequest;
 import com.dji.sdk.mqtt.state.TopicStateRequest;
@@ -57,9 +56,6 @@ public class SDKDeviceService extends AbstractDeviceService {
 
     @Autowired
     private IDeviceDictionaryService dictionaryService;
-
-    @Autowired
-    private IWebSocketMessageService webSocketMessageService;
 
     @Autowired
     private IDevicePayloadService devicePayloadService;

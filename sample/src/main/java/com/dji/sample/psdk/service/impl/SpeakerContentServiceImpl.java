@@ -3,7 +3,8 @@ package com.dji.sample.psdk.service.impl;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.hutool.core.text.StrPool;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -83,13 +84,13 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
 
     @Override
     public PaginationData<SpeakerContentDTO> getSpeakerContents(String workspaceId, Long page, Long pageSize, String key, String orgCode) {
-
-        Page<SpeakerContentEntity> pageData = mapper.selectPage(new Page<>(page, pageSize), new QueryWrapper<SpeakerContentEntity>()
-                .lambda()
-                .eq(SpeakerContentEntity::getWorkspaceId, workspaceId)
-                .likeRight(CharSequenceUtil.isNotBlank(orgCode), SpeakerContentEntity::getOrganizationCode, orgCode)
-                .like(CharSequenceUtil.isNotBlank(key), SpeakerContentEntity::getName, key)
-                .orderByDesc(SpeakerContentEntity::getCreateTime));
+        Page<SpeakerContentEntity> pageData = mapper.selectPage(
+                new Page<>(page, pageSize),
+                Wrappers.lambdaQuery(SpeakerContentEntity.class)
+                        .eq(SpeakerContentEntity::getWorkspaceId, workspaceId)
+                        .likeRight(CharSequenceUtil.isNotBlank(orgCode), SpeakerContentEntity::getOrganizationCode, orgCode)
+                        .like(CharSequenceUtil.isNotBlank(key), SpeakerContentEntity::getName, key)
+                        .orderByDesc(SpeakerContentEntity::getCreateTime));
         List<SpeakerContentDTO> records = pageData.getRecords()
                 .stream()
                 .map(this::entity2Dto)
@@ -148,14 +149,22 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
                 String filename = file.getOriginalFilename();
                 Assert.isTrue(isAudioFile(filename), "音频文件格式错误。");
 
-                String objectKey = OssConfiguration.objectDirPrefix + AUDIO_FILE_PREFIX + FileNameUtil.UNIX_SEPARATOR + filename;
+                String mainName = FileNameUtil.getPrefix(filename);
+                String objectKey = OssConfiguration.objectDirPrefix
+                        + AUDIO_FILE_PREFIX
+                        + FileNameUtil.UNIX_SEPARATOR
+                        + mainName
+                        + StrPool.DASHED
+                        + DatePattern.PURE_DATETIME_FORMAT.format(new Date())
+                        + StrUtil.DOT
+                        + FileNameUtil.extName(filename);
                 try {
                     ossService.putObject(OssConfiguration.bucket, objectKey, file.getInputStream());
                 } catch (IOException e) {
                     log.error("喊话器文件上传失败，喊话失败。", e);
                     throw new RuntimeException("喊话文件上传失败");
                 }
-                contentDTO.name(FileNameUtil.getName(FileNameUtil.getPrefix(filename)))
+                contentDTO.name(StringUtils.hasText(param.getName()) ? param.getName() : mainName)
                         .objectKey(objectKey)
                         .audioFormat(PlayAudioFormatEnum.find(FileNameUtil.getSuffix(filename).toLowerCase()));
 

@@ -34,7 +34,7 @@ public class PsdkServiceImpl implements IPsdkService {
     public List<PsdkWidgetValuesDTO> getPsdkWidgetValues(String workspaceId) {
 
         // Query all devices in this workspace.
-        List<DeviceDTO> devicesList = deviceService.getDevicesByParams(
+        List<DeviceDTO> devicesList = deviceService.getSimpleDevicesByParams(
                 DeviceQueryParam.builder()
                         .workspaceId(workspaceId)
                         .domains(List.of(DeviceDomainEnum.DRONE.getDomain(), DeviceDomainEnum.DOCK.getDomain()))

@@ -60,9 +60,6 @@ public class SpeakerContentDTO {
     @JsonProperty("user_name")
     private String username;
 
-    /**
-     *
-     */
     private Long createTime;
 
     /**
