@@ -57,32 +57,27 @@ public class DeviceClient extends AbstractClient {
         try {
             deviceDTOOpt.ifPresent(deviceDTO -> {
                 // 暂时只维护无人机、遥控器、机场的上线
-                String category = null;
-                switch (DeviceDomainEnum.find(deviceDTO.getDomain().getDomain())) {
-                    case DRONE:
-                        category = DeviceCategory.AIRCRAFT.getCode();
-                        break;
-                    case DOCK:
-                        category = DeviceCategory.DOCK.getCode();
-                        break;
-                    case REMOTER_CONTROL:
-                        category = DeviceCategory.RC.getCode();
-                        break;
-                    default:
-                        break;
-                }
+                String category = DeviceCategory.getCategory(deviceDTO.getDomain().getDomain()).getCode();
                 if (StringUtils.hasText(category)) {
-                    this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE, DeviceOnlineParam.builder()
+                    DeviceOnlineParam.DeviceOnlineParamBuilder onlineParamBuild = DeviceOnlineParam.builder()
                             .sn(deviceDTO.getDeviceSn())
                             .name(StrUtil.blankToDefault(deviceDTO.getNickname(), deviceDTO.getDeviceName()))
                             .category(category)
                             .type(deviceDTO.getDeviceName())
                             .firmwareVersion(deviceDTO.getFirmwareVersion())
                             .time(LocalDateTime.now().format(FORMATTER))
-                            .orgCode(deviceDTO.getOrganizationId())
                             .bindCode(bindCode)
-                            .childDeviceSn(deviceDTO.getChildDeviceSn())
-                            .build());
+                            .childDeviceSn(deviceDTO.getChildDeviceSn());
+
+                    // 组织ID对应运维ops中用户组织ID（主键，不是组织编码）
+                    if (StringUtils.hasText(deviceDTO.getOrganizationId())) {
+                        try {
+                            onlineParamBuild.orgId(Long.valueOf(deviceDTO.getOrganizationId()));
+                        } catch (NumberFormatException e) {
+                            log.error("设备上线组织ID解析失败，OrgId：{}", deviceDTO.getOrganizationId());
+                        }
+                    }
+                    this.applicationJsonPost(ClientUri.URI_DEVICE_ONLINE, onlineParamBuild.build());
                 }
             });
         } catch (Exception e) {
