@@ -26,7 +26,7 @@ public interface ISpeakerJobService {
 
     // HttpResultResponse issueSpeakerJob(String workspaceId, IssueSpeakerJobParam issueSpeakerJobParam);
 
-    HttpResultResponse speakerAudioPlayStart(String workspaceId, SpeakerPlayParam issueJobParam);
+    HttpResultResponse speakerPlayStart(String workspaceId, SpeakerPlayParam issueJobParam);
 
     HttpResultResponse speakerPlayStop(String workspaceId, SpeakerPlayParam issueJobParam);
 }

@@ -293,7 +293,7 @@ public class DrcServiceImpl implements IDrcService {
             return;
         }
         log.info("- [Drc HeartBeat] 定时任务数量: {}", ids.size());
-        ids.forEach(dockSn -> {
+        ids.stream().filter(StringUtils::hasText).forEach(dockSn -> {
             Optional<DeviceDTO> deviceOnlineOpt = deviceRedisService.getDeviceOnline(dockSn);
             if (deviceOnlineOpt.isEmpty() || !deviceService.checkDockDrcMode(dockSn)
                     || Objects.isNull(deviceOnlineOpt.get().getChildren())

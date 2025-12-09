@@ -5,6 +5,7 @@ import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.psdk.service.IPsdkWidgetRedisService;
 import com.dji.sdk.cloudapi.device.PsdkWidget;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,9 @@ public class PsdkWidgetRedisServiceImpl implements IPsdkWidgetRedisService {
 
     @Override
     public Optional<List<PsdkWidget>> getPsdkWidgetValues(String deviceSn) {
+        if (!StringUtils.hasText(deviceSn)) {
+            return Optional.empty();
+        }
         return Optional.ofNullable((List<PsdkWidget>) RedisOpsUtils.hashGet(RedisConst.PSDK_WIDGET_VALUES, deviceSn));
     }
 

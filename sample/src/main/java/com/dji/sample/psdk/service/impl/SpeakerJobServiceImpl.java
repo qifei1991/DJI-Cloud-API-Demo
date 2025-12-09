@@ -1,7 +1,6 @@
 package com.dji.sample.psdk.service.impl;
 
 import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.StrPool;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -26,6 +25,7 @@ import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +38,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class SpeakerJobServiceImpl implements ISpeakerJobService {
 
@@ -82,13 +83,16 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
     }
 
     @Override
-    public HttpResultResponse speakerAudioPlayStart(String workspaceId, SpeakerPlayParam issueJobParam) {
+    public HttpResultResponse speakerPlayStart(String workspaceId, SpeakerPlayParam issueJobParam) {
 
+        GatewayManager gatewayManager = SDKManager.getDeviceSDK(issueJobParam.getDeviceSn());
+        if (!StringUtils.hasText(gatewayManager.getDroneSn())) {
+            return HttpResultResponse.error("设备不在线");
+        }
         Optional<SpeakerContentDTO> contentOpt = speakerContentService.getSpeakerContentById(workspaceId, issueJobParam.getContentId());
         if (contentOpt.isEmpty()) {
-            return HttpResultResponse.error("音频文件不存在，下发喊话失败。");
+            return HttpResultResponse.error("喊话内容不存在，不能下发喊话任务。");
         }
-        GatewayManager gatewayManager = SDKManager.getDeviceSDK(issueJobParam.getDeviceSn());
         Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
         if (dronePsdkValues.isEmpty()) {
             return HttpResultResponse.error("设备不存在psdk负载");
@@ -106,7 +110,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                 .setJobId(jobId)
                 .setName(contentDTO.getName()
                         .concat(StrPool.DASHED)
-                        .concat(DateUtil.format(new Date(), DatePattern.PURE_DATETIME_PATTERN)))
+                        .concat(DatePattern.PURE_DATETIME_FORMAT.format(new Date())))
                 .setContentId(contentDTO.getContentId())
                 .setDeviceSn(issueJobParam.getDeviceSn())
                 .setStatus(SpeakerJobStatusEnum.PREPARE.getStatus())
@@ -137,7 +141,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                                                 .setText(contentDTO.getContent())));
                 break;
             default:
-                return HttpResultResponse.error("不支持的喊话器内容文件类型，喊话失败。");
+                return HttpResultResponse.error("不支持的喊话器内容类型，喊话失败。");
         }
         if (!serviceReply.getData().getResult().isSuccess()) {
             updateJobStatus(jobId, SpeakerJobStatusEnum.PLAY_START_FAIL);
@@ -149,6 +153,9 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
     @Override
     public HttpResultResponse speakerPlayStop(String workspaceId, SpeakerPlayParam speakerPlayParam) {
         GatewayManager gatewayManager = SDKManager.getDeviceSDK(speakerPlayParam.getDeviceSn());
+        if (!StringUtils.hasText(gatewayManager.getDroneSn())) {
+            return HttpResultResponse.error("设备不在线");
+        }
         Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
         if (dronePsdkValues.isEmpty()) {
             return HttpResultResponse.error("设备不存在psdk负载");

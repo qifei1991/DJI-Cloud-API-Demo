@@ -3,7 +3,6 @@ package com.dji.sample.psdk.service.impl;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -22,6 +21,7 @@ import com.dji.sdk.common.PaginationData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
@@ -41,6 +41,7 @@ import static com.dji.sample.psdk.service.impl.SpeakerJobServiceImpl.AUDIO_FILE_
  */
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class SpeakerContentServiceImpl implements ISpeakerContentService {
 
@@ -70,6 +71,8 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
                 .organizationCode(entity.getOrganizationCode())
                 .createTime(entity.getCreateTime())
                 .updateTime(entity.getUpdateTime())
+                .username(entity.getUsername())
+                .content(entity.getContent())
                 .build();
     }
 
@@ -122,19 +125,20 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
         if (!isDel) {
             return false;
         }
+        if (!StringUtils.hasText(contentOpt.get().getObjectKey())) {
+            return true;
+        }
         return ossService.deleteObject(OssConfiguration.bucket, contentOpt.get().getObjectKey());
     }
 
     @Override
     public String create(String workspaceId, MultipartFile file, CreateSpeakerContentParam param) {
-
         if (Objects.isNull(param.getType())) {
             throw new RuntimeException("无法判断新建喊话器内容的类型，请查证");
         }
-
         String contentId = UUID.randomUUID().toString();
         SpeakerContentDTO.SpeakerContentDTOBuilder contentDTO = SpeakerContentDTO.builder()
-                .contentId(UUID.randomUUID().toString())
+                .contentId(contentId)
                 .workspaceId(workspaceId)
                 .type(param.getType())
                 .username(param.getCreator())
@@ -143,19 +147,15 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
 
         switch (param.getType()) {
             case AUDIO:
-                if (Objects.isNull(file)) {
-                    throw new RuntimeException("类型为pcm音频时，file文件不能为空");
+                if (Objects.isNull(file) || !StringUtils.hasText(file.getOriginalFilename())) {
+                    throw new RuntimeException("喊话内容音频文件格式错误");
                 }
                 String filename = file.getOriginalFilename();
                 Assert.isTrue(isAudioFile(filename), "音频文件格式错误。");
-
-                String mainName = FileNameUtil.getPrefix(filename);
                 String objectKey = OssConfiguration.objectDirPrefix
                         + AUDIO_FILE_PREFIX
                         + FileNameUtil.UNIX_SEPARATOR
-                        + mainName
-                        + StrPool.DASHED
-                        + DatePattern.PURE_DATETIME_FORMAT.format(new Date())
+                        + contentId
                         + StrUtil.DOT
                         + FileNameUtil.extName(filename);
                 try {
@@ -164,14 +164,15 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
                     log.error("喊话器文件上传失败，喊话失败。", e);
                     throw new RuntimeException("喊话文件上传失败");
                 }
-                contentDTO.name(StringUtils.hasText(param.getName()) ? param.getName() : mainName)
-                        .objectKey(objectKey)
+                if (!StringUtils.hasText(param.getName())) {
+                    contentDTO.name(FileNameUtil.getPrefix(filename));
+                }
+                contentDTO.objectKey(objectKey)
                         .audioFormat(PlayAudioFormatEnum.find(FileNameUtil.getSuffix(filename).toLowerCase()));
-
                 try (InputStream object = ossService.getObject(OssConfiguration.bucket, objectKey)) {
                     if (object.available() == 0) {
                         throw new RuntimeException(String.format("无法获取播放文件, objectKey:[%s], bucket[%s].",
-                                contentId, OssConfiguration.bucket));
+                                objectKey, OssConfiguration.bucket));
                     }
                     contentDTO.sign(DigestUtils.md5DigestAsHex(object));
                 } catch (IOException e) {
@@ -187,12 +188,12 @@ public class SpeakerContentServiceImpl implements ISpeakerContentService {
                 if (!StringUtils.hasText(param.getName())) {
                     contentDTO.name("TTS-" + DatePattern.PURE_DATETIME_FORMAT.format(new Date()));
                 }
-                contentDTO.content(param.getContent()).sign(DigestUtils.md5DigestAsHex(param.getContent().getBytes()));
+                contentDTO.content(param.getContent())
+                        .sign(DigestUtils.md5DigestAsHex(param.getContent().getBytes()));
                 break;
             default:
-                return null;
+                throw new RuntimeException("未知的喊话内容类型");
         }
-
         return mapper.insert(fileDto2Entity(contentDTO.build())) > 0 ? contentId : null;
     }
 

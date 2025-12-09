@@ -37,7 +37,7 @@ public class PsdkServiceImpl implements IPsdkService {
         List<DeviceDTO> devicesList = deviceService.getSimpleDevicesByParams(
                 DeviceQueryParam.builder()
                         .workspaceId(workspaceId)
-                        .domains(List.of(DeviceDomainEnum.DRONE.getDomain(), DeviceDomainEnum.DOCK.getDomain()))
+                        .domains(List.of(DeviceDomainEnum.DRONE.getDomain()))
                         .build());
         // Query the live capability of each device.
         return devicesList.stream()

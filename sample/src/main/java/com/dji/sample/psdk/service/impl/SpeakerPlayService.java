@@ -14,6 +14,7 @@ import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +38,9 @@ public class SpeakerPlayService implements ISpeakerPlayService {
             HttpResultResponse.error("播放模式参数错误");
         }
         GatewayManager gatewayManager = SDKManager.getDeviceSDK(setParam.getDeviceSn());
+        if (!StringUtils.hasText(gatewayManager.getDroneSn())) {
+            return HttpResultResponse.error("设备不在线");
+        }
         Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
         if (dronePsdkValues.isEmpty()) {
             return HttpResultResponse.error("设备不存在psdk负载");
@@ -64,6 +68,9 @@ public class SpeakerPlayService implements ISpeakerPlayService {
             HttpResultResponse.error("音量参数错误");
         }
         GatewayManager gatewayManager = SDKManager.getDeviceSDK(setParam.getDeviceSn());
+        if (!StringUtils.hasText(gatewayManager.getDroneSn())) {
+            return HttpResultResponse.error("设备不在线");
+        }
         Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
         if (dronePsdkValues.isEmpty()) {
             return HttpResultResponse.error("设备不存在psdk负载");

@@ -54,7 +54,7 @@ public class PsdkApiController {
     @PostMapping("{workspace_id}/speaker/play/start")
     public HttpResultResponse speakerPlayStart(@PathVariable("workspace_id") String workspaceId,
             @RequestBody SpeakerPlayParam speakerPlayParam) {
-        return speakerJobService.speakerAudioPlayStart(workspaceId, speakerPlayParam);
+        return speakerJobService.speakerPlayStart(workspaceId, speakerPlayParam);
     }
 
     @PostMapping("{workspace_id}/speaker/play/stop")
@@ -63,13 +63,13 @@ public class PsdkApiController {
         return speakerJobService.speakerPlayStop(workspaceId, speakerPlayParam);
     }
 
-    @PostMapping("/{workspace_id}/speaker/play/set-mode")
+    @PostMapping("/{workspace_id}/speaker/set/mode")
     public HttpResultResponse setPlayMode(@PathVariable("workspace_id") String workspaceId,
             @RequestBody SpeakerPlaySetParam setParam) {
         return speakerPlayService.setPlayMode(workspaceId, setParam);
     }
 
-    @PostMapping("/{workspace_id}/speaker/play/set-volume")
+    @PostMapping("/{workspace_id}/speaker/set/volume")
     public HttpResultResponse setPlayVolume(@PathVariable("workspace_id") String workspaceId,
             @RequestBody SpeakerPlaySetParam setParam) {
         return speakerPlayService.setPlayVolume(workspaceId, setParam);
@@ -78,7 +78,7 @@ public class PsdkApiController {
     @GetMapping("/{workspace_id}/contents")
     public HttpResultResponse<PaginationData<SpeakerContentDTO>> contents(
             @PathVariable("workspace_id") String workspaceId,
-            @RequestParam(defaultValue = "1") Long page,
+            @RequestParam(name = "page", defaultValue = "1") Long page,
             @RequestParam(name = "page_size", defaultValue = "10") Long pageSize,
             @RequestParam(name = "code", required = false) String organizationCode,
             @RequestParam(name = "key", required = false) String key) {
@@ -100,8 +100,7 @@ public class PsdkApiController {
                         .setCode(code)
                         .setName(name)
                         .setContent(content)));
-}
-
+    }
 
     @PutMapping("/{workspace_id}/contents/rename")
     public HttpResultResponse<Boolean> rename(
