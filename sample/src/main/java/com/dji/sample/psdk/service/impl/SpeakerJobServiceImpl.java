@@ -134,6 +134,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
             case TTS:
                 serviceReply = sdkPsdkPublishService.speakerTtsPlayStart(SDKManager.getDeviceSDK(issueJobParam.getDeviceSn()),
                                 new SpeakerTtsPlayStartRequest()
+                                        .setJobId(jobId)
                                         .setPsdkIndex(speakerOpt.get().getPsdkIndex())
                                         .setTts(new PlayTtsFile()
                                                 .setName(contentDTO.getName())
@@ -147,7 +148,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
             updateJobStatus(jobId, SpeakerJobStatusEnum.PLAY_START_FAIL);
             return HttpResultResponse.error(serviceReply.getData().getResult().getMessage());
         }
-        return HttpResultResponse.success();
+        return HttpResultResponse.success(jobId);
     }
 
     @Override

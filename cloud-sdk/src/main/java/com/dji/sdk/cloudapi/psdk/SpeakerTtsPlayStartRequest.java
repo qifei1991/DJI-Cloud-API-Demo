@@ -13,6 +13,8 @@ import javax.validation.constraints.NotNull;
  */
 public class SpeakerTtsPlayStartRequest extends BaseModel {
 
+    private String jobId;
+
     @NotNull
     @Range(min = 0, max = 3)
     private Integer psdkIndex;
@@ -23,9 +25,19 @@ public class SpeakerTtsPlayStartRequest extends BaseModel {
     @Override
     public String toString() {
         return "SpeakerTtsPlayStartRequest{" +
-                "psdkIndex=" + psdkIndex +
+                "jobId='" + jobId + '\'' +
+                ", psdkIndex=" + psdkIndex +
                 ", tts=" + tts +
                 '}';
+    }
+
+    public String getJobId() {
+        return jobId;
+    }
+
+    public SpeakerTtsPlayStartRequest setJobId(String jobId) {
+        this.jobId = jobId;
+        return this;
     }
 
     public Integer getPsdkIndex() {

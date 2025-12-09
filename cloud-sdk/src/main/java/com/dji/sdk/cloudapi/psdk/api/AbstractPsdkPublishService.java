@@ -78,7 +78,8 @@ public abstract class AbstractPsdkPublishService {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
                 PsdkMethodEnum.SPEAKER_TTS_PLAY_START.getMethod(),
-                request);
+                request,
+                request.getJobId());
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
