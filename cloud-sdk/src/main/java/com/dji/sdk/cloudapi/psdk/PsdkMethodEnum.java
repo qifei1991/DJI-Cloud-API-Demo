@@ -19,7 +19,7 @@ public enum PsdkMethodEnum {
 
     SPEAKER_AUDIO_PLAY_START("speaker_audio_play_start"),
 
-    SPEAKER_TTS_PLAY_START("speaker_tss_play_start"),
+    SPEAKER_TTS_PLAY_START("speaker_tts_play_start"),
 
     SPEAKER_REPLAY("speaker_replay"),
 

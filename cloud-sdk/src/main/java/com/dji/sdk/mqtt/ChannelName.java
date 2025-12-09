@@ -168,12 +168,10 @@ public class ChannelName {
 
     public static final String INBOUND_EVENTS_PSDK_FLOATING_WINDOW_TEXT = "inboundEventsPsdkFloatingWindowText";
 
-    public static final String INBOUND_EVENTS_SPEAKER_AUDIO_PLAY_START_PROGRESS = "inboundEventsSpeakerAudioPlayStartProgress";
+    public static final String INBOUND_EVENTS_SPEAKER_PLAY_START_PROGRESS = "inboundEventsSpeakerAudioPlayStartProgress";
 
     // 喊话器播放状态通知
     public static final String INBOUND_EVENTS_SPEAKER_PLAY_STATUS_NOTIFY = "inboundEventsSpeakerPlayStatusNotify";
-
-    public static final String INBOUND_EVENTS_SPEAKER_TTS_PLAY_START_PROGRESS = "inboundEventsSpeakerTtsPlayStartProgress";
 
 
     // property

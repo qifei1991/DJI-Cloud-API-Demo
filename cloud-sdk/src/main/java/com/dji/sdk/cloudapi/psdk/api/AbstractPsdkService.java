@@ -3,6 +3,7 @@ package com.dji.sdk.cloudapi.psdk.api;
 import com.dji.sdk.annotations.CloudSDKVersion;
 import com.dji.sdk.cloudapi.device.PsdkWidgetValues;
 import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromEsdk;
+import com.dji.sdk.cloudapi.psdk.SpeakerPlayStartProgress;
 import com.dji.sdk.cloudapi.psdk.SpeakerPlayTaskNotify;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
 import com.dji.sdk.mqtt.ChannelName;
@@ -57,4 +58,16 @@ public abstract class AbstractPsdkService {
     public void dockDronePsdkWidgetValues(TopicStateRequest<PsdkWidgetValues> request, MessageHeaders headers) {
         throw new UnsupportedOperationException("dockPsdkWidgetValues not implemented");
     }
+
+    /**
+     * Report Speaker play progress
+     * @param request  data
+     * @param headers   The headers for a {@link Message}.
+     * @return events_reply
+     */
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_SPEAKER_PLAY_START_PROGRESS, outputChannel = ChannelName.OUTBOUND_EVENTS)
+    public TopicEventsResponse<MqttReply> speakerPlayStartProgress(TopicEventsRequest<EventsDataRequest<SpeakerPlayStartProgress>> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("speakerPlayStartProgress not implemented");
+    }
+
 }

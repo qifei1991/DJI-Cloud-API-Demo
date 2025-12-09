@@ -204,7 +204,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         DeviceDTO device = deviceOpt.get();
         deviceRedisService.setDeviceOnline(device);
         deviceRedisService.setDeviceOsd(from, request.getData());
-        log.info("*** Drone mode, code: {}, Tid: {}", request.getData().getModeCode(), request.getTid());
+        log.debug("Drone mode, code: {}, Tid: {}", request.getData().getModeCode(), request.getTid());
 
         deviceService.pushOsdDataToWeb(device.getWorkspaceId(), BizCodeEnum.DEVICE_OSD, from, request.getData());
 

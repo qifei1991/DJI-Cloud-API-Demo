@@ -7,13 +7,14 @@ import com.dji.sdk.cloudapi.firmware.OtaProgress;
 import com.dji.sdk.cloudapi.flightarea.FlightAreasDroneLocation;
 import com.dji.sdk.cloudapi.flightarea.FlightAreasSyncProgress;
 import com.dji.sdk.cloudapi.hms.Hms;
-import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromEsdk;
-import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromPsdk;
-import com.dji.sdk.cloudapi.psdk.SpeakerPlayTaskNotify;
 import com.dji.sdk.cloudapi.log.FileUploadProgress;
 import com.dji.sdk.cloudapi.map.OfflineMapSyncProgress;
 import com.dji.sdk.cloudapi.media.FileUploadCallback;
 import com.dji.sdk.cloudapi.media.HighestPriorityUploadFlightTaskMedia;
+import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromEsdk;
+import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromPsdk;
+import com.dji.sdk.cloudapi.psdk.SpeakerPlayStartProgress;
+import com.dji.sdk.cloudapi.psdk.SpeakerPlayTaskNotify;
 import com.dji.sdk.cloudapi.wayline.*;
 import com.dji.sdk.mqtt.ChannelName;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -84,8 +85,12 @@ public enum EventsMethodEnum {
 
     CUSTOM_DATA_TRANSMISSION_FROM_PSDK("custom_data_transmission_from_psdk", ChannelName.INBOUND_EVENTS_CUSTOM_DATA_TRANSMISSION_FROM_PSDK, new TypeReference<CustomDataTransmissionFromPsdk>() {}),
 
-    // 自定义喊话器音频播放状态通知
+    // 自定义喊话器音频播放状态通知(飞控版本使用的）
     SPEAKER_PLAY_STATUS_NOTIFY("speaker_play_status_notify", ChannelName.INBOUND_EVENTS_SPEAKER_PLAY_STATUS_NOTIFY, new TypeReference<EventsDataRequest<SpeakerPlayTaskNotify>>() {}),
+
+    SPEAKER_TTS_PLAY_START_PROGRESS("speaker_tts_play_start_progress", ChannelName.INBOUND_EVENTS_SPEAKER_PLAY_START_PROGRESS, new TypeReference<EventsDataRequest<SpeakerPlayStartProgress>>() {}),
+
+    SPEAKER_AUDIO_PLAY_START_PROGRESS("speaker_audio_play_start_progress", ChannelName.INBOUND_EVENTS_SPEAKER_PLAY_START_PROGRESS, new TypeReference<EventsDataRequest<SpeakerPlayStartProgress>>() {}),
 
     AIRSENSE_WARNING("airsense_warning", ChannelName.INBOUND_EVENTS_AIRSENSE_WARNING, new TypeReference<List<AirsenseWarning>>() {}),
 

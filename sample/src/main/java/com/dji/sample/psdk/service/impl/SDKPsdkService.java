@@ -4,6 +4,7 @@ import com.dji.sample.psdk.service.IPsdkWidgetRedisService;
 import com.dji.sample.psdk.service.ISpeakerJobService;
 import com.dji.sdk.cloudapi.device.PsdkWidgetValues;
 import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromEsdk;
+import com.dji.sdk.cloudapi.psdk.SpeakerPlayStartProgress;
 import com.dji.sdk.cloudapi.psdk.SpeakerPlayTaskNotify;
 import com.dji.sdk.cloudapi.psdk.api.AbstractPsdkService;
 import com.dji.sdk.mqtt.MqttReply;
@@ -38,26 +39,25 @@ public class SDKPsdkService extends AbstractPsdkService {
      */
     @Override
     public TopicEventsResponse<MqttReply> customDataTransmissionFromPsdk(TopicEventsRequest<CustomDataTransmissionFromEsdk> request, MessageHeaders headers) {
-
         log.info("CustomDataTransmissionFromPsdk: gateway: {}, data: {}", request.getFrom(), request.getData());
-
         return new TopicEventsResponse<>();
     }
 
     @Override
     public TopicEventsResponse<MqttReply> speakerPlayTaskStatusNotify(TopicEventsRequest<EventsDataRequest<SpeakerPlayTaskNotify>> request, MessageHeaders headers) {
-        log.info("CustomDataTransmissionFromPsdk: gateway: {}, data: {}", request.getFrom(), request.getData());
-
         SpeakerPlayTaskNotify output = request.getData().getOutput();
         speakerJobService.updateJobStatus(request.getBid(), output.getStatus());
-
         return new TopicEventsResponse<>();
     }
 
     @Override
     public void dockDronePsdkWidgetValues(TopicStateRequest<PsdkWidgetValues> request, MessageHeaders headers) {
-        log.info("DockPsdkWidgetValues: from: {}, data: {}", request.getFrom(), request.getData());
-
         psdkWidgetRedisService.setPsdkWidgetValues(request.getFrom(), request.getData().getPsdkWidgetValues());
+    }
+
+    @Override
+    public TopicEventsResponse<MqttReply> speakerPlayStartProgress(TopicEventsRequest<EventsDataRequest<SpeakerPlayStartProgress>> request, MessageHeaders headers) {
+        log.info("SpeakerPlayStartProgress: gateway: {}, data: {}", request.getGateway(), request.getData());
+        return new TopicEventsResponse<>();
     }
 }
