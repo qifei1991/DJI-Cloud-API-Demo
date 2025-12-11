@@ -18,6 +18,8 @@ public enum PayloadCommandsEnum {
 
     CAMERA_PHOTO_TAKE(PayloadControlMethodEnum.CAMERA_PHOTO_TAKE, CameraPhotoTakeImpl.class),
 
+    CAMERA_PHOTO_STOP(PayloadControlMethodEnum.CAMERA_PHOTO_STOP, CameraPhotoTakeImpl.class),
+
     CAMERA_RECORDING_START(PayloadControlMethodEnum.CAMERA_RECORDING_START, CameraRecordingStartImpl.class),
 
     CAMERA_RECORDING_STOP(PayloadControlMethodEnum.CAMERA_RECORDING_STOP, CameraRecordingStopImpl.class),
@@ -27,6 +29,8 @@ public enum PayloadCommandsEnum {
     CAMERA_FOCAL_LENGTH_SET(PayloadControlMethodEnum.CAMERA_FOCAL_LENGTH_SET, CameraFocalLengthSetImpl.class),
 
     GIMBAL_RESET(PayloadControlMethodEnum.GIMBAL_RESET, GimbalResetImpl.class),
+
+    CAMERA_LOOK_AT(PayloadControlMethodEnum.CAMERA_LOOK_AT, CameraLookAtImpl.class),
 
     IR_METERING_MODE_SET(PayloadControlMethodEnum.IR_METERING_MODE_SET, IrMeteringModeSetImpl.class),
 

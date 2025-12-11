@@ -5,7 +5,6 @@ import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
-import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.control.model.enums.DrcAuthorityErrorEnum;
 import com.dji.sample.control.model.enums.DroneAuthorityEnum;
 import com.dji.sample.control.model.enums.RemoteDebugMethodEnum;
@@ -50,9 +49,6 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class ControlServiceImpl implements IControlService {
-
-    @Autowired
-    private IWebSocketMessageService webSocketMessageService;
 
     @Autowired
     private IDeviceService deviceService;

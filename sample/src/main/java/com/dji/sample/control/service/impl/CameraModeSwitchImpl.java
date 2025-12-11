@@ -24,6 +24,7 @@ public class CameraModeSwitchImpl extends PayloadCommandsHandler {
     @Override
     public boolean canPublish(String deviceSn) {
         super.canPublish(deviceSn);
+        // todo 如果 param.getCameraMode() = 3, 需要判断剩余照片数量是否能支持全景拍照的数量
         return param.getCameraMode() != osdCamera.getCameraMode()
                 && CameraStateEnum.IDLE == osdCamera.getPhotoState()
                 && CameraStateEnum.IDLE == osdCamera.getRecordingState();
