@@ -17,6 +17,6 @@ public class CameraPhotoTakeImpl extends PayloadCommandsHandler {
     @Override
     public boolean canPublish(String deviceSn) {
         super.canPublish(deviceSn);
-        return CameraStateEnum.WORKING != osdCamera.getPhotoState() && osdCamera.getRemainPhotoNum() > 0;
+        return CameraStateEnum.WORKING == osdCamera.getPhotoState();
     }
 }

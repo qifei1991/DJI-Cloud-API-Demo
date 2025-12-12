@@ -69,7 +69,9 @@ public enum PayloadCommandsEnum {
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static PayloadCommandsEnum find(String method) {
-        return Arrays.stream(values()).filter(methodEnum -> methodEnum.cmd.getPayloadMethod().getMethod().equals(method)).findAny()
-                .orElseThrow(() -> new IllegalArgumentException("远程命令不存在"));
+        return Arrays.stream(values())
+                .filter(methodEnum -> methodEnum.cmd.getPayloadMethod().getMethod().equals(method))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("远程命令[" + method + "]不存在"));
     }
 }
