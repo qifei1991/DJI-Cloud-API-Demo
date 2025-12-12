@@ -1,6 +1,7 @@
 package com.dji.sample.control.service.impl;
 
 import com.dji.sample.control.model.param.DronePayloadParam;
+import com.dji.sdk.cloudapi.device.CameraModeEnum;
 import com.dji.sdk.cloudapi.device.CameraStateEnum;
 
 import java.util.Objects;
@@ -24,7 +25,12 @@ public class CameraModeSwitchImpl extends PayloadCommandsHandler {
     @Override
     public boolean canPublish(String deviceSn) {
         super.canPublish(deviceSn);
-        // todo 如果 param.getCameraMode() = 3, 需要判断剩余照片数量是否能支持全景拍照的数量
+
+        // 如果 param.getCameraMode() = 3, 需要判断剩余照片数量是否能支持全景拍照的数量
+        if (param.getCameraMode() == CameraModeEnum.PANORAMA && osdCamera.getRemainPhotoNum() < 25) {
+            throw new RuntimeException(String.format("飞机剩余拍照数量[%s]不满足拍摄一个全景图片", osdCamera.getRemainPhotoNum()));
+        }
+
         return param.getCameraMode() != osdCamera.getCameraMode()
                 && CameraStateEnum.IDLE == osdCamera.getPhotoState()
                 && CameraStateEnum.IDLE == osdCamera.getRecordingState();
