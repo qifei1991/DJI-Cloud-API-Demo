@@ -67,12 +67,6 @@ springdoc:
   api-docs:
     enabled: false
 
-client:
-  # 云服务不访问的外部接口（针对云服务版本高而外部系统没有对应的接口场景）
-  exclude-path:
-    - "/flight-task/takeoff-to-progress"
-    - "/flight-task/in-flight-wayline-progress"
-
 jwt:
   issuer: MapzoneUavUser
   subject: CloudApiSample
@@ -142,6 +136,12 @@ aircraft-manager-server:
     prefix: /cloud-api
     version:
   workspace-id: e3dea0f5-37f2-4d79-ae58-490af3228069
+
+client:
+  # 云服务不访问的外部接口（针对云服务版本高而外部系统没有对应的接口场景）
+  exclude-path:
+    - "/flight-task/takeoff-to-progress"
+    - "/flight-task/in-flight-wayline-progress"
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
 #oss:

@@ -1,6 +1,5 @@
 package com.dji.sample.component.mqtt.config;
 
-import com.auth0.jwt.algorithms.Algorithm;
 import com.dji.sample.common.util.JwtUtil;
 import com.dji.sample.component.mqtt.model.MqttClientOptions;
 import com.dji.sample.component.mqtt.model.MqttProtocolEnum;
@@ -76,8 +75,7 @@ public class MqttPropertyConfiguration {
     private static DrcModeMqttBroker getDrcModeMqttBroker(String mqttAddress, String clientId,
             String username, Long age, Map<String, ?> map) {
 
-        Algorithm algorithm = JwtUtil.algorithm;
-        String token = JwtUtil.createToken(map, age * 1000L, algorithm, null, null);
+        String token = JwtUtil.createToken(map, age * 1000L);
         return new DrcModeMqttBroker()
                 .setAddress(mqttAddress)
                 .setUsername(username)

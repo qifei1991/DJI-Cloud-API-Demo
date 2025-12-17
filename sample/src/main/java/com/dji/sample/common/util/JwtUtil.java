@@ -65,6 +65,14 @@ public class JwtUtil {
         return JwtUtil.createToken(claims, age, algorithm, subject, issuer);
     }
 
+    public static String createToken(Map<String, ?> claims, Long age) {
+        return createToken(claims, age, subject, issuer);
+    }
+
+    public static String createToken(Map<String, ?> claims, Long age, String subject, String issuer) {
+        return createToken(claims, age, algorithm, subject, issuer);
+    }
+
     /**
      *
      * @param claims
@@ -140,5 +148,9 @@ public class JwtUtil {
             return Optional.empty();
         }
         return Optional.of(new CustomClaim(jwt.getClaims()));
+    }
+
+    public static void main(String[] args) {
+        JwtUtil.createToken(new HashMap<>(), 86400L, Algorithm.HMAC256("CloudApiSample"), null, null);
     }
 }
