@@ -65,9 +65,9 @@ public abstract class AbstractPsdkPublishService {
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0)
-    public TopicServicesResponse<ServicesReplyData> speakerAudioPlayStart(GatewayManager gateway, SpeakerAudioPlayStartRequest request) {
+    public TopicServicesResponse<ServicesReplyData> speakerAudioPlayStart(String deviceSn, SpeakerAudioPlayStartRequest request) {
         return servicesPublish.publish(
-                gateway.getGatewaySn(),
+                deviceSn,
                 PsdkMethodEnum.SPEAKER_AUDIO_PLAY_START.getMethod(),
                 request,
                 request.getJobId());
@@ -91,25 +91,25 @@ public abstract class AbstractPsdkPublishService {
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayStop(GatewayManager gateway, SpeakerPlayRequest request) {
+    public TopicServicesResponse<ServicesReplyData> speakerPlayStop(String deviceSn, SpeakerPlayRequest request) {
         return servicesPublish.publish(
-                gateway.getGatewaySn(),
+                deviceSn,
                 PsdkMethodEnum.SPEAKER_PLAY_STOP.getMethod(),
                 request);
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayModeSet(GatewayManager gateway, SpeakerPlayModeSetRequest request) {
+    public TopicServicesResponse<ServicesReplyData> speakerPlayModeSet(String deviceSn, SpeakerPlayModeSetRequest request) {
         return servicesPublish.publish(
-                gateway.getGatewaySn(),
+                deviceSn,
                 PsdkMethodEnum.SPEAKER_PLAY_MODE_SET.getMethod(),
                 request);
     }
 
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0, exclude = GatewayTypeEnum.RC)
-    public TopicServicesResponse<ServicesReplyData> speakerPlayVolumeSet(GatewayManager gateway, SpeakerPlayVolumeSetRequest request) {
+    public TopicServicesResponse<ServicesReplyData> speakerPlayVolumeSet(String deviceSn, SpeakerPlayVolumeSetRequest request) {
         return servicesPublish.publish(
-                gateway.getGatewaySn(),
+                deviceSn,
                 PsdkMethodEnum.SPEAKER_PLAY_VOLUME_SET.getMethod(),
                 request);
     }

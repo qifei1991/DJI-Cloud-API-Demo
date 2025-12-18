@@ -4,7 +4,10 @@ import com.dji.sdk.cloudapi.psdk.PlayModeEnum;
 import lombok.Data;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * 喊话器设置参数对象
@@ -21,6 +24,10 @@ public class SpeakerPlaySetParam {
      */
     @NotBlank
     private String deviceSn;
+
+    @Min(0)
+    @Max(3)
+    private Integer psdkIndex = 0;
 
     /**
      * 喊话器播放模式

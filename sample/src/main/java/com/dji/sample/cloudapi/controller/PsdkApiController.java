@@ -85,13 +85,24 @@ public class PsdkApiController {
         return HttpResultResponse.success(speakerContentService.getSpeakerContents(workspaceId, page, pageSize, key, organizationCode));
     }
 
+    /**
+     * 创建内容
+     * @param workspaceId 工作空间ID
+     * @param type 喊话内容类型，0TTS，1音频
+     * @param name 内容名称名称
+     * @param creator 创建者
+     * @param code 组织机构编码
+     * @param file 音频文件
+     * @param content TTS内容
+     * @return
+     */
     @PostMapping("/{workspace_id}/contents")
     public HttpResultResponse create(@PathVariable("workspace_id") String workspaceId,
-            @RequestPart(name = "file", required = false) MultipartFile file,
             @RequestParam("type") Integer type,
+            @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "creator", defaultValue = "manager-server") String creator,
             @RequestParam(value = "code", required = false) String code,
-            @RequestParam(value = "name", required = false) String name,
+            @RequestPart(name = "file", required = false) MultipartFile file,
             @RequestParam(value = "content", required = false) String content) {
         return HttpResultResponse.success(
                 speakerContentService.create(workspaceId, file, new CreateSpeakerContentParam()
@@ -118,7 +129,7 @@ public class PsdkApiController {
         return HttpResultResponse.success(speakerContentService.delete(workspaceId, contentId));
     }
 
-    @GetMapping("/{workspace_id}/psdk-widgets")
+    @GetMapping("/{workspace_id}/widgets")
     public HttpResultResponse<List<PsdkWidgetValuesDTO>> getPsdkWidgetValues(
             @PathVariable("workspace_id") String workspaceId) {
         return HttpResultResponse.success(psdkService.getPsdkWidgetValues(workspaceId));

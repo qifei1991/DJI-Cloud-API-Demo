@@ -33,6 +33,11 @@ public class SpeakerPlayParam {
     private String deviceSn;
 
     /**
+     * psdk 索引位置，默认0；
+     */
+    private Integer psdkIndex = 0;
+
+    /**
      * The name of the creator.
      */
     @JsonProperty("user_name")
