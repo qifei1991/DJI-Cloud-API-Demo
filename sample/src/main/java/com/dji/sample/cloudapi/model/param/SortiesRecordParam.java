@@ -1,6 +1,7 @@
 package com.dji.sample.cloudapi.model.param;
 
 import com.dji.sdk.cloudapi.media.FlightTypeEnum;
+import com.dji.sdk.cloudapi.wayline.TaskTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 
@@ -56,4 +57,6 @@ public class SortiesRecordParam {
     private String dockSn;
 
     private FlightTypeEnum flightTaskType;
+
+    private TaskTypeEnum flightTaskMode;
 }

@@ -60,6 +60,7 @@ public class FlightTaskClient extends AbstractClient {
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
                 .groupId(job.getGroupId())
+                .flightTaskMode(job.getTaskType())
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);

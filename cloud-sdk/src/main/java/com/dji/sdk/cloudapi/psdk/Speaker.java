@@ -21,7 +21,7 @@ public class Speaker {
     @Max(100)
     private Integer playVolume;
 
-    private SpeakerSystemStatus systemStatus;
+    private SpeakerSystemStatus systemState;
 
     private String playFileName;
 
@@ -49,7 +49,7 @@ public class Speaker {
                 "workMode=" + workMode +
                 ", playMode=" + playMode +
                 ", playVolume=" + playVolume +
-                ", systemStatus=" + systemStatus +
+                ", systemState=" + systemState +
                 ", playFileName='" + playFileName + '\'' +
                 ", playFileMd5='" + playFileMd5 + '\'' +
                 ", ttsVolume=" + ttsVolume +
@@ -86,12 +86,12 @@ public class Speaker {
         return this;
     }
 
-    public SpeakerSystemStatus getSystemStatus() {
-        return systemStatus;
+    public SpeakerSystemStatus getSystemState() {
+        return systemState;
     }
 
-    public Speaker setSystemStatus(SpeakerSystemStatus systemStatus) {
-        this.systemStatus = systemStatus;
+    public Speaker setSystemState(SpeakerSystemStatus systemState) {
+        this.systemState = systemState;
         return this;
     }
 

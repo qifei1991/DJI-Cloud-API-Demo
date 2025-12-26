@@ -39,11 +39,9 @@ public class SDKLivestreamService extends AbstractLivestreamService {
     }
 
     private void saveLiveCapacity(Object data) {
-        List<CapacityDeviceReceiver> devices = objectMapper.convertValue(
-                data, new TypeReference<List<CapacityDeviceReceiver>>() {});
+        List<CapacityDeviceReceiver> devices = objectMapper.convertValue(data, new TypeReference<List<CapacityDeviceReceiver>>() {});
         for (CapacityDeviceReceiver capacityDeviceReceiver : devices) {
-            capacityCameraService.saveCapacityCameraReceiverList(
-                    capacityDeviceReceiver.getCameraList(), capacityDeviceReceiver.getSn());
+            capacityCameraService.saveCapacityCameraReceiverList(capacityDeviceReceiver.getCameraList(), capacityDeviceReceiver.getSn());
         }
     }
 }
