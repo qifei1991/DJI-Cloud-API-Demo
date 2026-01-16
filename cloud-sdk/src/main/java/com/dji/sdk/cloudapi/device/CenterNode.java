@@ -6,7 +6,7 @@ package com.dji.sdk.cloudapi.device;
  */
 public class CenterNode {
 
-    private Integer sdrId;
+    private Long sdrId;
 
     private String sn;
 
@@ -18,11 +18,11 @@ public class CenterNode {
                 '}';
     }
 
-    public Integer getSdrId() {
+    public Long getSdrId() {
         return sdrId;
     }
 
-    public CenterNode setSdrId(Integer sdrId) {
+    public CenterNode setSdrId(Long sdrId) {
         this.sdrId = sdrId;
         return this;
     }

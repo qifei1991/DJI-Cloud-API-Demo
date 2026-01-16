@@ -84,8 +84,13 @@ public enum DockStateDataKeyEnum {
 
     AI_IDENTIFY_ON(Set.of("ai_identify_on"), AiIdentifyOn.class),
 
-    AI_MODEL_LIST(Set.of("ai_model_list"), AiModelList.class)
+    AI_MODEL_LIST(Set.of("ai_model_list"), AiModelList.class),
 
+    AI_BOXES(Set.of("ai_boxes"), AiBoxList.class),
+
+    REMAINING_POWER_FOR_RETURN_HOME(Set.of("remaining_power_for_return_home"), RemainingPowerForReturnHome.class),
+
+    IS_BEIDOU_VERSION(Set.of("is_beidou_version"), BeidouVersion.class),
     ;
 
     private final Set<String> keys;

@@ -247,6 +247,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                         LocalDateTime.of(date, LocalTime.ofInstant(Instant.ofEpochSecond(taskPeriod.get(1)), ZoneId.systemDefault()))
                                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : beginTime;
                 if (TaskTypeEnum.IMMEDIATE != param.getTaskType() && endTime < System.currentTimeMillis()) {
+                    log.warn("定时计划飞行[结束时间]错误，TaskType: {}, EndTime: {}", param.getTaskType(), endTime);
                     continue;
                 }
 
