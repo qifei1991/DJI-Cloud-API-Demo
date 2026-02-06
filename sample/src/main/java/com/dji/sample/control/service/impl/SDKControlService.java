@@ -141,4 +141,9 @@ public class SDKControlService extends AbstractControlService {
         log.error("*************** heartBeatUp not implemented! ***************");
         log.info("- DRC heart beat up information: method: {}, data: {}", request.getMethod(), request.getData());
     }
+
+    @Override
+    public void osdInfoPush(TopicDrcRequest<OsdInfoPush> request, MessageHeaders headers) {
+        log.info("- High-Frequency OSD: method: {}, data: {}", request.getMethod(), request.getData());
+    }
 }

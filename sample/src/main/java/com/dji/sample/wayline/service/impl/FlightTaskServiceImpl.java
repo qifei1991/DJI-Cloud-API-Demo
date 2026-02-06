@@ -232,12 +232,13 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     }
 
     @Override
-    public HttpResultResponse publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException {
+    public HttpResultResponse<List<String>> publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException {
 
         log.debug(":: Publish flight task: {}", param);
 
         fillImmediateTime(param);
 
+        List<String> addSuccessJobIdList = new ArrayList<>();
         for (Long taskDay : param.getTaskDays()) {
             LocalDate date = LocalDate.ofInstant(Instant.ofEpochSecond(taskDay), ZoneId.systemDefault());
             for (List<Long> taskPeriod : param.getTaskPeriods()) {
@@ -269,9 +270,10 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 if (HttpResultResponse.CODE_SUCCESS != response.getCode()) {
                     return response;
                 }
+                addSuccessJobIdList.add(waylineJob.getJobId());
             }
         }
-        return HttpResultResponse.success();
+        return HttpResultResponse.success(addSuccessJobIdList);
     }
 
     @Override
@@ -348,7 +350,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             flightTask.setBreakPoint(waylineJob.getBreakPoint());
         }
 
-        log.debug(":: Prepare task: " + flightTask);
+        log.debug(":: Prepare task: {}", flightTask);
 
         TopicServicesResponse<ServicesReplyData> serviceReply = abstractWaylineService.flighttaskPrepare(
                 SDKManager.getDeviceSDK(waylineJob.getDockSn()), flightTask);

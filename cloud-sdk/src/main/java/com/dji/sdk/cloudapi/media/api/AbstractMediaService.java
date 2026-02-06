@@ -1,10 +1,7 @@
 package com.dji.sdk.cloudapi.media.api;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
-import com.dji.sdk.cloudapi.media.FileUploadCallback;
-import com.dji.sdk.cloudapi.media.HighestPriorityUploadFlightTaskMedia;
-import com.dji.sdk.cloudapi.media.MediaMethodEnum;
-import com.dji.sdk.cloudapi.media.UploadFlighttaskMediaPrioritize;
+import com.dji.sdk.cloudapi.media.*;
 import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.config.version.GatewayTypeEnum;
 import com.dji.sdk.mqtt.ChannelName;
@@ -49,6 +46,11 @@ public abstract class AbstractMediaService {
     @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_HIGHEST_PRIORITY_UPLOAD_FLIGHT_TASK_MEDIA, outputChannel = ChannelName.OUTBOUND_EVENTS)
     public TopicEventsResponse<MqttReply> highestPriorityUploadFlightTaskMedia(TopicEventsRequest<HighestPriorityUploadFlightTaskMedia> request, MessageHeaders headers) {
         throw new UnsupportedOperationException("highestPriorityUploadFlightTaskMedia not implemented");
+    }
+
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_MEDIA_UPLOAD_TRACK, outputChannel = ChannelName.OUTBOUND_EVENTS)
+    public TopicEventsResponse<MqttReply> mediaUploadTrack(TopicEventsRequest<MediaUploadTrackList> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("mediaUploadTrack not implemented");
     }
 
     /**

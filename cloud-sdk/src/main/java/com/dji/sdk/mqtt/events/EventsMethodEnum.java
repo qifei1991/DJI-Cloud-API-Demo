@@ -11,6 +11,7 @@ import com.dji.sdk.cloudapi.log.FileUploadProgress;
 import com.dji.sdk.cloudapi.map.OfflineMapSyncProgress;
 import com.dji.sdk.cloudapi.media.FileUploadCallback;
 import com.dji.sdk.cloudapi.media.HighestPriorityUploadFlightTaskMedia;
+import com.dji.sdk.cloudapi.media.MediaUploadTrackList;
 import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromEsdk;
 import com.dji.sdk.cloudapi.psdk.CustomDataTransmissionFromPsdk;
 import com.dji.sdk.cloudapi.psdk.SpeakerPlayStartProgress;
@@ -105,6 +106,8 @@ public enum EventsMethodEnum {
     CAMERA_PHOTO_TAKE_PROGRESS("camera_photo_take_progress", ChannelName.INBOUND_EVENTS_CAMERA_PHOTO_TAKE_PROGRESS, new TypeReference<EventsDataRequest<CameraPhotoTakeProgress>>() {}),
 
     IN_FLIGHT_WAYLINE_PROGRESS("in_flight_wayline_progress", ChannelName.INBOUND_EVENTS_IN_FLIGHT_WAYLINE_PROGRESS, new TypeReference<InFlightWaylineProgress>() {}),
+
+    MEDIA_UPLOAD_TRACK("track", ChannelName.INBOUND_EVENTS_MEDIA_UPLOAD_TRACK, new TypeReference<MediaUploadTrackList>() {}),
 
     UNKNOWN("", ChannelName.DEFAULT, new TypeReference<>() {});
 

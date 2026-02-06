@@ -68,6 +68,8 @@ public class ChannelName {
 
     public static final String INBOUND_STATE_DOCK_DRONE_PSDK_WIDGET_VALUES = "inboundStateDockDronePsdkWidgetValues";
 
+    public static final String INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE = "inboundStateDockAirTransferEnable";
+
 
     public static final String OUTBOUND_STATE = "outboundState";
 
@@ -169,6 +171,8 @@ public class ChannelName {
     public static final String INBOUND_EVENTS_PSDK_FLOATING_WINDOW_TEXT = "inboundEventsPsdkFloatingWindowText";
 
     public static final String INBOUND_EVENTS_SPEAKER_PLAY_START_PROGRESS = "inboundEventsSpeakerAudioPlayStartProgress";
+
+    public static final String INBOUND_EVENTS_MEDIA_UPLOAD_TRACK = "inboundEventsMediaUploadTrack";
 
     // 喊话器播放状态通知
     public static final String INBOUND_EVENTS_SPEAKER_PLAY_STATUS_NOTIFY = "inboundEventsSpeakerPlayStatusNotify";

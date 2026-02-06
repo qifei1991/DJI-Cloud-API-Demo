@@ -22,7 +22,7 @@ public class TopicEventsRequest<T> extends CommonTopicRequest<T> {
 
     @Override
     public String toString() {
-        return "TopicRequestsRequest{" +
+        return "TopicEventsRequest{" +
                 "method='" + method + '\'' +
                 ", gateway='" + gateway + '\'' +
                 ", from='" + from + '\'' +

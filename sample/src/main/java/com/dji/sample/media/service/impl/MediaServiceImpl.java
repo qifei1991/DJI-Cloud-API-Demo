@@ -257,6 +257,13 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
                 .setPath(file.getPath());
     }
 
+    @Override
+    public TopicEventsResponse<MqttReply> mediaUploadTrack(TopicEventsRequest<MediaUploadTrackList> request, MessageHeaders headers) {
+        log.error("*************** mediaUploadTrack not implemented! ***************");
+        log.info("- MediaUploadTrack: Gateway: {}, From: {}, Data: {}", request.getGateway(), request.getFrom(), request.getData());
+        return new TopicEventsResponse<>();
+    }
+
     public static void main(String[] args) {
         String objectKey = "ac793856-e9d0-4184-8b61-9d45c44179b1/DJI_202404111632_005_ac793856-e9d0-4184-8b61-9d45c44179b1/DJI_20240411163430_0001_V.jpeg";
         Integer startInx = Optional.of(objectKey.indexOf("cloudApi"))

@@ -271,4 +271,10 @@ public class AbstractDeviceService {
         throw new UnsupportedOperationException("dockSilentMode not implemented");
     }
 
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_3)
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE, outputChannel = ChannelName.OUTBOUND_STATE)
+    public TopicStateResponse<MqttReply> dockAirTransferEnable(TopicStateRequest<AirTransferEnable> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("dockAirTransferEnable not implemented");
+    }
+
 }

@@ -27,7 +27,7 @@ public interface IFlightTaskService {
      * @param customClaim   user info
      * @return
      */
-    HttpResultResponse publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException;
+    HttpResultResponse<List<String>> publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException;
 
     /**
      * Issue wayline mission to the dock.

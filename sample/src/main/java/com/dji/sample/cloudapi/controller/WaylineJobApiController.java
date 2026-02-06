@@ -63,7 +63,7 @@ public class WaylineJobApiController {
      * @return
      */
     @PostMapping("/{workspace_id}/jobs")
-    public HttpResultResponse publishCreateJob(@Valid @RequestBody CreateJobParam param,
+    public HttpResultResponse<List<String>> publishCreateJob(@Valid @RequestBody CreateJobParam param,
             @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);

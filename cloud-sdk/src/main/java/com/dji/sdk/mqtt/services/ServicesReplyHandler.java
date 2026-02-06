@@ -33,7 +33,6 @@ public class ServicesReplyHandler {
     @ServiceActivator(inputChannel = ChannelName.INBOUND_SERVICES_REPLY)
     public void servicesReply(Message<?> message) throws IOException {
         byte[] payload = (byte[])message.getPayload();
-        log.info("Services_reply received handler: {}", message);
 
         TopicServicesResponse<ServicesReplyReceiver> receiver = Common.getObjectMapper()
                 .readValue(payload, new TypeReference<TopicServicesResponse<ServicesReplyReceiver>>() {});
@@ -45,7 +44,7 @@ public class ServicesReplyHandler {
             receiver.getData().setOutput(Common.getObjectMapper().convertValue(receiver.getData(),
                     new TypeReference<FileUploadListResponse>() {}));
         }
-
+        log.info("ServicesReply received: {}", receiver);
         chan.put(receiver);
     }
 }

@@ -59,6 +59,8 @@ public enum StateDataKeyEnum {
 
     DOCK_SILENT_MODE(ChannelName.INBOUND_STATE_DOCK_SILENT_MODE, DockSilentMode.class),
 
+    INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE(ChannelName.INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE, AirTransferEnable.class),
+
     // psdk状态
     DOCK_DRONE_PSDK_WIDGET_VALUES(ChannelName.INBOUND_STATE_DOCK_DRONE_PSDK_WIDGET_VALUES, PsdkWidgetValues.class),
 

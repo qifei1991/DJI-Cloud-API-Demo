@@ -5,7 +5,6 @@ import com.dji.sample.control.model.enums.RemoteDebugMethodEnum;
 import com.dji.sample.control.model.param.*;
 import com.dji.sample.control.service.IControlService;
 import com.dji.sdk.common.HttpResultResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +24,8 @@ public class DockController {
 
     @PostMapping("/{sn}/jobs/{service_identifier}")
     public HttpResultResponse createControlJob(@PathVariable String sn,
-                                               @PathVariable("service_identifier") String serviceIdentifier,
-                                               @Valid @RequestBody(required = false) RemoteDebugParam param) {
+            @PathVariable("service_identifier") String serviceIdentifier,
+            @Valid @RequestBody(required = false) RemoteDebugParam param) {
         return controlService.controlDockDebug(sn, RemoteDebugMethodEnum.find(serviceIdentifier), param);
     }
 

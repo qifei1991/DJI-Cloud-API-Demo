@@ -691,4 +691,11 @@ public class SDKDeviceService extends AbstractDeviceService {
         log.info("DockSilentMode: gateway: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
+
+    @Override
+    public TopicStateResponse<MqttReply> dockAirTransferEnable(TopicStateRequest<AirTransferEnable> request, MessageHeaders headers) {
+        log.error("*************** dockAirTransferEnable not implemented! ***************");
+        log.info("DockAirTransferEnable: gateway: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<>();
+    }
 }

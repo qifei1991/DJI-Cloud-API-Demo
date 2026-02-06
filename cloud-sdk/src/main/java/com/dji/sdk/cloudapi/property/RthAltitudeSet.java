@@ -16,7 +16,7 @@ public class RthAltitudeSet extends BaseModel {
 
     @NotNull
     @Min(20)
-    @Max(50)
+    @Max(500)
     @JsonProperty("rth_altitude")
     private Integer rthAltitude;
 
