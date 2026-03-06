@@ -10,6 +10,9 @@ public class CameraWatermarkSettingsInfo extends BaseModel {
 
     private CameraWatermarkSettings cameraWatermarkSettings;
 
+    public CameraWatermarkSettingsInfo() {
+    }
+
     @Override
     public String toString() {
         return "CameraWatermarkSettingsInfo{" +

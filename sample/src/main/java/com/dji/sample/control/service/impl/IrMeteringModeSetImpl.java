@@ -24,6 +24,6 @@ public class IrMeteringModeSetImpl extends PayloadCommandsHandler {
     @Override
     public boolean canPublish(String deviceSn) {
         return super.canPublish(deviceSn)
-                && param.getMode() != osdCamera.getIrMeteringMode();
+                && param.getMode().getMode() != osdCamera.getIrMeteringMode().getMode();
     }
 }

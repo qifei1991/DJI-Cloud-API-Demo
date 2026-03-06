@@ -7,11 +7,16 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 /**
+ * 热增益模式
  * @author sean
  * @version 1.7
  * @date 2023/6/30
  */
 public enum ThermalGainModeEnum {
+
+    /**
+     * {"0":"自动","1":"低增益, 测温范围0°C-500°C","2":"高增益, 测温范围-20°C-150°C"}
+     */
 
     AUTOMATIC(0),
 

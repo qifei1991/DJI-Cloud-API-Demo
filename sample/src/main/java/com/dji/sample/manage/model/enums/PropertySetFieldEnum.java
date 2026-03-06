@@ -30,16 +30,18 @@ public enum PropertySetFieldEnum {
 //    EXIT_WAYLINE_WHEN_RC_LOST(PropertySetEnum.EXIT_WAYLINE_WHEN_RC_LOST, .class),
 //
     THERMAL_CURRENT_PALETTE_STYLE(PropertySetEnum.THERMAL_CURRENT_PALETTE_STYLE, ThermalCurrentPaletteStyleReceiver.class),
-//
-//    THERMAL_GAIN_MODE(PropertySetEnum.THERMAL_GAIN_MODE, .class),
-//
-//    THERMAL_ISOTHERM_STATE(PropertySetEnum.THERMAL_ISOTHERM_STATE, .class),
-//
-//    THERMAL_ISOTHERM_UPPER_LIMIT(PropertySetEnum.THERMAL_ISOTHERM_UPPER_LIMIT, .class),
-//
-//    THERMAL_ISOTHERM_LOWER_LIMIT(PropertySetEnum.THERMAL_ISOTHERM_LOWER_LIMIT, .class),
+
+   THERMAL_GAIN_MODE(PropertySetEnum.THERMAL_GAIN_MODE, ThermalGainModeReceiver.class),
+
+   THERMAL_ISOTHERM_STATE(PropertySetEnum.THERMAL_ISOTHERM_STATE, ThermalIsothermStateReceiver.class),
+
+   THERMAL_ISOTHERM_UPPER_LIMIT(PropertySetEnum.THERMAL_ISOTHERM_UPPER_LIMIT, ThermalIsothermUpperLimitReceiver.class),
+
+   THERMAL_ISOTHERM_LOWER_LIMIT(PropertySetEnum.THERMAL_ISOTHERM_LOWER_LIMIT, ThermalIsothermLowerLimitReceiver.class),
 
     COMMANDER_FLIGHT_HEIGHT(PropertySetEnum.COMMANDER_FLIGHT_HEIGHT, CommanderFlightHeightReceiver.class),
+
+    CAMERA_WATERMARK_SETTINGS(PropertySetEnum.CAMERA_WATERMARK_SETTINGS, CameraWatermarkSettingsReceiver.class),
 
     ;
 

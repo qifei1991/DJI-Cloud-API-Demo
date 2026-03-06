@@ -52,6 +52,36 @@ public enum PayloadControlMethodEnum {
 
     CAMERA_POINT_FOCUS_ACTION(ControlMethodEnum.CAMERA_POINT_FOCUS_ACTION, CameraPointFocusActionRequest.class),
 
+    DRC_CAMERA_ISO_SET(ControlMethodEnum.DRC_CAMERA_ISO_SET, DrcCameraIsoSetRequest.class),
+
+    DRC_CAMERA_APERTURE_VALUE_SET(ControlMethodEnum.DRC_CAMERA_APERTURE_VALUE_SET, DrcCameraApertureValueSetRequest.class),
+
+    DRC_CAMERA_SHUTTER_SET(ControlMethodEnum.DRC_CAMERA_SHUTTER_SET, DrcCameraShutterSetRequest.class),
+
+    DRC_CAMERA_MECHANICAL_SHUTTER_SET(ControlMethodEnum.DRC_CAMERA_MECHANICAL_SHUTTER_SET, DrcCameraMechanicalShutterSetRequest.class),
+
+    DRC_CAMERA_NIGHT_MODE_SET(ControlMethodEnum.DRC_CAMERA_NIGHT_MODE_SET, DrcCameraNightModeSetRequest.class),
+
+    DRC_CAMERA_DENOISE_LEVEL_SET(ControlMethodEnum.DRC_CAMERA_DENOISE_LEVEL_SET, DrcCameraDenoiseLevelSetRequest.class),
+
+    DRC_CAMERA_NIGHT_VISION_ENABLE(ControlMethodEnum.DRC_CAMERA_NIGHT_VISION_ENABLE, DrcCameraNightVisionEnableRequest.class),
+
+    DRC_INFRARED_FILL_LIGHT_ENABLE(ControlMethodEnum.DRC_INFRARED_FILL_LIGHT_ENABLE, DrcInfraredFillLightEnableRequest.class),
+
+    DRC_CAMERA_DEWARPING_SET(ControlMethodEnum.DRC_CAMERA_DEWARPING_SET, DrcCameraDewarpingSetRequest.class),
+
+    DRC_STEALTH_STATE_SET(ControlMethodEnum.DRC_STEALTH_STATE_SET, DrcStealthStateSetRequest.class),
+
+    DRC_NIGHT_LIGHTS_STATE_SET(ControlMethodEnum.DRC_NIGHT_LIGHTS_STATE_SET, DrcNightLightsStateSetRequest.class),
+
+    DRC_CAMERA_PHOTO_FORMAT_SET(ControlMethodEnum.DRC_CAMERA_PHOTO_FORMAT_SET, DrcCameraPhotoFormatSetRequest.class),
+
+    DRC_VIDEO_RESOLUTION_SET(ControlMethodEnum.DRC_VIDEO_RESOLUTION_SET, DrcVideoResolutionSetRequest.class),
+
+    DRC_LINKAGE_ZOOM_SET(ControlMethodEnum.DRC_LINKAGE_ZOOM_SET, DrcLinkageZoomSetRequest.class),
+
+    DRC_INTERVAL_PHOTO_SET(ControlMethodEnum.DRC_INTERVAL_PHOTO_SET, DrcIntervalPhotoSetRequest.class),
+
     ;
 
     private final ControlMethodEnum payloadMethod;

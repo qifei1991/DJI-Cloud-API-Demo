@@ -16,11 +16,16 @@ import javax.annotation.Resource;
 @Component
 public class DrcUpSubscribe {
 
+    public static final String TOPIC = TopicConst.THING_MODEL_PRE + TopicConst.PRODUCT + "%s" + TopicConst.DRC + TopicConst.UP;
+
     @Resource
     private IMqttTopicService topicService;
 
     public void subscribe(GatewayManager gateway) {
-        String drc = TopicConst.THING_MODEL_PRE + TopicConst.PRODUCT + "%s" + TopicConst.DRC + TopicConst.UP;
-        topicService.subscribe(String.format(drc, gateway.getGatewaySn()));
+        topicService.subscribe(String.format(TOPIC, gateway.getGatewaySn()));
+    }
+
+    public void unsubscribe(GatewayManager gateway) {
+        topicService.unsubscribe(String.format(TOPIC, gateway.getGatewaySn()));
     }
 }

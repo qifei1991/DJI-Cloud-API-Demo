@@ -1,16 +1,19 @@
 package com.dji.sample.control.model.param;
 
-import com.dji.sdk.cloudapi.control.CameraTypeEnum;
-import com.dji.sdk.cloudapi.control.FocusModeEnum;
-import com.dji.sdk.cloudapi.control.GimbalResetModeEnum;
-import com.dji.sdk.cloudapi.control.MeteringModeEnum;
+import com.dji.sample.control.model.enums.CameraModeSetEnum;
+import com.dji.sdk.cloudapi.control.*;
+import com.dji.sdk.cloudapi.device.CameraIsoEnum;
 import com.dji.sdk.cloudapi.device.CameraModeEnum;
+import com.dji.sdk.cloudapi.device.ShutterSpeedEnum;
+import com.dji.sdk.cloudapi.device.SwitchActionEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import java.util.List;
 
 /**
  * @author sean
@@ -19,6 +22,7 @@ import javax.validation.constraints.Pattern;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
 public class DronePayloadParam extends AuthorityBaseParam {
 
     @NotNull
@@ -55,12 +59,16 @@ public class DronePayloadParam extends AuthorityBaseParam {
     @Range(min = 0, max = 1)
     private Double y;
 
+    /**
+     * 云台重置模式 {@link GimbalResetModeEnum}
+     */
     private GimbalResetModeEnum resetMode;
 
     /**
-     * 测温模式 {"0":"关闭测温","1":"点测温","2":"区域测温"}
+     * 测温模式 {@link MeteringModeEnum} {"0":"关闭测温","1":"点测温","2":"区域测温"}
+     * 夜景模式 {@link CameraNightModeEnum}{"0":"关闭","1":"开启","2":"自动"}
      */
-    private MeteringModeEnum mode;
+    private CameraModeSetEnum mode;
 
     /**
      * 测温区域宽度 {"max":1,"min":0}
@@ -80,7 +88,7 @@ public class DronePayloadParam extends AuthorityBaseParam {
     private FocusModeEnum focusMode;
 
     /**
-     * 是否使能分屏
+     * 是否使能
      */
     private Boolean enable;
 
@@ -100,4 +108,124 @@ public class DronePayloadParam extends AuthorityBaseParam {
     @Range(min = -180, max = 180)
     private Float longitude;
 
+    /**
+     * <pre>
+     * The argument of Setting CameraFocusValue.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * focusValue: {@link Integer}
+     * </pre>
+     */
+    private Integer focusValue;
+
+    /**
+     * <pre>
+     * The argument of Setting CameraExposureValue.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * exposureValue: {@link ExposureValueEnum}
+     * </pre>
+     */
+    private ExposureValueEnum exposureValue;
+
+    /**
+     * <pre>
+     * The argument of Setting CameraExposureMode.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * exposureMode: {@link ExposureModeEnum}
+     * </pre>
+     */
+    private ExposureModeEnum exposureMode;
+
+    /**
+     * <pre>
+     * The argument of Setting DrcCameraIso.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * isoValue: {@link CameraIsoEnum}
+     * </pre>
+     */
+    private CameraIsoEnum isoValue;
+
+    /**
+     * <pre>
+     * The argument of Setting DrcCameraAperture.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * apertureValue: {@link CameraApertureEnum}
+     * </pre>
+     */
+    private CameraApertureEnum apertureValue;
+
+    /**
+     * <pre>
+     * The argument of Setting DrcCameraShutter.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * shutterValue: {@link ShutterSpeedEnum}
+     * </pre>
+     */
+    private ShutterSpeedEnum shutterValue;
+
+    /**
+     * <pre>
+     * The argument of Setting DrcCameraMechanicalShutterState.
+     * cameraType: {@link ExposureCameraTypeEnum}
+     * mechanicalShutterState: {@link MechanicalShutterStateEnum}
+     * </pre>
+     */
+    private MechanicalShutterStateEnum mechanicalShutterState;
+
+    /**
+     * 夜视降噪等级
+     */
+    private CameraDenoiseLevelEnum level;
+
+    /**
+     * 镜头去畸变
+     * <pre>
+     * The argument of Setting DrcCameraDewarpingState.
+     * cameraType: {@link CameraTypeEnum#WIDE}
+     * dewarpingState: {@link SwitchActionEnum}
+     * </pre>
+     */
+    private SwitchActionEnum dewarpingState;
+
+    /**
+     * 隐蔽模式
+     */
+    private SwitchActionEnum stealthState;
+
+    /**
+     * 夜航灯设置参数
+     */
+    private SwitchActionEnum nightLightsState;
+
+    /**
+     * 红外照片格式设置
+     */
+    private IrPhotoFormatEnum photoFormat;
+
+    /**
+     * 视频分辨率设置
+     */
+    private VideoResolutionEnum videoResolution;
+
+    /**
+     * Photo storage type. Multi-selection.
+     */
+    private List<LensStorageSettingsEnum> photoStorageSettings;
+
+    /**
+     * Video storage type. Multi-selection.
+     */
+    private List<LensStorageSettingsEnum> videoStorageSettings;
+
+    /**
+     * 状态设置
+     * <pre>
+     *    1. 红外联动变焦：{@link SwitchActionEnum}
+     * </pre>
+     */
+    private SwitchActionEnum state;
+
+    /**
+     * 拍照间隔
+     */
+    private PhotoIntervalEnum interval;
 }

@@ -75,6 +75,36 @@ public enum ControlMethodEnum {
 
     POI_CIRCLE_SPEED_SET("poi_circle_speed_set"),
 
+    DRC_CAMERA_ISO_SET("drc_camera_iso_set"),
+
+    DRC_CAMERA_APERTURE_VALUE_SET("drc_camera_aperture_value_set"),
+
+    DRC_CAMERA_SHUTTER_SET("drc_camera_shutter_set"),
+
+    DRC_CAMERA_MECHANICAL_SHUTTER_SET("drc_camera_mechanical_shutter_set"),
+
+    DRC_CAMERA_NIGHT_MODE_SET("drc_camera_night_mode_set"),
+
+    DRC_CAMERA_DENOISE_LEVEL_SET("drc_camera_denoise_level_set"),
+
+    DRC_CAMERA_NIGHT_VISION_ENABLE("drc_camera_night_vision_enable"),
+
+    DRC_INFRARED_FILL_LIGHT_ENABLE("drc_infrared_fill_light_enable"),
+
+    DRC_CAMERA_DEWARPING_SET("drc_camera_dewarping_set"),
+
+    DRC_STEALTH_STATE_SET("drc_stealth_state_set"),
+
+    DRC_NIGHT_LIGHTS_STATE_SET("drc_night_lights_state_set"),
+
+    DRC_CAMERA_PHOTO_FORMAT_SET("drc_camera_photo_format_set"),
+
+    DRC_VIDEO_RESOLUTION_SET("drc_video_resolution_set"),
+
+    DRC_LINKAGE_ZOOM_SET("drc_linkage_zoom_set"),
+
+    DRC_INTERVAL_PHOTO_SET("drc_interval_photo_set"),
+
     ;
 
     private final String method;

@@ -1,6 +1,7 @@
 package com.dji.sdk.cloudapi.property;
 
 import com.dji.sdk.cloudapi.device.AirTransferEnable;
+import com.dji.sdk.cloudapi.device.CameraWatermarkSettingsInfo;
 import com.dji.sdk.cloudapi.device.DockSilentMode;
 import com.dji.sdk.common.BaseModel;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
@@ -33,13 +34,13 @@ public enum PropertySetEnum {
 
     THERMAL_CURRENT_PALETTE_STYLE("thermal_current_palette_style", ThermalCurrentPaletteStyleSet.class, CloudSDKVersionEnum.V0_0_1, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
-    THERMAL_GAIN_MODE("thermal_gain_mode", ThermalGainModeSet.class, CloudSDKVersionEnum.V0_0_1, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
+    THERMAL_GAIN_MODE("thermal_gain_mode", ThermalGainModeSet.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
-    THERMAL_ISOTHERM_STATE("thermal_isotherm_state", ThermalIsothermStateSet.class, CloudSDKVersionEnum.V0_0_1, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
+    THERMAL_ISOTHERM_STATE("thermal_isotherm_state", ThermalIsothermStateSet.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
-    THERMAL_ISOTHERM_UPPER_LIMIT("thermal_isotherm_upper_limit", ThermalIsothermUpperLimitSet.class, CloudSDKVersionEnum.V0_0_1, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
+    THERMAL_ISOTHERM_UPPER_LIMIT("thermal_isotherm_upper_limit", ThermalIsothermUpperLimitSet.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
-    THERMAL_ISOTHERM_LOWER_LIMIT("thermal_isotherm_lower_limit", ThermalIsothermLowerLimitSet.class, CloudSDKVersionEnum.V0_0_1, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
+    THERMAL_ISOTHERM_LOWER_LIMIT("thermal_isotherm_lower_limit", ThermalIsothermLowerLimitSet.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
     RTH_MODE("rth_mode", DockDroneRthMode.class, CloudSDKVersionEnum.V1_0_0, Set.of(GatewayTypeEnum.DOCK2)),
 
@@ -54,6 +55,8 @@ public enum PropertySetEnum {
     SILENT_MODE("silent_mode", DockSilentMode.class, CloudSDKVersionEnum.V1_0_2, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
     AIR_TRANSFER_ENABLE("air_transfer_enable", AirTransferEnable.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
+
+    CAMERA_WATERMARK_SETTINGS("camera_watermark_settings", CameraWatermarkSettingsInfo.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
     ;
 

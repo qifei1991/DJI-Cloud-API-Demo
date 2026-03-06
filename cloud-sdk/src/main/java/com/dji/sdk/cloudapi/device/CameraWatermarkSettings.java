@@ -5,80 +5,91 @@ package com.dji.sdk.cloudapi.device;
  * @date 2024/5/22 19:19
  */
 public class CameraWatermarkSettings {
-    private Integer datetimeEnable;
-    private Integer droneSnEnable;
-    private Integer droneTypeEnable;
-    private Integer globalEnable;
-    private Integer gpsEnable;
-    private Integer layout;
+
+    private SwitchActionEnum globalEnable;
+
+    private SwitchActionEnum droneTypeEnable;
+
+    private SwitchActionEnum droneSnEnable;
+
+    private SwitchActionEnum datetimeEnable;
+
+    private SwitchActionEnum gpsEnable;
+
+    private SwitchActionEnum userCustomStringEnable;
+
     private String userCustomString;
-    private Integer userCustomStringEnable;
+
+    private WatermarkLayoutEnum layout;
+
+    public CameraWatermarkSettings() {
+    }
 
     @Override
     public String toString() {
         return "CameraWatermarkSettings{" +
-                "datetimeEnable=" + datetimeEnable +
-                ", droneSnEnable=" + droneSnEnable +
+                "globalEnable=" + globalEnable +
                 ", droneTypeEnable=" + droneTypeEnable +
-                ", globalEnable=" + globalEnable +
+                ", droneSnEnable=" + droneSnEnable +
+                ", datetimeEnable=" + datetimeEnable +
                 ", gpsEnable=" + gpsEnable +
-                ", layout=" + layout +
-                ", userCustomString='" + userCustomString + '\'' +
                 ", userCustomStringEnable=" + userCustomStringEnable +
+                ", userCustomString='" + userCustomString + '\'' +
+                ", layout=" + layout +
                 '}';
     }
 
-    public Integer getDatetimeEnable() {
-        return datetimeEnable;
-    }
-
-    public CameraWatermarkSettings setDatetimeEnable(Integer datetimeEnable) {
-        this.datetimeEnable = datetimeEnable;
-        return this;
-    }
-
-    public Integer getDroneSnEnable() {
-        return droneSnEnable;
-    }
-
-    public CameraWatermarkSettings setDroneSnEnable(Integer droneSnEnable) {
-        this.droneSnEnable = droneSnEnable;
-        return this;
-    }
-
-    public Integer getDroneTypeEnable() {
-        return droneTypeEnable;
-    }
-
-    public CameraWatermarkSettings setDroneTypeEnable(Integer droneTypeEnable) {
-        this.droneTypeEnable = droneTypeEnable;
-        return this;
-    }
-
-    public Integer getGlobalEnable() {
+    public SwitchActionEnum getGlobalEnable() {
         return globalEnable;
     }
 
-    public CameraWatermarkSettings setGlobalEnable(Integer globalEnable) {
+    public CameraWatermarkSettings setGlobalEnable(SwitchActionEnum globalEnable) {
         this.globalEnable = globalEnable;
         return this;
     }
 
-    public Integer getGpsEnable() {
+    public SwitchActionEnum getDroneTypeEnable() {
+        return droneTypeEnable;
+    }
+
+    public CameraWatermarkSettings setDroneTypeEnable(SwitchActionEnum droneTypeEnable) {
+        this.droneTypeEnable = droneTypeEnable;
+        return this;
+    }
+
+    public SwitchActionEnum getDroneSnEnable() {
+        return droneSnEnable;
+    }
+
+    public CameraWatermarkSettings setDroneSnEnable(SwitchActionEnum droneSnEnable) {
+        this.droneSnEnable = droneSnEnable;
+        return this;
+    }
+
+    public SwitchActionEnum getDatetimeEnable() {
+        return datetimeEnable;
+    }
+
+    public CameraWatermarkSettings setDatetimeEnable(SwitchActionEnum datetimeEnable) {
+        this.datetimeEnable = datetimeEnable;
+        return this;
+    }
+
+    public SwitchActionEnum getGpsEnable() {
         return gpsEnable;
     }
 
-    public CameraWatermarkSettings setGpsEnable(Integer gpsEnable) {
+    public CameraWatermarkSettings setGpsEnable(SwitchActionEnum gpsEnable) {
         this.gpsEnable = gpsEnable;
         return this;
     }
 
-    public Integer getLayout() {
-        return layout;
+    public SwitchActionEnum getUserCustomStringEnable() {
+        return userCustomStringEnable;
     }
 
-    public CameraWatermarkSettings setLayout(Integer layout) {
-        this.layout = layout;
+    public CameraWatermarkSettings setUserCustomStringEnable(SwitchActionEnum userCustomStringEnable) {
+        this.userCustomStringEnable = userCustomStringEnable;
         return this;
     }
 
@@ -91,12 +102,12 @@ public class CameraWatermarkSettings {
         return this;
     }
 
-    public Integer getUserCustomStringEnable() {
-        return userCustomStringEnable;
+    public WatermarkLayoutEnum getLayout() {
+        return layout;
     }
 
-    public CameraWatermarkSettings setUserCustomStringEnable(Integer userCustomStringEnable) {
-        this.userCustomStringEnable = userCustomStringEnable;
+    public CameraWatermarkSettings setLayout(WatermarkLayoutEnum layout) {
+        this.layout = layout;
         return this;
     }
 }

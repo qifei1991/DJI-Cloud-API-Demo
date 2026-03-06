@@ -10,6 +10,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 /**
+ * 热增益模式设置
  * @author sean
  * @version 1.7
  * @date 2023/6/30

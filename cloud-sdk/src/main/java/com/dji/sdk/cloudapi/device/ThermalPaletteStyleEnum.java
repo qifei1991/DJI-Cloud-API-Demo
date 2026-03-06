@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 /**
+ * 热等温状态
  * @author sean
  * @version 1.7
  * @date 2023/6/30

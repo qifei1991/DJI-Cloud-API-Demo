@@ -38,11 +38,51 @@ public enum PayloadCommandsEnum {
 
     IR_METERING_AREA_SET(PayloadControlMethodEnum.IR_METERING_AREA_SET, IrMeteringAreaSetImpl.class),
 
+    CAMERA_EXPOSURE_SET(PayloadControlMethodEnum.CAMERA_EXPOSURE_SET, CameraExposureSetValueImpl.class),
+
+    CAMERA_EXPOSURE_MODE_SET(PayloadControlMethodEnum.CAMERA_EXPOSURE_MODE_SET, CameraExposureModeSetImpl.class),
+
     CAMERA_FOCUS_MODE_SET(PayloadControlMethodEnum.CAMERA_FOCUS_MODE_SET, CameraFocusModeSetImpl.class),
+
+    CAMERA_FOCUS_VALUE_SET(PayloadControlMethodEnum.CAMERA_FOCUS_VALUE_SET, CameraFocusValueSetImpl.class),
 
     CAMERA_POINT_FOCUS_ACTION(PayloadControlMethodEnum.CAMERA_POINT_FOCUS_ACTION, CameraPointFocusActionImpl.class),
 
     CAMERA_SCREEN_SPLIT(PayloadControlMethodEnum.CAMERA_SCREEN_SPLIT, CameraScreenSplitImpl.class),
+
+    DRC_CAMERA_ISO_SET(PayloadControlMethodEnum.DRC_CAMERA_ISO_SET, DrcCameraIsoSetImpl.class),
+
+    DRC_CAMERA_APERTURE_VALUE_SET(PayloadControlMethodEnum.DRC_CAMERA_APERTURE_VALUE_SET, DrcCameraApertureValueSetImpl.class),
+
+    DRC_CAMERA_SHUTTER_SET(PayloadControlMethodEnum.DRC_CAMERA_SHUTTER_SET, DrcCameraShutterSetImpl.class),
+
+    DRC_CAMERA_MECHANICAL_SHUTTER_SET(PayloadControlMethodEnum.DRC_CAMERA_MECHANICAL_SHUTTER_SET, DrcCameraMechanicalShutterSetImpl.class),
+
+    DRC_CAMERA_NIGHT_MODE_SET(PayloadControlMethodEnum.DRC_CAMERA_NIGHT_MODE_SET, DrcCameraNightModeSetImpl.class),
+
+    DRC_CAMERA_DENOISE_LEVEL_SET(PayloadControlMethodEnum.DRC_CAMERA_DENOISE_LEVEL_SET, DrcCameraDenoiseLevelSetImpl.class),
+
+    DRC_CAMERA_NIGHT_VISION_ENABLE(PayloadControlMethodEnum.DRC_CAMERA_NIGHT_VISION_ENABLE, DrcCameraNightVisionEnableImpl.class),
+
+    DRC_INFRARED_FILL_LIGHT_ENABLE(PayloadControlMethodEnum.DRC_INFRARED_FILL_LIGHT_ENABLE, DrcInfraredFillLightEnableImpl.class),
+
+    DRC_CAMERA_DEWARPING_SET(PayloadControlMethodEnum.DRC_CAMERA_DEWARPING_SET, DrcCameraDewarpingSetImpl.class),
+
+    DRC_STEALTH_STATE_SET(PayloadControlMethodEnum.DRC_STEALTH_STATE_SET, DrcStealthStateSetImpl.class),
+
+    DRC_NIGHT_LIGHTS_STATE_SET(PayloadControlMethodEnum.DRC_NIGHT_LIGHTS_STATE_SET, DrcNightLightsStateSetImpl.class),
+
+    DRC_CAMERA_PHOTO_FORMAT_SET(PayloadControlMethodEnum.DRC_CAMERA_PHOTO_FORMAT_SET, DrcCameraPhotoFormatSetImpl.class),
+
+    DRC_VIDEO_RESOLUTION_SET(PayloadControlMethodEnum.DRC_VIDEO_RESOLUTION_SET, DrcVideoResolutionSetImpl.class),
+
+    PHOTO_STORAGE_SET(PayloadControlMethodEnum.PHOTO_STORAGE_SET, PhotoStorageSetImpl.class),
+
+    VIDEO_STORAGE_SET(PayloadControlMethodEnum.VIDEO_STORAGE_SET, VideoStorageSetImpl.class),
+
+    DRC_LINKAGE_ZOOM_SET(PayloadControlMethodEnum.DRC_LINKAGE_ZOOM_SET, DrcLinkageZoomSetImpl.class),
+
+    DRC_INTERVAL_PHOTO_SET(PayloadControlMethodEnum.DRC_INTERVAL_PHOTO_SET, DrcIntervalPhotoSetImpl.class),
     ;
 
     PayloadControlMethodEnum cmd;

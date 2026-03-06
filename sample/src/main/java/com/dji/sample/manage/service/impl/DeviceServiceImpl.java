@@ -34,6 +34,7 @@ import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.exception.CloudSDKException;
 import com.dji.sdk.mqtt.IMqttTopicService;
 import com.dji.sdk.mqtt.MqttGatewayPublish;
+import com.dji.sdk.mqtt.drc.DrcUpSubscribe;
 import com.dji.sdk.mqtt.events.EventsSubscribe;
 import com.dji.sdk.mqtt.osd.OsdSubscribe;
 import com.dji.sdk.mqtt.property.PropertySetReplyResultEnum;
@@ -136,6 +137,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private DeviceClient deviceClient;
 
+    @Autowired
+    private DrcUpSubscribe drcUpSubscribe;
+
     @Override
     public void subDeviceOffline(String deviceSn) {
         // If no information about this device exists in the cache, the drone is considered to be offline.
@@ -199,6 +203,9 @@ public class DeviceServiceImpl implements IDeviceService {
         eventsSubscribe.subscribe(gateway, false);
         requestsSubscribe.subscribe(gateway);
         propertySetSubscribe.subscribe(gateway);
+
+        // modify by fei·Qi, 2026-3-4 15:48:36, 订阅DrcUp
+        // drcUpSubscribe.subscribe(gateway);
     }
 
     @Override
@@ -210,6 +217,9 @@ public class DeviceServiceImpl implements IDeviceService {
         eventsSubscribe.unsubscribe(gateway);
         requestsSubscribe.unsubscribe(gateway);
         propertySetSubscribe.unsubscribe(gateway);
+
+        // modify by fei·Qi, 2026-3-4 15:48:36, 取消订阅DrcUp
+        // drcUpSubscribe.unsubscribe(gateway);
     }
 
     @Override

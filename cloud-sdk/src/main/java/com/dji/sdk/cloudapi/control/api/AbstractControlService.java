@@ -661,5 +661,199 @@ public abstract class AbstractControlService {
         throw new UnsupportedOperationException("osdInfoPush not implemented");
     }
 
+    /**
+     * Payload control - camera iso setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraIsoSet(GatewayManager gateway, DrcCameraIsoSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_ISO_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraApertureValue setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraApertureValueSet(GatewayManager gateway, DrcCameraApertureValueSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_APERTURE_VALUE_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraApertureValue setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraShutterSet(GatewayManager gateway, DrcCameraShutterSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_SHUTTER_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraMechanicalShutter setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraMechanicalShutterSet(GatewayManager gateway, DrcCameraMechanicalShutterSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_MECHANICAL_SHUTTER_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraNightMode setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraNightModeSet(GatewayManager gateway, DrcCameraNightModeSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_NIGHT_MODE_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraDenoiseLevel setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraDenoiseLevelSet(GatewayManager gateway, DrcCameraDenoiseLevelSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_DENOISE_LEVEL_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraNightVisionEnable setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraNightVisionEnableSet(GatewayManager gateway, DrcCameraNightVisionEnableRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_NIGHT_VISION_ENABLE.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - InfraredFillLightEnable setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcInfraredFillLightEnableSet(GatewayManager gateway, DrcInfraredFillLightEnableRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_INFRARED_FILL_LIGHT_ENABLE.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraDewarpingSet setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraDewarpingSet(GatewayManager gateway, DrcCameraDewarpingSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_DEWARPING_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - StealthStateSet setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcStealthStateSet(GatewayManager gateway, DrcStealthStateSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_STEALTH_STATE_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - NightLightsStateSet setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcNightLightsStateSet(GatewayManager gateway, DrcNightLightsStateSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_NIGHT_LIGHTS_STATE_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - CameraPhotoFormatSet setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcCameraPhotoFormatSet(GatewayManager gateway, DrcCameraPhotoFormatSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_PHOTO_FORMAT_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - VideoResolutionSet setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcVideoResolutionSet(GatewayManager gateway, DrcVideoResolutionSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.VIDEO_STORAGE_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - LinkageZoomSet setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcLinkageZoomSet(GatewayManager gateway, DrcLinkageZoomSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_LINKAGE_ZOOM_SET.getMethod(),
+                request);
+    }
+
+    /**
+     * Payload control - IntervalPhoto setting
+     * @param gateway
+     * @param request   data
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
+    public void drcIntervalPhotoSet(GatewayManager gateway, DrcIntervalPhotoSetRequest request) {
+        drcDownPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_INTERVAL_PHOTO_SET.getMethod(),
+                request);
+    }
 
 }

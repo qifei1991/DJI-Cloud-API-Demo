@@ -13,6 +13,10 @@ import java.util.Arrays;
  */
 public enum ExposureModeEnum {
 
+    /**
+     * {"1":"自动","2":"快门优先曝光","3":"光圈优先曝光","4":"手动曝光"}
+     */
+
     AUTO(1),
 
     SHUTTER_PRIORITY(2),
