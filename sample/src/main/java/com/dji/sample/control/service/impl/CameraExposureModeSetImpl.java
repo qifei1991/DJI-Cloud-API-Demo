@@ -2,7 +2,6 @@ package com.dji.sample.control.service.impl;
 
 import com.dji.sample.control.model.param.DronePayloadParam;
 import com.dji.sdk.cloudapi.control.CameraTypeEnum;
-import com.dji.sdk.cloudapi.control.ExposureModeEnum;
 import com.dji.sdk.cloudapi.device.CameraStateEnum;
 
 import java.util.Objects;
@@ -33,9 +32,9 @@ public class CameraExposureModeSetImpl extends PayloadCommandsHandler {
         }
         switch (param.getCameraType()) {
             case WIDE:
-                return ExposureModeEnum.MANUAL != osdCamera.getWideExposureMode();
+                return param.getExposureMode() != osdCamera.getWideExposureMode();
             case ZOOM:
-                return ExposureModeEnum.MANUAL != osdCamera.getZoomExposureMode();
+                return param.getExposureMode() != osdCamera.getZoomExposureMode();
         }
         return false;
     }

@@ -26,6 +26,7 @@ import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
 import com.dji.sdk.exception.CloudSDKErrorEnum;
+import com.dji.sdk.mqtt.services.ServicesErrorCode;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -265,14 +266,14 @@ public class ControlServiceImpl implements IControlService {
         switch (authority) {
             case FLIGHT:
                 if (deviceService.checkAuthorityFlight(sn)) {
-                    this.saveDrcAuthority(sn, authority, param);
+                    // this.saveDrcAuthority(sn, authority, param);
                     return HttpResultResponse.success();
                 }
                 response = abstractControlService.flightAuthorityGrab(SDKManager.getDeviceSDK(sn));
                 break;
             case PAYLOAD:
                 if (checkPayloadAuthority(sn, ((DronePayloadParam) param).getPayloadIndex())) {
-                    this.saveDrcAuthority(sn, authority, param);
+                    // this.saveDrcAuthority(sn, authority, param);
                     return HttpResultResponse.success();
                 }
                 response = abstractControlService.payloadAuthorityGrab(SDKManager.getDeviceSDK(sn),
@@ -283,7 +284,7 @@ public class ControlServiceImpl implements IControlService {
         }
 
         ServicesReplyData serviceReply = response.getData();
-        this.saveDrcAuthority(sn, authority, param);
+        // this.saveDrcAuthority(sn, authority, param);
         return serviceReply.getResult().isSuccess() ?
                 HttpResultResponse.success()
                 : HttpResultResponse.error(serviceReply.getResult());
@@ -313,13 +314,15 @@ public class ControlServiceImpl implements IControlService {
                 .newInstance(param.getData())
                 .checkCondition(param.getSn());
 
-        TopicServicesResponse<ServicesReplyData> response = abstractControlService.payloadControl(
+        Object response = abstractControlService.payloadControl(
                 SDKManager.getDeviceSDK(param.getSn()), param.getCmd().getCmd(),
                 mapper.convertValue(param.getData(), param.getCmd().getCmd().getClazz()));
 
-        ServicesReplyData serviceReply = response.getData();
-        return serviceReply.getResult().isSuccess() ?
-                HttpResultResponse.success()
-                : HttpResultResponse.error(serviceReply.getResult());
+        if (Objects.isNull(response) || !(response instanceof TopicServicesResponse)) {
+            return HttpResultResponse.success();
+        }
+
+        ServicesErrorCode serviceReplyResult = ((TopicServicesResponse<ServicesReplyData>) response).getData().getResult();
+        return serviceReplyResult.isSuccess() ? HttpResultResponse.success() : HttpResultResponse.error(serviceReplyResult);
     }
 }

@@ -59,6 +59,7 @@ public interface IControlService {
      * @param param Authority parameter.
      * @return ResponseResult.
      */
+    @Deprecated
     HttpResultResponse checkAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
 
     /**
@@ -77,6 +78,7 @@ public interface IControlService {
      * @param param Authority parameter.
      * @return ResponseResult.
      */
+    @Deprecated
     HttpResultResponse releaseAuthority(String sn, DroneAuthorityEnum authority, AuthorityBaseParam param);
 
     /**

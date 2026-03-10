@@ -1,6 +1,7 @@
 package com.dji.sdk.cloudapi.control;
 
 import com.dji.sdk.exception.CloudSDKException;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
@@ -30,6 +31,7 @@ public enum CameraNightModeEnum {
         return mode;
     }
 
+    @JsonCreator
     public static CameraNightModeEnum find(int mode) {
         return Arrays.stream(values()).filter(valueEnum -> valueEnum.mode == mode).findAny()
                 .orElseThrow(() -> new CloudSDKException(CameraNightModeEnum.class, mode));

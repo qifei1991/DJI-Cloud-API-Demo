@@ -1,5 +1,7 @@
 package com.dji.sample.manage.model.receiver;
 
+import com.dji.sample.manage.annotation.PropertyParamPosition;
+import com.dji.sample.manage.model.enums.PropertyParamEnum;
 import com.dji.sdk.cloudapi.device.PayloadIndex;
 import com.dji.sdk.cloudapi.device.ThermalGainModeEnum;
 import lombok.Data;
@@ -19,6 +21,7 @@ import java.util.Objects;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@PropertyParamPosition(PropertyParamEnum.CHILD)
 public class ThermalGainModeReceiver extends BasicDeviceProperty {
 
     @Valid

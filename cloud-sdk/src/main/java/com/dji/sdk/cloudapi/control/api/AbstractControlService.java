@@ -492,12 +492,12 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    public TopicServicesResponse<ServicesReplyData> payloadControl(GatewayManager gateway, PayloadControlMethodEnum methodEnum, BaseModel request) {
+    public Object payloadControl(GatewayManager gateway, PayloadControlMethodEnum methodEnum, BaseModel request) {
         try {
             AbstractControlService abstractControlService = SpringBeanUtils.getBean(this.getClass());
             Method method = abstractControlService.getClass().getDeclaredMethod(
                     Common.convertSnake(methodEnum.getPayloadMethod().getMethod()), GatewayManager.class, methodEnum.getClazz());
-            return (TopicServicesResponse<ServicesReplyData>) method.invoke(abstractControlService, gateway, request);
+            return method.invoke(abstractControlService, gateway, request);
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new CloudSDKException(e);
         } catch (InvocationTargetException e) {
@@ -745,7 +745,7 @@ public abstract class AbstractControlService {
      * @param request   data
      */
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
-    public void drcCameraNightVisionEnableSet(GatewayManager gateway, DrcCameraNightVisionEnableRequest request) {
+    public void drcCameraNightVisionEnable(GatewayManager gateway, DrcCameraNightVisionEnableRequest request) {
         drcDownPublish.publish(
                 gateway.getGatewaySn(),
                 ControlMethodEnum.DRC_CAMERA_NIGHT_VISION_ENABLE.getMethod(),
@@ -758,7 +758,7 @@ public abstract class AbstractControlService {
      * @param request   data
      */
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
-    public void drcInfraredFillLightEnableSet(GatewayManager gateway, DrcInfraredFillLightEnableRequest request) {
+    public void drcInfraredFillLightEnable(GatewayManager gateway, DrcInfraredFillLightEnableRequest request) {
         drcDownPublish.publish(
                 gateway.getGatewaySn(),
                 ControlMethodEnum.DRC_INFRARED_FILL_LIGHT_ENABLE.getMethod(),

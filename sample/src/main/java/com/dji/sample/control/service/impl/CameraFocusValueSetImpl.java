@@ -30,13 +30,6 @@ public class CameraFocusValueSetImpl extends PayloadCommandsHandler {
         if (CameraStateEnum.WORKING == osdCamera.getPhotoState() || FocusStateEnum.IDLE != osdCamera.getZoomFocusState()) {
             return false;
         }
-        switch (param.getCameraType()) {
-            case WIDE:
-                return Objects.nonNull(osdCamera.getZoomFocusValue())
-                        && param.getFocusValue().intValue() != osdCamera.getZoomFocusValue();
-            case ZOOM:
-                return param.getFocusValue().intValue() != osdCamera.getZoomFocusValue();
-        }
-        return false;
+        return Objects.equals(param.getFocusValue(), osdCamera.getZoomFocusValue());
     }
 }

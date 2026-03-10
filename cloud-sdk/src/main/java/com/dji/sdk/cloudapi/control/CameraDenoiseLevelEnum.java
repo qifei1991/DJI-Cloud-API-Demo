@@ -1,6 +1,7 @@
 package com.dji.sdk.cloudapi.control;
 
 import com.dji.sdk.exception.CloudSDKException;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
@@ -28,6 +29,7 @@ public enum CameraDenoiseLevelEnum {
         return level;
     }
 
+    @JsonCreator
     public static CameraDenoiseLevelEnum find(int level) {
         return Arrays.stream(values()).filter(valueEnum -> valueEnum.level == level).findAny()
                 .orElseThrow(() -> new CloudSDKException(CameraDenoiseLevelEnum.class, level));

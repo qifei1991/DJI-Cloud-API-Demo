@@ -1,5 +1,7 @@
 package com.dji.sample.manage.model.receiver;
 
+import com.dji.sample.manage.annotation.PropertyParamPosition;
+import com.dji.sample.manage.model.enums.PropertyParamEnum;
 import com.dji.sdk.cloudapi.device.PayloadIndex;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +20,7 @@ import java.util.Objects;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
+@PropertyParamPosition(PropertyParamEnum.CHILD)
 public class ThermalIsothermUpperLimitReceiver extends BasicDeviceProperty {
 
     @NotNull
