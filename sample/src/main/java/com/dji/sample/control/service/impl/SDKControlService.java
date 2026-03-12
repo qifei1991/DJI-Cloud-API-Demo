@@ -11,9 +11,9 @@ import com.dji.sdk.cloudapi.control.*;
 import com.dji.sdk.cloudapi.control.api.AbstractControlService;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.drc.TopicDrcRequest;
+import com.dji.sdk.mqtt.events.EventsDataRequest;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
@@ -36,9 +36,6 @@ public class SDKControlService extends AbstractControlService {
 
     @Autowired
     private IDeviceRedisService deviceRedisService;
-
-    @Autowired
-    private ObjectMapper mapper;
 
     @Autowired
     private FlightTaskClient flightTaskClient;
@@ -135,6 +132,13 @@ public class SDKControlService extends AbstractControlService {
                         .result(eventsReceiver.getReason().getVal()).build());
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
     }
+
+    public TopicEventsResponse<MqttReply> cameraPhotoTakeProgress(TopicEventsRequest<EventsDataRequest<CameraPhotoTakeProgress>> request, MessageHeaders headers) {
+        log.error("*************** cameraPhotoTakeProgress not implemented! ***************");
+        log.info("- CameraPhotoTakeProgress information: method: {}, data: {}", request.getMethod(), request.getData());
+        return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
+    }
+
 
     @Override
     public void heartBeatUp(TopicDrcRequest<HeartBeatRequest> request, MessageHeaders headers) {

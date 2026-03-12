@@ -3,7 +3,6 @@ package com.dji.sample.control.service.impl;
 import com.dji.sample.control.model.param.DronePayloadParam;
 import com.dji.sdk.cloudapi.control.CameraTypeEnum;
 import com.dji.sdk.cloudapi.device.CameraStateEnum;
-import com.dji.sdk.cloudapi.device.FocusStateEnum;
 
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ public class CameraFocusModeSetImpl extends PayloadCommandsHandler {
     @Override
     public boolean canPublish(String deviceSn) {
         super.canPublish(deviceSn);
-        if (CameraStateEnum.WORKING == osdCamera.getPhotoState() || FocusStateEnum.IDLE != osdCamera.getZoomFocusState()) {
+        if (CameraStateEnum.WORKING == osdCamera.getPhotoState()/*  || FocusStateEnum.IDLE != osdCamera.getZoomFocusState() */) {
             return false;
         }
         return param.getFocusMode() != osdCamera.getZoomFocusMode();

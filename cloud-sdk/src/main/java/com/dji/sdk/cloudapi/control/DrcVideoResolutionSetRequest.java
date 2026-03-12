@@ -25,4 +25,33 @@ public class DrcVideoResolutionSetRequest extends BaseModel {
 
     @NotNull
     private VideoResolutionEnum videoResolution;
+
+    public DrcVideoResolutionSetRequest() {
+    }
+
+    @Override
+    public String toString() {
+        return "DrcVideoResolutionSetRequest{" +
+                "payloadIndex=" + payloadIndex +
+                ", videoResolution=" + videoResolution +
+                '}';
+    }
+
+    public PayloadIndex getPayloadIndex() {
+        return payloadIndex;
+    }
+
+    public DrcVideoResolutionSetRequest setPayloadIndex(PayloadIndex payloadIndex) {
+        this.payloadIndex = payloadIndex;
+        return this;
+    }
+
+    public VideoResolutionEnum getVideoResolution() {
+        return videoResolution;
+    }
+
+    public DrcVideoResolutionSetRequest setVideoResolution(VideoResolutionEnum videoResolution) {
+        this.videoResolution = videoResolution;
+        return this;
+    }
 }

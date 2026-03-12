@@ -826,7 +826,7 @@ public abstract class AbstractControlService {
     public void drcVideoResolutionSet(GatewayManager gateway, DrcVideoResolutionSetRequest request) {
         drcDownPublish.publish(
                 gateway.getGatewaySn(),
-                ControlMethodEnum.VIDEO_STORAGE_SET.getMethod(),
+                ControlMethodEnum.DRC_VIDEO_RESOLUTION_SET.getMethod(),
                 request);
     }
 
