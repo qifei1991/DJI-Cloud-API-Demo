@@ -18,7 +18,7 @@ public enum PayloadCommandsEnum {
 
     CAMERA_PHOTO_TAKE(PayloadControlMethodEnum.CAMERA_PHOTO_TAKE, CameraPhotoTakeImpl.class),
 
-    CAMERA_PHOTO_STOP(PayloadControlMethodEnum.CAMERA_PHOTO_STOP, CameraPhotoTakeImpl.class),
+    CAMERA_PHOTO_STOP(PayloadControlMethodEnum.CAMERA_PHOTO_STOP, CameraPhotoStopImpl.class),
 
     CAMERA_RECORDING_START(PayloadControlMethodEnum.CAMERA_RECORDING_START, CameraRecordingStartImpl.class),
 

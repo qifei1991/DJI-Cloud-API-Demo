@@ -19,7 +19,7 @@ public class CameraPointFocusActionImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType())
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getCameraType())
                 && Objects.nonNull(param.getX()) && Objects.nonNull(param.getY())
                 && CameraTypeEnum.ZOOM == param.getCameraType();
     }

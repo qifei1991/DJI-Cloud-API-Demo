@@ -16,7 +16,8 @@ public class CameraLookAtImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getLatitude()) && Objects.nonNull(param.getLongitude()) && Objects.nonNull(param.getHeight());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getLocked())
+                && Objects.nonNull(param.getLatitude()) && Objects.nonNull(param.getLongitude()) && Objects.nonNull(param.getHeight());
     }
 
 }

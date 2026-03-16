@@ -20,7 +20,8 @@ public class DrcCameraMechanicalShutterSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getMechanicalShutterState())
+        return Objects.nonNull(param.getPayloadIndex())
+                && Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getMechanicalShutterState())
                 && (CameraTypeEnum.ZOOM == param.getCameraType() || CameraTypeEnum.WIDE == param.getCameraType());
     }
 

@@ -16,7 +16,7 @@ public class GimbalResetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getResetMode());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getResetMode());
     }
 
 }

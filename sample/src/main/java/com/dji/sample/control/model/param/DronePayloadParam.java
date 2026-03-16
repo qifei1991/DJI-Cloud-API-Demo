@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Range;
 
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.List;
 
@@ -27,7 +26,6 @@ import java.util.List;
 @Accessors(chain = true)
 public class DronePayloadParam extends AuthorityBaseParam {
 
-    @NotNull
     @Pattern(regexp = "\\d+-\\d+-\\d+")
     private String payloadIndex;
 

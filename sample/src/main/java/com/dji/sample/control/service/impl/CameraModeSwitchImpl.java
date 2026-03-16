@@ -18,7 +18,7 @@ public class CameraModeSwitchImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraMode());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getCameraMode());
     }
 
     @Override

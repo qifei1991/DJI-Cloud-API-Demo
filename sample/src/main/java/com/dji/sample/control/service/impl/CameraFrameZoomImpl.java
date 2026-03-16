@@ -18,7 +18,7 @@ public class CameraFrameZoomImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType())
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getCameraType())
                 && Objects.nonNull(param.getLocked())
                 && Objects.nonNull(param.getX()) && Objects.nonNull(param.getY())
                 && Objects.nonNull(param.getWidth()) && Objects.nonNull(param.getHeight());

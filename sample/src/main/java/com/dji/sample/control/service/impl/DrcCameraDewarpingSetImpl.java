@@ -19,7 +19,8 @@ public class DrcCameraDewarpingSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getDewarpingState())
+        return Objects.nonNull(param.getPayloadIndex())
+                && Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getDewarpingState())
                 && CameraTypeEnum.WIDE == param.getCameraType();
     }
 

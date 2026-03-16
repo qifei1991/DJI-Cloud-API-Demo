@@ -18,7 +18,7 @@ public class DrcCameraDenoiseLevelSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getLevel());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getLevel());
     }
 
 }

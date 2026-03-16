@@ -17,7 +17,8 @@ public class CameraAimImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getX()) && Objects.nonNull(param.getY())
+        return Objects.nonNull(param.getPayloadIndex())
+                && Objects.nonNull(param.getX()) && Objects.nonNull(param.getY())
                 && Objects.nonNull(param.getLocked()) && Objects.nonNull(param.getCameraType());
     }
 

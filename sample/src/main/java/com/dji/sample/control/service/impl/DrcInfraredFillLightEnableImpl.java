@@ -18,6 +18,6 @@ public class DrcInfraredFillLightEnableImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getEnable());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getEnable());
     }
 }

@@ -18,6 +18,6 @@ public class VideoStorageSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getVideoStorageSettings());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getVideoStorageSettings());
     }
 }

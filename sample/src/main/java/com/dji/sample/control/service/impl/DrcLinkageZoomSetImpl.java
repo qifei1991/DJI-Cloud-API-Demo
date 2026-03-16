@@ -19,6 +19,6 @@ public class DrcLinkageZoomSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getState());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getState());
     }
 }

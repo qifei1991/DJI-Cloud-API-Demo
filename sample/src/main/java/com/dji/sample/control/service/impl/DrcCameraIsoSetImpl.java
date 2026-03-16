@@ -21,7 +21,8 @@ public class DrcCameraIsoSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getIsoValue())
+        return Objects.nonNull(param.getPayloadIndex())
+                && Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getIsoValue())
                 && (CameraTypeEnum.ZOOM == param.getCameraType() || CameraTypeEnum.WIDE == param.getCameraType());
     }
 

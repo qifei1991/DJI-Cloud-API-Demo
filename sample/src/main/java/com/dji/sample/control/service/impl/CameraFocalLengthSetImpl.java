@@ -19,9 +19,10 @@ public class CameraFocalLengthSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getZoomFactor())
-                && (CameraTypeEnum.ZOOM == param.getCameraType()
-                || CameraTypeEnum.IR == param.getCameraType());
+        return Objects.nonNull(param.getPayloadIndex())
+                && Objects.nonNull(param.getCameraType())
+                && Objects.nonNull(param.getZoomFactor())
+                && (CameraTypeEnum.ZOOM == param.getCameraType() || CameraTypeEnum.IR == param.getCameraType());
     }
 
     @Override

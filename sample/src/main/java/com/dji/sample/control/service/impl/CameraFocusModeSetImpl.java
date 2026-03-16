@@ -20,7 +20,8 @@ public class CameraFocusModeSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getFocusMode())
+        return Objects.nonNull(param.getPayloadIndex())
+                && Objects.nonNull(param.getCameraType()) && Objects.nonNull(param.getFocusMode())
                 && (CameraTypeEnum.ZOOM == param.getCameraType() || CameraTypeEnum.WIDE == param.getCameraType());
     }
 

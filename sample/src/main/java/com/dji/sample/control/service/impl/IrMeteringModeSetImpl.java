@@ -18,7 +18,7 @@ public class IrMeteringModeSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getMode());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getMode());
     }
 
     @Override

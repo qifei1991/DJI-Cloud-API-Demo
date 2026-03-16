@@ -19,6 +19,6 @@ public class DrcCameraPhotoFormatSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getPhotoFormat());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getPhotoFormat());
     }
 }

@@ -1,19 +1,19 @@
 package com.dji.sample.control.service.impl;
 
 import com.dji.sample.control.model.param.DronePayloadParam;
-import com.dji.sdk.cloudapi.device.CameraModeEnum;
 import com.dji.sdk.cloudapi.device.CameraStateEnum;
 
 import java.util.Objects;
 
 /**
- * @author sean
- * @version 1.4
- * @date 2023/4/23
+ * 停止拍照
+ *
+ * @author Qfei
+ * @date 2026/3/16 15:35
  */
-public class CameraRecordingStartImpl extends PayloadCommandsHandler {
+public class CameraPhotoStopImpl extends PayloadCommandsHandler {
 
-    public CameraRecordingStartImpl(DronePayloadParam param) {
+    CameraPhotoStopImpl(DronePayloadParam param) {
         super(param);
     }
 
@@ -25,8 +25,6 @@ public class CameraRecordingStartImpl extends PayloadCommandsHandler {
     @Override
     public boolean canPublish(String deviceSn) {
         super.canPublish(deviceSn);
-        return CameraModeEnum.VIDEO == osdCamera.getCameraMode()
-                && CameraStateEnum.IDLE == osdCamera.getRecordingState()
-                && osdCamera.getRemainRecordDuration() > 0;
+        return CameraStateEnum.WORKING == osdCamera.getPhotoState();
     }
 }

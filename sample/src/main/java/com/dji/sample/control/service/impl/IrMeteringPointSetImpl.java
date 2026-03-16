@@ -19,7 +19,7 @@ public class IrMeteringPointSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getX()) && Objects.nonNull(param.getY());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getX()) && Objects.nonNull(param.getY());
     }
 
     @Override

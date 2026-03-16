@@ -20,7 +20,7 @@ public class PhotoStorageSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getPhotoStorageSettings());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getPhotoStorageSettings());
     }
 
     @Override

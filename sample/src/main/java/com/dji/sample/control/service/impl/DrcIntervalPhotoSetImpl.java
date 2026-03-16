@@ -17,6 +17,6 @@ public class DrcIntervalPhotoSetImpl extends PayloadCommandsHandler {
 
     @Override
     public boolean valid() {
-        return Objects.nonNull(param.getInterval());
+        return Objects.nonNull(param.getPayloadIndex()) && Objects.nonNull(param.getInterval());
     }
 }
