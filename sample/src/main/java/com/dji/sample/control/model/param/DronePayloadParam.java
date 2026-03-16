@@ -8,6 +8,7 @@ import com.dji.sdk.cloudapi.device.ShutterSpeedEnum;
 import com.dji.sdk.cloudapi.device.SwitchActionEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Range;
 
@@ -21,6 +22,7 @@ import java.util.List;
  * @date 2023/3/1
  */
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class DronePayloadParam extends AuthorityBaseParam {
@@ -71,7 +73,9 @@ public class DronePayloadParam extends AuthorityBaseParam {
     private CameraModeSetEnum mode;
 
     /**
-     * 测温区域宽度 {"max":1,"min":0}
+     * 1. 测温区域宽度 {"max":1,"min":0}
+     * 2. LookAt高度 Ellipsoid width
+     * 3. 框选变焦区域宽度
      */
     @Range(min = 0, max = 1)
     private Double width;
@@ -79,6 +83,7 @@ public class DronePayloadParam extends AuthorityBaseParam {
     /**
      * 1.测温区域高度 {"max":1,"min":0}
      * 2. LookAt高度 Ellipsoid height
+     * 3. 框选变焦区域高度
      */
     private Double height;
 

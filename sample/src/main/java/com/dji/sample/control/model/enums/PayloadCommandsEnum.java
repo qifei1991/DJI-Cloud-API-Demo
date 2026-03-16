@@ -83,6 +83,8 @@ public enum PayloadCommandsEnum {
     DRC_LINKAGE_ZOOM_SET(PayloadControlMethodEnum.DRC_LINKAGE_ZOOM_SET, DrcLinkageZoomSetImpl.class),
 
     DRC_INTERVAL_PHOTO_SET(PayloadControlMethodEnum.DRC_INTERVAL_PHOTO_SET, DrcIntervalPhotoSetImpl.class),
+
+    CAMERA_FRAME_ZOOM(PayloadControlMethodEnum.CAMERA_FRAME_ZOOM, CameraFrameZoomImpl.class),
     ;
 
     PayloadControlMethodEnum cmd;

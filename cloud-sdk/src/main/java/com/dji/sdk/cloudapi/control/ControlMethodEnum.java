@@ -105,6 +105,8 @@ public enum ControlMethodEnum {
 
     DRC_INTERVAL_PHOTO_SET("drc_interval_photo_set"),
 
+    CAMERA_FRAME_ZOOM("camera_frame_zoom"),
+
     ;
 
     private final String method;

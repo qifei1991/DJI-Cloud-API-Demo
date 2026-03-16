@@ -71,9 +71,17 @@ public class CameraLookAtRequest extends BaseModel {
                 '}';
     }
 
+    public PayloadIndex getPayloadIndex() {
+        return payloadIndex;
+    }
+
     public CameraLookAtRequest setPayloadIndex(PayloadIndex payloadIndex) {
         this.payloadIndex = payloadIndex;
         return this;
+    }
+
+    public Boolean getLocked() {
+        return locked;
     }
 
     public CameraLookAtRequest setLocked(Boolean locked) {
@@ -81,14 +89,26 @@ public class CameraLookAtRequest extends BaseModel {
         return this;
     }
 
+    public Float getLatitude() {
+        return latitude;
+    }
+
     public CameraLookAtRequest setLatitude(Float latitude) {
         this.latitude = latitude;
         return this;
     }
 
+    public Float getLongitude() {
+        return longitude;
+    }
+
     public CameraLookAtRequest setLongitude(Float longitude) {
         this.longitude = longitude;
         return this;
+    }
+
+    public Float getHeight() {
+        return height;
     }
 
     public CameraLookAtRequest setHeight(Float height) {

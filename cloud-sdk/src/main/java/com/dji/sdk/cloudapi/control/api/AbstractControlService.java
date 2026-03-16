@@ -856,4 +856,18 @@ public abstract class AbstractControlService {
                 request);
     }
 
+    /**
+     * Camera control - CameraFrameZoom setting
+     * @param gateway
+     * @param request   data
+     * @return  services_reply
+     */
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
+    public TopicServicesResponse<ServicesReplyData> cameraFrameZoomSet(GatewayManager gateway, CameraFrameZoomRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.CAMERA_FRAME_ZOOM.getMethod(),
+                request);
+    }
+
 }

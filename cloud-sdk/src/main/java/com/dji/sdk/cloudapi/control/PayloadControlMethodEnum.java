@@ -82,6 +82,8 @@ public enum PayloadControlMethodEnum {
 
     DRC_INTERVAL_PHOTO_SET(ControlMethodEnum.DRC_INTERVAL_PHOTO_SET, DrcIntervalPhotoSetRequest.class),
 
+    CAMERA_FRAME_ZOOM(ControlMethodEnum.CAMERA_FRAME_ZOOM, CameraFrameZoomRequest.class),
+
     ;
 
     private final ControlMethodEnum payloadMethod;
