@@ -12,24 +12,24 @@ import java.util.Arrays;
  */
 public enum VideoResolutionEnum {
 
-    RES_1920_1080(0),
+    RES_1920_1080("0"),
 
-    RES_3840_2160(1);
+    RES_3840_2160("1");
 
-    private final int value;
+    private final String value;
 
-    VideoResolutionEnum(int value) {
+    VideoResolutionEnum(String value) {
         this.value = value;
     }
 
     @JsonValue
-    public int getValue() {
+    public String getValue() {
         return value;
     }
 
     @JsonCreator
-    public static VideoResolutionEnum find(int value) {
-        return Arrays.stream(values()).filter(valueEnum -> valueEnum.value == value).findAny()
+    public static VideoResolutionEnum find(String value) {
+        return Arrays.stream(values()).filter(valueEnum -> valueEnum.value.equals(value)).findAny()
                 .orElseThrow(() -> new CloudSDKException(VideoResolutionEnum.class, value));
     }
 }
