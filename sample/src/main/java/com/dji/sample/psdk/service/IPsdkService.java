@@ -1,6 +1,7 @@
 package com.dji.sample.psdk.service;
 
 import com.dji.sample.psdk.model.dto.PsdkWidgetValuesDTO;
+import com.dji.sample.psdk.model.param.BasePlaySetParam;
 
 import java.util.List;
 
@@ -13,4 +14,6 @@ import java.util.List;
 public interface IPsdkService {
 
     List<PsdkWidgetValuesDTO> getPsdkWidgetValues(String workspaceId);
+
+    Integer getSetParamPsdkIndex(BasePlaySetParam setParam);
 }

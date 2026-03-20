@@ -1,7 +1,6 @@
 package com.dji.sample.psdk.service.impl;
 
 import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.StrPool;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
@@ -11,15 +10,13 @@ import com.dji.sample.psdk.model.dto.SpeakerJobDTO;
 import com.dji.sample.psdk.model.entity.SpeakerJobEntity;
 import com.dji.sample.psdk.model.enums.SpeakerContentTypeEnum;
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
+import com.dji.sample.psdk.service.IPsdkService;
 import com.dji.sample.psdk.service.IPsdkWidgetRedisService;
 import com.dji.sample.psdk.service.ISpeakerContentService;
 import com.dji.sample.psdk.service.ISpeakerJobService;
-import com.dji.sdk.cloudapi.device.PsdkNameEnum;
-import com.dji.sdk.cloudapi.device.PsdkWidget;
 import com.dji.sdk.cloudapi.psdk.*;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.SDKManager;
-import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +27,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URL;
-import java.util.*;
+import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Qfei
@@ -49,15 +49,14 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
     private final ISpeakerJobMapper speakerJobMapper;
     private final IPsdkWidgetRedisService psdkWidgetRedisService;
     private final MzPilotSpeakerService mzPilotSpeakerService;
+    private final IPsdkService psdkService;
 
     @Override
     public HttpResultResponse issueCreateAudioJob(String workspaceId, String deviceSn, MultipartFile file,
             String creator, String organizationCode) {
-
         if (mzPilotSpeakerService.isDroneSn(deviceSn)) {
             mzPilotSpeakerService.subscribe(deviceSn);
         }
-
         String contentId = speakerContentService.create(workspaceId, file,
                 new CreateSpeakerContentParam()
                         .setType(SpeakerContentTypeEnum.AUDIO)
@@ -89,28 +88,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
 
     @Override
     public HttpResultResponse speakerPlayStart(String workspaceId, SpeakerPlayParam speakerPlayParam) {
-
-        Integer psdkIndex;
-        if (mzPilotSpeakerService.isDroneSn(speakerPlayParam.getDeviceSn())) {
-            mzPilotSpeakerService.subscribe(speakerPlayParam.getDeviceSn());
-            psdkIndex = speakerPlayParam.getPsdkIndex();
-        } else {
-            GatewayManager gatewayManager = SDKManager.getDeviceSDK(speakerPlayParam.getDeviceSn());
-            if (!StringUtils.hasText(gatewayManager.getDroneSn())) {
-                return HttpResultResponse.error("设备不在线");
-            }
-            Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
-            if (dronePsdkValues.isEmpty()) {
-                return HttpResultResponse.error("设备不存在psdk负载");
-            }
-            Optional<PsdkWidget> speakerOpt = dronePsdkValues.get()
-                    .stream()
-                    .filter(x -> PsdkNameEnum.SPEAKER == x.getPsdkName()).findFirst();
-            if (speakerOpt.isEmpty()) {
-                return HttpResultResponse.error("设备不存在喊话器");
-            }
-            psdkIndex = speakerOpt.get().getPsdkIndex();
-        }
+        Integer psdkIndex = psdkService.getSetParamPsdkIndex(speakerPlayParam);
         Optional<SpeakerContentDTO> contentOpt = speakerContentService.getSpeakerContentById(workspaceId, speakerPlayParam.getContentId());
         if (contentOpt.isEmpty()) {
             return HttpResultResponse.error("喊话内容不存在，不能下发喊话任务！");
@@ -165,32 +143,7 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
 
     @Override
     public HttpResultResponse speakerPlayStop(String workspaceId, SpeakerPlayParam speakerPlayParam) {
-
-        Integer psdkIndex;
-        if (mzPilotSpeakerService.isDroneSn(speakerPlayParam.getDeviceSn())) {
-            mzPilotSpeakerService.subscribe(speakerPlayParam.getDeviceSn());
-            if (Objects.isNull(speakerPlayParam.getPsdkIndex())) {
-                return HttpResultResponse.error("喊话器负载索引位置参数为空，请查证！");
-            }
-            psdkIndex = speakerPlayParam.getPsdkIndex();
-        } else {
-            GatewayManager gatewayManager = SDKManager.getDeviceSDK(speakerPlayParam.getDeviceSn());
-            if (!StringUtils.hasText(gatewayManager.getDroneSn())) {
-                return HttpResultResponse.error("设备不在线");
-            }
-            Optional<List<PsdkWidget>> dronePsdkValues = psdkWidgetRedisService.getPsdkWidgetValues(gatewayManager.getDroneSn());
-            if (dronePsdkValues.isEmpty()) {
-                return HttpResultResponse.error("设备不存在psdk负载");
-            }
-            Optional<PsdkWidget> speakerOpt = dronePsdkValues.get()
-                    .stream()
-                    .filter(x -> PsdkNameEnum.SPEAKER == x.getPsdkName()).findFirst();
-            if (speakerOpt.isEmpty()) {
-                return HttpResultResponse.error("设备不存在喊话器");
-            }
-            psdkIndex = speakerOpt.get().getPsdkIndex();
-        }
-
+        Integer psdkIndex = psdkService.getSetParamPsdkIndex(speakerPlayParam);
         TopicServicesResponse<ServicesReplyData> serviceReply = sdkPsdkPublishService.speakerPlayStop(
                 speakerPlayParam.getDeviceSn(), new SpeakerPlayRequest().setPsdkIndex(psdkIndex));
         if (!serviceReply.getData().getResult().isSuccess()) {
@@ -226,9 +179,5 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                 .createTime(entity.getCreateTime())
                 .updateTime(entity.getUpdateTime())
                 .build();
-    }
-
-    private boolean isAudioFile(String filename) {
-        return FileNameUtil.isType(filename, "mp3", "pcm", "wav", "amr");
     }
 }

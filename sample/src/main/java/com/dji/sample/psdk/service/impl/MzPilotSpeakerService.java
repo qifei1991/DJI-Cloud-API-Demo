@@ -36,11 +36,10 @@ public class MzPilotSpeakerService {
     }
 
     /**
-     * 判断是否是机场设备
+     * 判断是否是Drone设备
      * @param deviceSn 设备SN
-     * @return
      */
     public boolean isDroneSn(String deviceSn) {
-        return StringUtils.hasText(deviceSn) && deviceSn.length() == 14;
+        return StringUtils.hasText(deviceSn) && deviceSn.length() > 14;
     }
 }
