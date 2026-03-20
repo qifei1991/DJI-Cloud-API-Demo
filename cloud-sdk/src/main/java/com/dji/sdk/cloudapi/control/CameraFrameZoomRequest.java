@@ -25,7 +25,7 @@ public class CameraFrameZoomRequest extends BaseModel {
     private PayloadIndex payloadIndex;
 
     @NotNull
-    private ExposureCameraTypeEnum cameraType;
+    private CameraTypeEnum cameraType;
 
     /**
      * true: Lock the gimbal, the gimbal and the drone rotate together.
@@ -86,11 +86,11 @@ public class CameraFrameZoomRequest extends BaseModel {
         return this;
     }
 
-    public ExposureCameraTypeEnum getCameraType() {
+    public CameraTypeEnum getCameraType() {
         return cameraType;
     }
 
-    public CameraFrameZoomRequest setCameraType(ExposureCameraTypeEnum cameraType) {
+    public CameraFrameZoomRequest setCameraType(CameraTypeEnum cameraType) {
         this.cameraType = cameraType;
         return this;
     }

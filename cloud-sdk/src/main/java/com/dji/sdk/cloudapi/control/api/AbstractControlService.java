@@ -436,7 +436,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3 })
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> irMeteringModeSet(GatewayManager gateway, IrMeteringModeSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -450,7 +450,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3 })
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> irMeteringPointSet(GatewayManager gateway, IrMeteringPointSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -464,7 +464,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3 })
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> irMeteringAreaSet(GatewayManager gateway, IrMeteringAreaSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -512,7 +512,7 @@ public abstract class AbstractControlService {
      * @return events_reply
      */
     @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_POI_STATUS_NOTIFY, outputChannel = ChannelName.OUTBOUND_EVENTS)
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2)
     public TopicEventsResponse<MqttReply> poiStatusNotify(TopicEventsRequest<PoiStatusNotify> request, MessageHeaders headers) {
         throw new UnsupportedOperationException("poiStatusNotify not implemented");
     }
@@ -523,7 +523,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> poiModeEnter(GatewayManager gateway, PoiModeEnterRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -536,7 +536,7 @@ public abstract class AbstractControlService {
      * @param gateway
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> poiModeExit(GatewayManager gateway) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -549,7 +549,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> poiCircleSpeedSet(GatewayManager gateway, PoiCircleSpeedSetRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
@@ -862,7 +862,7 @@ public abstract class AbstractControlService {
      * @param request   data
      * @return  services_reply
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC)
     public TopicServicesResponse<ServicesReplyData> cameraFrameZoom(GatewayManager gateway, CameraFrameZoomRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
