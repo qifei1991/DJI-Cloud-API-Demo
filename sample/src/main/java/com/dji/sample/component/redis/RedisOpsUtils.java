@@ -244,6 +244,18 @@ public class RedisOpsUtils {
     }
 
     /**
+     * 根据 Score 值查询集合元素, 从小到大排序
+     *
+     * @param key key
+     * @param min 最小值
+     * @param max 最大值
+     * @return 值集合
+     */
+    public static Set<Object> zRangeByScore(String key, double min, double max) {
+        return redisTemplate.opsForZSet().rangeByScore(key, min, max);
+    }
+
+    /**
      * ZRANGE
      * @param key
      * @return

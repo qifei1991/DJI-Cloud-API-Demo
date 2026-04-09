@@ -24,6 +24,8 @@ public enum SpeakerWorkMode {
     TRANSFER_AND_PLAY(4),
 
     WAYLINE_SPEAKER(5),
+
+    UNKNOWN(65535)
     ;
 
     private final Integer mode;

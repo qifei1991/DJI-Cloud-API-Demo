@@ -105,7 +105,7 @@ public class WaylineJobApiController {
     @GetMapping("/{workspace_id}/jobs/executing/{dock_sn}")
     public HttpResultResponse<WaylineJobDTO> getDockExecutingJob(@PathVariable("workspace_id") String workspaceId,
             @PathVariable("dock_sn") String dockSn) {
-        return HttpResultResponse.success(this.waylineJobService.getDockExecutingJob(workspaceId, dockSn).orElse(null));
+        return HttpResultResponse.success(this.waylineJobService.getDockExecutingJob(workspaceId, dockSn));
     }
 
     @PutMapping("/{workspace_id}/jobs/{job_id}")
@@ -127,7 +127,7 @@ public class WaylineJobApiController {
      * @return
      */
     @PostMapping("/{workspace_id}/in-flight-wayline/jobs")
-    public HttpResultResponse publishCreateJob(@PathVariable(name = "workspace_id") String workspaceId,
+    public HttpResultResponse publishInFlightCreateJob(@PathVariable(name = "workspace_id") String workspaceId,
             @Valid @RequestBody CreateInFlightWaylineTask param) throws SQLException {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);

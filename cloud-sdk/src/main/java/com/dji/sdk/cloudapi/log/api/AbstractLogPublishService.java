@@ -29,7 +29,8 @@ public class AbstractLogPublishService {
                 new TypeReference<FileUploadListResponse>() {},
                 gateway.getGatewaySn(),
                 LogMethodEnum.FILE_UPLOAD_LIST.getMethod(),
-                request);
+                request,
+                15000L);
     }
 
     /**

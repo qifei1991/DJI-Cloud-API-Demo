@@ -66,4 +66,8 @@ public class AircraftOsdParam {
     private Float measureTargetLongitude;
     private Integer measureTargetErrorState;
     // 云台负载信息 end
+
+    // 相机信息
+    private Float zoomFactor;
+    private Float irZoomFactor;
 }

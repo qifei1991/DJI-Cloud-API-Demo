@@ -141,11 +141,15 @@ public class DeviceClient extends AbstractClient {
 
         // 获取ir测距信息
         Optional.ofNullable(data.getCameras())
-                .ifPresent(cameras -> {
-                    OsdCamera osdCamera = data.getCameras().get(0);
+                .flatMap(cameras -> cameras.parallelStream()
+                        .filter(camera -> DeviceSubTypeEnum.ZERO == camera.getPayloadIndex().getSubType())
+                        .findAny())
+                .ifPresent(osdCamera -> {
                     builder.irMeteringMode(Objects.requireNonNullElse(osdCamera.getIrMeteringMode(), MeteringModeEnum.DISABLE))
                             .irMeteringPoint(osdCamera.getIrMeteringPoint())
-                            .irMeteringArea(osdCamera.getIrMeteringArea());
+                            .irMeteringArea(osdCamera.getIrMeteringArea())
+                            .zoomFactor(osdCamera.getZoomFactor())
+                            .irZoomFactor(osdCamera.getIrZoomFactor());
                 });
 
         // 根据网关SN查询是否是机场飞行作业, 赋值作业ID

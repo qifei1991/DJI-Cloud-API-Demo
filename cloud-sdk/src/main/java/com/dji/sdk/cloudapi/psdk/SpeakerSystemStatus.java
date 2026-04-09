@@ -27,7 +27,9 @@ public enum SpeakerSystemStatus {
 
     TTS_CONVERTING(4),
 
-    DOWNLOADING_FROM_CLOUD(99);
+    DOWNLOADING_FROM_CLOUD(99),
+
+    UNKNOWN(65535);
 
     private final int status;
 
@@ -45,6 +47,6 @@ public enum SpeakerSystemStatus {
         return Arrays.stream(values())
                 .filter(x -> x.status == status)
                 .findFirst()
-                .orElseThrow(() -> new CloudSDKException(SpeakerWorkMode.class, status));
+                .orElseThrow(() -> new CloudSDKException(SpeakerSystemStatus.class, status));
     }
 }

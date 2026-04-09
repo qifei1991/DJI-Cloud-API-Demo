@@ -58,6 +58,9 @@ public enum PropertySetEnum {
 
     CAMERA_WATERMARK_SETTINGS("camera_watermark_settings", CameraWatermarkSettingsInfo.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
 
+    BATTERY("battery", DroneBatterySet.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
+
+    REMAINING_POWER_FOR_RETURN_HOME("remaining_power_for_return_home", RemainingPowerForReturnHome.class, CloudSDKVersionEnum.V1_0_3, Set.of(GatewayTypeEnum.DOCK, GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3)),
     ;
 
     private final String property;

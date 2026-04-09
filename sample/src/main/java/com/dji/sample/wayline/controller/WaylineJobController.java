@@ -72,12 +72,11 @@ public class WaylineJobController {
      * @param jobIds
      * @param workspaceId
      * @return
-     * @throws SQLException
      */
     @DeleteMapping("/{workspace_id}/jobs")
-    public HttpResultResponse publishCancelJob(@RequestParam(name = "job_id") Set<String> jobIds,
-                                               @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
-        flighttaskService.cancelFlightTask(workspaceId, jobIds);
+    public HttpResultResponse publishCancelJob(@RequestParam(name = "job_id") String jobIds,
+                                               @PathVariable(name = "workspace_id") String workspaceId) {
+        flighttaskService.cancelFlightTask(workspaceId, Set.of(jobIds.split(",")));
         return HttpResultResponse.success();
     }
 

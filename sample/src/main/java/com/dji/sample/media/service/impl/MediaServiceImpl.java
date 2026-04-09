@@ -7,20 +7,19 @@ import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.UserTypeEnum;
 import com.dji.sample.manage.service.IDeviceRedisService;
-import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.model.MediaFileDTO;
 import com.dji.sample.media.service.IFileService;
 import com.dji.sample.media.service.IMediaRedisService;
 import com.dji.sample.media.service.IMediaService;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.model.enums.WaylineJobStatusEnum;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sdk.cloudapi.media.*;
 import com.dji.sdk.cloudapi.media.api.AbstractMediaService;
 import com.dji.sdk.mqtt.MqttReply;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import com.dji.sdk.mqtt.events.TopicEventsResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.MessageHeaders;
@@ -46,12 +45,6 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
 
     @Autowired
     private IWaylineJobService waylineJobService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private IDeviceService deviceService;
 
     @Autowired
     private IWebSocketMessageService webSocketMessageService;
@@ -188,32 +181,42 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
 
     private void notifyUploadedCount(MediaFileCountDTO mediaFileCount, TopicEventsRequest<FileUploadCallback> request,
             String jobId, DeviceDTO dock) {
+
         FileUploadCallbackFlightTask flightTask = request.getData().getFlightTask();
         // Do not notify when files that do not belong to the route are uploaded.
-        if ((Objects.nonNull(flightTask) && FlightTypeEnum.TAKEOFF_TASK == flightTask.getFlightType())
-                || Objects.isNull(mediaFileCount)) {
+        if (Objects.nonNull(flightTask) && FlightTypeEnum.TAKEOFF_TASK == flightTask.getFlightType()) {
             // add by Qfei, 手动飞行媒体文件上传.
             mediaFileCount = MediaFileCountDTO.builder()
                     .bid(request.getBid())
                     .tid(request.getTid())
                     .mediaCount(0)
                     .build();
-            this.mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
+            mediaClient.reportMediaUploadProgress(jobId, mediaFileCount);
             return;
+        }
+
+        if (Objects.isNull(mediaFileCount)) {
+            mediaRedisService.setMediaCount(request.getGateway(), jobId,
+                    MediaFileCountDTO.builder()
+                            .deviceSn(dock.getChildDeviceSn())
+                            .jobId(jobId)
+                            .mediaCount(0)
+                            .uploadedCount(0)
+                            .build());
         }
 
         // wayline flight task media file upload.
         mediaFileCount.setBid(request.getBid());
         mediaFileCount.setTid(request.getTid());
-
-        if (Objects.nonNull(flightTask) && Objects.nonNull(flightTask.getUploadedFileCount())) {
-            mediaFileCount.setUploadedCount(flightTask.getUploadedFileCount());
-        } else {
-            mediaFileCount.setUploadedCount(mediaFileCount.getUploadedCount() + 1);
-        }
+        int uploadedSize = fileService.getFilesByWorkspaceAndJobId(dock.getWorkspaceId(), request.getBid()).size();
+        mediaFileCount.setUploadedCount(uploadedSize);
+        mediaRedisService.setMediaCount(request.getGateway(), jobId, mediaFileCount);
 
         // After all the files of the job are uploaded, delete the media file key.
-        if (mediaFileCount.getUploadedCount() >= mediaFileCount.getMediaCount()) {
+        // modify by Qfei, 如果航线飞行任务已经结束 && 上传的媒体总数已经达到总数，则删除媒体文件统计key.
+        Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(dock.getWorkspaceId(), jobId);
+        if (jobOpt.isPresent() && WaylineJobStatusEnum.find(jobOpt.get().getStatus()).getEnd()
+                && uploadedSize >= mediaFileCount.getMediaCount()) {
             mediaRedisService.delMediaCount(request.getGateway(), jobId);
 
             // After uploading, delete the key with the highest priority.

@@ -163,11 +163,11 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
-    public List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, WaylineJobStatusEnum status) {
+    public List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, Integer status) {
         return mapper.selectList(
                 new LambdaQueryWrapper<WaylineJobEntity>()
                         .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
-                        .eq(Objects.nonNull(status), WaylineJobEntity::getStatus, status.getVal())
+                        .eq(Objects.nonNull(status), WaylineJobEntity::getStatus, status)
                         .and(!CollectionUtils.isEmpty(jobIds),
                                 wrapper -> jobIds.forEach(id -> wrapper.eq(WaylineJobEntity::getJobId, id).or())))
                 .stream()
@@ -225,12 +225,16 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     }
 
     @Override
-    public Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn) {
-        return Optional.ofNullable(this.entity2Dto(mapper.selectOne(new LambdaQueryWrapper<WaylineJobEntity>()
+    public WaylineJobDTO getDockExecutingJob(String workspaceId, String dockSn) {
+        return mapper.selectList(new LambdaQueryWrapper<WaylineJobEntity>()
                 .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
                 .eq(WaylineJobEntity::getDockSn, dockSn)
                 .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.IN_PROGRESS.getVal())
-                .orderByDesc(WaylineJobEntity::getCreateTime))));
+                .orderByDesc(WaylineJobEntity::getCreateTime))
+                .stream()
+                .findFirst()
+                .map(this::entity2Dto)
+                .orElse(null);
     }
 
     @Override
@@ -240,7 +244,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                         .eq(WaylineJobEntity::getStatus, WaylineJobStatusEnum.PENDING.getVal())
                         .ge(WaylineJobEntity::getBeginTime, System.currentTimeMillis()))
                 .stream()
-                .map(this::entity2Dto)
+                .map(this::entity2SampleDto)
                 .collect(Collectors.toList());
     }
 
@@ -367,7 +371,8 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         if (StringUtils.hasText(entity.getParentId()) && entity.getContinuable()) {
             Optional<ProgressExtBreakPoint> breakPointReceiver = waylineRedisService.getProgressExtBreakPoint(entity.getParentId());
             breakPointReceiver.ifPresent(x -> builder.breakPoint(
-                    new FlighttaskBreakPoint().setIndex(x.getIndex())
+                    new FlighttaskBreakPoint()
+                            .setIndex(x.getIndex())
                             .setState(x.getState())
                             .setProgress(x.getProgress())
                             .setWaylineId(x.getWaylineId())));
@@ -377,29 +382,66 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
             return builder.build();
         }
 
-        // sync the number of media files
-        MediaFileCountDTO mediaFileCount = mediaRedisService.getMediaCount(entity.getDockSn(), entity.getJobId());
-        if (Objects.nonNull(mediaFileCount)) {
-            builder.uploadedCount(mediaFileCount.getUploadedCount())
-                    .uploading(RedisOpsUtils.checkExist(RedisConst.MEDIA_HIGHEST_PRIORITY_PREFIX + entity.getDockSn())
-                            && entity.getJobId().equals(mediaRedisService.getMediaHighestPriority(entity.getDockSn()).getJobId()));
-            return builder.build();
-        }
-
         int uploadedSize = fileService.getFilesByWorkspaceAndJobId(entity.getWorkspaceId(), entity.getJobId()).size();
-        // All media for this job have been uploaded.
-        if (uploadedSize >= entity.getMediaCount()) {
-            mediaRedisService.delMediaCount(entity.getDockSn(), entity.getJobId());
-            mediaRedisService.delMediaHighestPriority(entity.getDockSn());
-            return builder.uploadedCount(uploadedSize).build();
+        builder.uploadedCount(uploadedSize);
 
+        // 检查任务状态，避免空指针异常
+        WaylineJobStatusEnum jobStatus = WaylineJobStatusEnum.find(entity.getStatus());
+        if (Objects.nonNull(jobStatus) && jobStatus.getEnd()) {
+            // 任务已结束，所有媒体文件应已上传完成
+            if (uploadedSize >= entity.getMediaCount()) {
+                // 清理 Redis 中的媒体计数和优先级信息
+                mediaRedisService.delMediaCount(entity.getDockSn(), entity.getJobId());
+                mediaRedisService.delMediaHighestPriority(entity.getDockSn());
+            }
+        } else {
+            // 任务进行中，同步 Redis 中的上传计数
+            MediaFileCountDTO mediaFileCount = mediaRedisService.getMediaCount(entity.getDockSn(), entity.getJobId());
+            if (Objects.nonNull(mediaFileCount)) {
+                if (mediaFileCount.getUploadedCount() != uploadedSize) {
+                    mediaFileCount.setUploadedCount(uploadedSize);
+                    mediaRedisService.setMediaCount(entity.getDockSn(), entity.getJobId(), mediaFileCount);
+                }
+                builder.uploading(RedisOpsUtils.checkExist(RedisConst.MEDIA_HIGHEST_PRIORITY_PREFIX + entity.getDockSn())
+                        && entity.getJobId().equals(mediaRedisService.getMediaHighestPriority(entity.getDockSn()).getJobId()));
+            }
         }
-        // 暂时注释，在文件上传回调中来处理统计信息
-        mediaRedisService.setMediaCount(entity.getDockSn(), entity.getJobId(),
-                MediaFileCountDTO.builder()
-                        .jobId(entity.getJobId())
-                        .mediaCount(entity.getMediaCount())
-                        .uploadedCount(uploadedSize).build());
+        return builder.build();
+    }
+
+    private WaylineJobDTO entity2SampleDto(WaylineJobEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+        WaylineJobDTO.WaylineJobDTOBuilder builder = WaylineJobDTO.builder()
+                .jobId(entity.getJobId())
+                .jobName(entity.getName())
+                .fileId(entity.getFileId())
+                .dockSn(entity.getDockSn())
+                .username(entity.getUsername())
+                .workspaceId(entity.getWorkspaceId())
+                .status(entity.getStatus())
+                .code(entity.getErrorCode())
+                .beginTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getBeginTime()), ZoneId.systemDefault()))
+                .endTime(Objects.nonNull(entity.getEndTime()) ?
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getEndTime()), ZoneId.systemDefault()) : null)
+                .executeTime(Objects.nonNull(entity.getExecuteTime()) ?
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getExecuteTime()), ZoneId.systemDefault()) : null)
+                .completedTime(WaylineJobStatusEnum.find(entity.getStatus()).getEnd() ?
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getUpdateTime()), ZoneId.systemDefault()) : null)
+                .taskType(TaskTypeEnum.find(entity.getTaskType()))
+                .waylineType(WaylineTypeEnum.find(entity.getWaylineType()))
+                .rthAltitude(entity.getRthAltitude())
+                .outOfControlAction(OutOfControlActionEnum.find(entity.getOutOfControlAction()))
+                .mediaCount(entity.getMediaCount())
+                .exitWaylineWhenRcLost(entity.getExitWaylineWhenRcLost())
+                .parentId(entity.getParentId())
+                .groupId(entity.getGroupId())
+                .continuable(entity.getContinuable());
+
+        if (Objects.nonNull(entity.getEndTime())) {
+            builder.endTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getEndTime()), ZoneId.systemDefault()));
+        }
         return builder.build();
     }
 }

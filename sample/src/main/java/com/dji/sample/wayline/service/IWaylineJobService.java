@@ -43,7 +43,7 @@ public interface IWaylineJobService {
      * @param status
      * @return
      */
-    List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, WaylineJobStatusEnum status);
+    List<WaylineJobDTO> getJobsByConditions(String workspaceId, Collection<String> jobIds, Integer status);
 
     /**
      * Query job information based on job id.
@@ -91,7 +91,7 @@ public interface IWaylineJobService {
      * @param dockSn      机场SN
      * @return WaylineJobDTO
      */
-    Optional<WaylineJobDTO> getDockExecutingJob(String workspaceId, String dockSn);
+    WaylineJobDTO getDockExecutingJob(String workspaceId, String dockSn);
 
     void deleteJob(String workspaceId, String jobId);
 

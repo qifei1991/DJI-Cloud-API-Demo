@@ -17,7 +17,9 @@ public enum PlayModeEnum {
      */
     SINGLE(0),
 
-    LOOP(1)
+    LOOP(1),
+
+    UNKNOWN(65535);
 
     ;
 

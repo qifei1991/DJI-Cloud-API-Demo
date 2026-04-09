@@ -43,6 +43,10 @@ public enum PropertySetFieldEnum {
 
     CAMERA_WATERMARK_SETTINGS(PropertySetEnum.CAMERA_WATERMARK_SETTINGS, CameraWatermarkSettingsReceiver.class),
 
+    BATTERY(PropertySetEnum.BATTERY, DroneBatteryReceiver.class),
+
+    REMAINING_POWER_FOR_RETURN_HOME(PropertySetEnum.REMAINING_POWER_FOR_RETURN_HOME, RemainingPowerForReturnHomeReceiver.class),
+
     ;
 
     private final PropertySetEnum property;

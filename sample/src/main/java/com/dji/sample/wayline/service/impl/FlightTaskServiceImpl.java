@@ -12,6 +12,7 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.UserTypeEnum;
 import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.media.model.MediaFileCountDTO;
+import com.dji.sample.media.service.IFileService;
 import com.dji.sample.media.service.IMediaRedisService;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
@@ -50,6 +51,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.net.URL;
@@ -92,50 +94,65 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Autowired
     private FlightTaskClient flightTaskClient;
+
     @Autowired
     private IWebSocketMessageService webSocketMessageService;
+
+    @Autowired
+    private IFileService fileService;
 
 
     @Scheduled(initialDelay = 10, fixedRate = 5, timeUnit = TimeUnit.SECONDS)
     public void checkScheduledJob() {
-        Object jobIdValue = RedisOpsUtils.zGetMin(RedisConst.WAYLINE_JOB_TIMED_EXECUTE);
-        if (Objects.isNull(jobIdValue)) {
-            return;
-        }
-        log.info("Check the timed tasks of the wayline. {}", jobIdValue);
-        // format: {workspace_id}:{dock_sn}:{job_id}
-        String[] jobArr = String.valueOf(jobIdValue).split(RedisConst.DELIMITER);
-        double time = RedisOpsUtils.zScore(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, jobIdValue);
+
+        int range = 5_000;
         long now = System.currentTimeMillis();
-        int offset = 30_000;
 
-        // Expired tasks are deleted directly.
-        if (time < now - offset) {
-            RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, jobIdValue);
-            waylineJobService.updateJob(WaylineJobDTO.builder()
-                    .jobId(jobArr[2])
-                    .status(WaylineJobStatusEnum.FAILED.getVal())
-                    .executeTime(LocalDateTime.now())
-                    .completedTime(LocalDateTime.now())
-                    .code(HttpStatus.SC_REQUEST_TIMEOUT).build());
+        Set<Object> timedJobSet = RedisOpsUtils.zRangeByScore(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, now, now + range);
+        if (CollectionUtils.isEmpty(timedJobSet)) {
             return;
         }
+        log.info("Check the timed tasks of the wayline. size: {}", timedJobSet.size());
+        timedJobSet.parallelStream().forEach(jobIdValue -> {
+            // Object jobIdValue = RedisOpsUtils.zGetMin(RedisConst.WAYLINE_JOB_TIMED_EXECUTE);
+            // if (Objects.isNull(jobIdValue)) {
+            //     return;
+            // }
+            log.info("Find timed job. {}", jobIdValue);
+            // format: {workspace_id}:{dock_sn}:{job_id}
+            String[] jobArr = String.valueOf(jobIdValue).split(RedisConst.DELIMITER);
+            double time = RedisOpsUtils.zScore(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, jobIdValue);
+            int offset = 120_000;
 
-        if (now <= time && time <= now + offset) {
-            try {
-                this.executeFlightTask(jobArr[0], jobArr[2]);
-            } catch (Exception e) {
-                log.info("定时任务交付执行失败, jobId: " + jobArr[2], e);
+            // Expired tasks are deleted directly.
+            if (time < now - offset) {
+                log.info("The timed task has expired. {}", jobIdValue);
+                RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, jobIdValue);
                 waylineJobService.updateJob(WaylineJobDTO.builder()
                         .jobId(jobArr[2])
                         .status(WaylineJobStatusEnum.FAILED.getVal())
                         .executeTime(LocalDateTime.now())
                         .completedTime(LocalDateTime.now())
-                        .code(HttpStatus.SC_INTERNAL_SERVER_ERROR).build());
-            } finally {
-                RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, jobIdValue);
+                        .code(HttpStatus.SC_REQUEST_TIMEOUT).build());
+                return;
             }
-        }
+
+            if (now <= time && time <= now + offset) {
+                try {
+                    this.executeFlightTask(jobArr[0], jobArr[2]);
+                } catch (Exception e) {
+                    log.error("定时任务交付执行失败, jobId: {}", jobArr[2], e);
+                    waylineJobService.updateJob(WaylineJobDTO.builder()
+                            .jobId(jobArr[2])
+                            .status(WaylineJobStatusEnum.FAILED.getVal())
+                            .executeTime(LocalDateTime.now())
+                            .completedTime(LocalDateTime.now())
+                            .code(HttpStatus.SC_INTERNAL_SERVER_ERROR).build());
+                } finally {
+                    RedisOpsUtils.zRemove(RedisConst.WAYLINE_JOB_TIMED_EXECUTE, jobIdValue);
+                }
+            }
+        });
     }
 
     @Scheduled(initialDelay = 10, fixedRate = 5, timeUnit = TimeUnit.SECONDS)
@@ -417,15 +434,30 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Override
     public void cancelFlightTask(String workspaceId, Collection<String> jobIds) {
-        List<WaylineJobDTO> waylineJobs = waylineJobService.getJobsByConditions(workspaceId, jobIds, WaylineJobStatusEnum.PENDING);
+        // 输入参数校验
+        if (Objects.isNull(jobIds) || jobIds.isEmpty()) {
+            throw new IllegalArgumentException("操作失败，任务 ID 列表不能为空");
+        }
 
-        Set<String> waylineJobIds = waylineJobs.stream().map(WaylineJobDTO::getJobId).collect(Collectors.toSet());
-        // Check if the task status is correct.
-        boolean isErr = !jobIds.removeAll(waylineJobIds) || !jobIds.isEmpty();
-        if (isErr) {
-            List<WaylineJobDTO> cannotCancelJobs = waylineJobService.getJobsByConditions(workspaceId, jobIds, null);
-            throw new IllegalArgumentException("操作失败，以下任务的状态不支持取消: "
-                    + Arrays.toString(cannotCancelJobs.stream().map(WaylineJobDTO::getJobName).toArray()));
+        // 查询所有处于 PENDING 状态的任务（只有该状态的任务可以取消）
+        List<WaylineJobDTO> waylineJobs = waylineJobService.getJobsByConditions(workspaceId, jobIds, WaylineJobStatusEnum.PENDING.getVal());
+        Set<String> pendingJobIds = waylineJobs.stream()
+                .map(WaylineJobDTO::getJobId)
+                .collect(Collectors.toSet());
+
+        // 找出不可取消的任务（不在 PENDING 状态的任务）
+        List<String> invalidJobIds = jobIds.stream()
+                .filter(jobId -> !pendingJobIds.contains(jobId))
+                .collect(Collectors.toList());
+
+        // 如果存在不可取消的任务，抛出异常
+        if (!CollectionUtils.isEmpty(invalidJobIds)) {
+            log.warn("Cannot cancel job ====> Invalid job ids: {}", invalidJobIds);
+            List<WaylineJobDTO> cannotCancelJobs = waylineJobService.getJobsByConditions(workspaceId, invalidJobIds, null);
+            String jobNames = cannotCancelJobs.stream()
+                    .map(WaylineJobDTO::getJobName)
+                    .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("操作失败，以下任务的状态不支持取消：" + jobNames);
         }
 
         // Group job id by dock sn.
@@ -624,16 +656,17 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                     .mediaCount(output.getExt().getMediaCount())
                     .build();
 
-            // record the update of the media count.
             MediaFileCountDTO mediaCount = mediaRedisService.getMediaCount(response.getGateway(), response.getBid());
-            if (Objects.isNull(mediaCount) && Objects.nonNull(job.getMediaCount()) && job.getMediaCount() != 0) {
-                mediaRedisService.setMediaCount(response.getGateway(), job.getJobId(),
-                        MediaFileCountDTO.builder()
-                                .deviceSn(deviceOpt.get().getChildDeviceSn())
-                                .jobId(response.getBid())
-                                .mediaCount(job.getMediaCount())
-                                .uploadedCount(0)
-                                .build());
+            int uploadedSize = fileService.getFilesByWorkspaceAndJobId(deviceOpt.get().getWorkspaceId(), response.getBid()).size();
+            if (Objects.nonNull(mediaCount)) {
+                mediaCount.setUploadedCount(uploadedSize);
+                mediaCount.setMediaCount(job.getMediaCount());
+                mediaRedisService.setMediaCount(response.getGateway(), job.getJobId(), mediaCount);
+            }
+            // 如果文件上传完成，则删除mediaCount
+            if (uploadedSize >= job.getMediaCount()) {
+                mediaRedisService.delMediaCount(response.getGateway(), response.getBid());
+                mediaRedisService.delMediaHighestPriority(response.getGateway());
             }
 
             Optional<WaylineJobDTO> jobDTO = waylineJobService.getJobByJobId(deviceOpt.get().getWorkspaceId(), response.getBid());
