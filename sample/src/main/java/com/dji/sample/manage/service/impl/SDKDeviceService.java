@@ -202,6 +202,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         }
 
         DeviceDTO device = deviceOpt.get();
+        device.setStatus(true);
         deviceRedisService.setDeviceOnline(device);
         deviceRedisService.setDeviceOsd(from, request.getData());
         log.debug("Drone mode, code: {}, Tid: {}", request.getData().getModeCode(), request.getTid());

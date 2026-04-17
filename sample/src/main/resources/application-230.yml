@@ -143,6 +143,12 @@ client:
     - "/flight-task/takeoff-to-progress"
     - "/flight-task/in-flight-wayline-progress"
 
+#飞行任务配置
+flight-task:
+  break-point-auto: true # 自动断点续飞
+  break-point-battery-capacity: 80 #满足自动续飞的最低电量
+  break-point-wind-speed: 10 #满足自动续飞的最低风速
+
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
 #oss:
 #  enable: false
@@ -173,8 +179,8 @@ client:
 oss:
   enable: true
   provider: minio
-  endpoint: http://192.168.1.230:9000 #内网地址
-  extranet-endpoint: http://123.125.92.18:9000 #http://product.dilinyun.com:9000 #外网地址
+  endpoint: http://192.168.1.150:48000 #内网地址
+  extranet-endpoint: http://218.240.178.199:9000 #http://product.dilinyun.com:9000 #外网地址
   access-key: minioadmin
   secret-key: minioadmin@wrj
   bucket: aircraft-resource

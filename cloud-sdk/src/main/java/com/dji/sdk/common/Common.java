@@ -5,12 +5,15 @@ import com.dji.sdk.exception.CloudSDKErrorEnum;
 import com.dji.sdk.exception.CloudSDKException;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -25,8 +28,19 @@ public class Common {
 
     static {
         JavaTimeModule timeModule = new JavaTimeModule();
+        // 自定义 LocalDateTime 反序列化器，支持 null 值和空字符串
         timeModule.addDeserializer(LocalDateTime.class,
-                new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) {
+                    @Override
+                    public LocalDateTime deserialize(JsonParser p, DeserializationContext dc) throws IOException {
+                        // 处理 null 值, 处理空字符串
+                        if (p.getCurrentToken() == JsonToken.VALUE_NULL
+                                || (p.getCurrentToken() == JsonToken.VALUE_STRING && !StringUtils.hasText(p.getText()))) {
+                            return null;
+                        }
+                        return super.deserialize(p, dc);
+                    }
+                });
         timeModule.addSerializer(LocalDateTime.class,
                 new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 

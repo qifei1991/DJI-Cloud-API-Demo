@@ -7,12 +7,10 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.param.DeviceQueryParam;
 import com.dji.sample.manage.service.ICapacityCameraService;
 import com.dji.sample.manage.service.IDeviceService;
-import com.dji.sdk.cloudapi.device.DeviceDomainEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,10 +34,7 @@ public class LiveService {
         }
         // Query all devices in this workspace.
         Optional<DeviceDTO> device = deviceService.getDevicesByParams(DeviceQueryParam.builder()
-                .deviceSn(sn)
-                .domains(List.of(DeviceDomainEnum.DRONE.getDomain(), DeviceDomainEnum.DOCK.getDomain()))
-                .build())
-                .stream().findFirst();
+                .deviceSn(sn).build()).stream().findFirst();
         // Query the live capability of online drone.
         if (device.isEmpty()) {
             return null;

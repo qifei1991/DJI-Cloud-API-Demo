@@ -14,6 +14,7 @@ import com.dji.sample.manage.service.IDeviceRedisService;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.service.IFileService;
 import com.dji.sample.media.service.IMediaRedisService;
+import com.dji.sample.wayline.FlightTaskProperties;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineTaskConditionDTO;
@@ -27,7 +28,10 @@ import com.dji.sample.wayline.service.IFlightTaskService;
 import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
+import com.dji.sdk.cloudapi.device.DockModeCodeEnum;
 import com.dji.sdk.cloudapi.device.ExitWaylineWhenRcLostEnum;
+import com.dji.sdk.cloudapi.device.OsdDock;
+import com.dji.sdk.cloudapi.device.OsdDockDrone;
 import com.dji.sdk.cloudapi.media.UploadFlighttaskMediaPrioritize;
 import com.dji.sdk.cloudapi.media.api.AbstractMediaService;
 import com.dji.sdk.cloudapi.wayline.*;
@@ -100,6 +104,8 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Autowired
     private IFileService fileService;
+    @Autowired
+    private FlightTaskProperties flightTaskProperties;
 
 
     @Scheduled(initialDelay = 10, fixedRate = 5, timeUnit = TimeUnit.SECONDS)
@@ -209,7 +215,44 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             log.info("条件任务准备失败, jobKey: {}", jobKey, e);
             waylineJobService.updateJob(job);
         }
+    }
 
+    // @Scheduled(initialDelay = 10, fixedRate = 60, timeUnit = TimeUnit.SECONDS)
+    public void checkBreakPointJob() {
+        if (!flightTaskProperties.getBreakPointAuto()) {
+            return;
+        }
+
+        int start = RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX.length();
+        RedisOpsUtils.getAllKeys(RedisConst.WAYLINE_JOB_BREAKPOINT_PREFIX + "*").forEach(key -> {
+            String jobId = key.substring(start);
+            Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(null, jobId);
+            if (jobOpt.isEmpty() || WaylineJobStatusEnum.CANCEL.getVal() == jobOpt.get().getStatus()) {
+                return;
+            }
+            WaylineJobDTO breakJob = jobOpt.get();
+            log.info("Check the breakpoint task. JobName: {}, JobId: {}", breakJob.getJobName(), jobId);
+            // 判断航线是否处于成功状态，成功状态说明已经飞过了
+            if (WaylineJobStatusEnum.SUCCESS.getVal() == breakJob.getStatus()) {
+                waylineRedisService.delProgressExtBreakPoint(jobId);
+                return;
+            }
+            // 判断机场状态 && 判断飞机电量
+            String dockSn = breakJob.getDockSn();
+            Optional<OsdDock> dockOsd = deviceRedisService.getDeviceOsd(dockSn, OsdDock.class);
+            if (!deviceRedisService.checkDeviceOnline(dockSn)
+                    || dockOsd.isEmpty()
+                    || DockModeCodeEnum.IDLE != dockOsd.get().getModeCode()
+                    || dockOsd.get().getDroneChargeState().getCapacityPercent() < flightTaskProperties.getBreakPointBatteryCapacity()
+                    || dockOsd.get().getWindSpeed() > flightTaskProperties.getBreakPointWindSpeed()) {
+                return;
+            }
+            try {
+                breakPointContinueFlight(breakJob.getWorkspaceId(), jobId);
+            } catch (SQLException e) {
+                log.error("下发断点续飞任务异常", e);
+            }
+        });
     }
 
     /**
@@ -540,7 +583,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     }
     @Override
     public HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId) throws SQLException {
-
+        log.info("下发断点续飞任务：{}", jobId);
         Optional<ProgressExtBreakPoint> breakPointReceiver = waylineRedisService.getProgressExtBreakPoint(jobId);
         if (breakPointReceiver.isEmpty()) {
             return HttpResultResponse.error("无法获取航线断点信息，无法继续飞行。");
@@ -621,7 +664,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Override
     public TopicEventsResponse<MqttReply> deviceExitHomingNotify(TopicEventsRequest<DeviceExitHomingNotify> request, MessageHeaders headers) {
-        log.error("*************** deviceExitHomingNotify not implemented! ***************");
+            log.error("*************** deviceExitHomingNotify not implemented! ***************");
         log.info("- Device exit Homing notify: gateway: {}, data: {}", request.getGateway(), request.getData());
         return new TopicEventsResponse<MqttReply>();
     }
@@ -635,7 +678,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         eventsReceiver.setSn(response.getGateway());
 
         FlighttaskProgress output = eventsReceiver.getOutput();
-        log.info("Task progress: {}", output.getProgress().toString());
+        log.info("Task progress: {}:{}, {}", response.getGateway(), response.getBid(), output.getProgress().toString());
         if (!eventsReceiver.getResult().isSuccess()) {
             log.error("Task progress ===> Error: {}", eventsReceiver.getResult());
         }
@@ -649,6 +692,10 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         waylineRedisService.setRunningWaylineJob(response.getGateway(), eventsReceiver);
 
         if (statusEnum.isEnd()) {
+            Optional<OsdDock> dockOsdOpt = deviceRedisService.getDeviceOsd(response.getGateway(), OsdDock.class);
+            Optional<OsdDockDrone> droneOsdOpt = deviceRedisService.getDeviceOsd(deviceOpt.get().getChildDeviceSn(), OsdDockDrone.class);
+            log.info("Task completed. SN: {}, FlightId: {}, DroneModeCode: {}, DroneInDock: {}", response.getGateway(), response.getBid(),
+                    droneOsdOpt.map(OsdDockDrone::getModeCode), dockOsdOpt.map(OsdDock::getDroneInDock));
             WaylineJobDTO job = WaylineJobDTO.builder()
                     .jobId(response.getBid())
                     .status(WaylineJobStatusEnum.SUCCESS.getVal())
@@ -688,8 +735,9 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 if (Objects.isNull(breakPoint)) {
                     jobDTO.ifPresent(x -> {
                         if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
-                            waylineRedisService.getProgressExtBreakPoint(x.getParentId()).ifPresentOrElse(
-                                    parBreakPoint -> waylineRedisService.setProgressExtBreakPoint(response.getBid(), parBreakPoint),
+                            waylineRedisService.getProgressExtBreakPoint(x.getParentId())
+                                    .ifPresentOrElse(parBreakPoint ->
+                                                    waylineRedisService.setProgressExtBreakPoint(response.getBid(), parBreakPoint),
                                     () -> job.setContinuable(false));
                         }
                     });

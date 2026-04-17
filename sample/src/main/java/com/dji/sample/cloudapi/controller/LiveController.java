@@ -37,7 +37,7 @@ public class LiveController {
      */
     @GetMapping("/capacity/{workspace_id}")
     public HttpResultResponse<List<CapacityDeviceDTO>> getLiveCapacity(@PathVariable("workspace_id") String workspaceId) {
-        return HttpResultResponse.success(this.liveStreamService.getLiveCapacity(workspaceId));
+        return HttpResultResponse.success(liveStreamService.getLiveCapacity(workspaceId));
     }
 
     /**
@@ -45,9 +45,9 @@ public class LiveController {
      * @param sn device sn
      * @return live capacity.
      */
-    @GetMapping("/{sn}/capacity/")
+    @GetMapping("/devices/{sn}/capacity")
     public HttpResultResponse<CapacityDeviceDTO> getDeviceLiveCapacity(@PathVariable("sn") String sn) {
-        return HttpResultResponse.success(this.liveService.getDeviceLiveCapacity(sn));
+        return HttpResultResponse.success(liveService.getDeviceLiveCapacity(sn));
     }
 
     /**

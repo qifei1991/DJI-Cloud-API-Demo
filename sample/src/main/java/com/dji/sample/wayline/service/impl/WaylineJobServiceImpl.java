@@ -179,7 +179,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
     public Optional<WaylineJobDTO> getJobByJobId(String workspaceId, String jobId) {
         WaylineJobEntity jobEntity = mapper.selectOne(
                 new LambdaQueryWrapper<WaylineJobEntity>()
-                        .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
+                        .eq(StringUtils.hasText(workspaceId), WaylineJobEntity::getWorkspaceId, workspaceId)
                         .eq(WaylineJobEntity::getJobId, jobId));
         return Optional.ofNullable(entity2Dto(jobEntity));
     }

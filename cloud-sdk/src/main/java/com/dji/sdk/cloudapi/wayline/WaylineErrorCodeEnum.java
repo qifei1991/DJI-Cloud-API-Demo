@@ -278,6 +278,10 @@ public enum WaylineErrorCodeEnum implements IServicesErrorCode, IEventsErrorCode
 
     MEDIA_PRIORITY_WRONG_PARAMETER(324032, "Setting priority of media upload failed, incorrect parameter."),
 
+    DRONE_NOT_IN_DOCK(514155, "飞机不在舱内，无法执行飞行任务，请将飞行器放回至机场。"),
+
+    EMERGENCY_RETURN_ENCOUNTER_STRONG_WINDS(321784, "任务过程中遇到大风紧急返航。"),
+
     UNKNOWN(-1, "UNKNOWN"),
 
     ;

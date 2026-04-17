@@ -5,7 +5,6 @@ import com.dji.sample.manage.model.dto.CapacityDeviceDTO;
 import com.dji.sample.manage.model.dto.LiveTypeDTO;
 import com.dji.sample.manage.service.ILiveStreamService;
 import com.dji.sdk.common.HttpResultResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +27,6 @@ public class LiveStreamController {
 
     @Autowired
     private ILiveStreamService liveStreamService;
-
-    @Autowired
-    private ObjectMapper mapper;
 
     /**
      * Get live capability data of all drones in the current user's workspace from the database.

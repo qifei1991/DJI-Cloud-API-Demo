@@ -61,7 +61,9 @@ public class MediaClient extends AbstractClient {
                     .filePath(OssConfiguration.objectDirPrefix + CharPool.SLASH + fileUploadCallbackFile.getPath())
                     .fileName(saveName)
                     .objectKey(fileUploadCallbackFile.getObjectKey())
-                    .createTime(DateUtil.formatLocalDateTime(fileUploadCallbackFile.getMetadata().getCreatedTime()))
+                    .createTime(fileUploadCallbackFile.getMetadata().getCreatedTime() != null ? 
+                            DateUtil.formatLocalDateTime(fileUploadCallbackFile.getMetadata().getCreatedTime()) : 
+                            DateUtil.formatLocalDateTime(LocalDateTime.now()))
                     .updateTime(LocalDateTime.now().format(FORMATTER))
                     .uploadStatus(2)
                     .platform(OssConfiguration.provider.getType())
@@ -90,7 +92,9 @@ public class MediaClient extends AbstractClient {
                     .filePath(objectKey.substring(0, objectKey.indexOf(filename)))
                     .fileName(filename)
                     .objectKey(objectKey)
-                    .createTime(DateUtil.formatLocalDateTime(callbackRequest.getMetadata().getCreatedTime()))
+                    .createTime(callbackRequest.getMetadata().getCreatedTime() != null ? 
+                            DateUtil.formatLocalDateTime(callbackRequest.getMetadata().getCreatedTime()) : 
+                            DateUtil.formatLocalDateTime(LocalDateTime.now()))
                     .updateTime(LocalDateTime.now().format(FORMATTER))
                     .uploadStatus(2)
                     .platform(OssConfiguration.provider.getType())

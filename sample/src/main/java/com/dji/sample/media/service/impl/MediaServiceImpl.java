@@ -196,13 +196,12 @@ public class MediaServiceImpl extends AbstractMediaService implements IMediaServ
         }
 
         if (Objects.isNull(mediaFileCount)) {
-            mediaRedisService.setMediaCount(request.getGateway(), jobId,
-                    MediaFileCountDTO.builder()
-                            .deviceSn(dock.getChildDeviceSn())
-                            .jobId(jobId)
-                            .mediaCount(0)
-                            .uploadedCount(0)
-                            .build());
+            mediaFileCount = MediaFileCountDTO.builder()
+                    .deviceSn(dock.getChildDeviceSn())
+                    .jobId(jobId)
+                    .mediaCount(0)
+                    .uploadedCount(0)
+                    .build();
         }
 
         // wayline flight task media file upload.
