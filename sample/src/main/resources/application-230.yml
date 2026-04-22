@@ -145,9 +145,15 @@ client:
 
 #飞行任务配置
 flight-task:
-  break-point-auto: true # 自动断点续飞
-  break-point-battery-capacity: 80 #满足自动续飞的最低电量
-  break-point-wind-speed: 10 #满足自动续飞的最低风速
+  return-home-cron: 0/10 * * * * ? # 返航监控任务执行间隔，10秒执行一次
+  home-distance-monitor: 1 #返航降落时距离机场距离阈值，单位：米
+  break-point-condition:
+    enabled: false # 自动断点续飞
+    wind-speed: 9 #风速
+    battery-capacity: 90 #满足自动续飞的最低电量
+  stop-flying-condition:
+    enabled: true #飞行计划阻飞价差
+    wind-speed: 9 #风速
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
 #oss:

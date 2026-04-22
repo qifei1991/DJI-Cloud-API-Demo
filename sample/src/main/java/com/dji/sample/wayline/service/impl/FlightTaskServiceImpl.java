@@ -17,6 +17,7 @@ import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.service.IFileService;
 import com.dji.sample.media.service.IMediaRedisService;
 import com.dji.sample.wayline.FlightTaskProperties;
+import com.dji.sample.wayline.StopFlyingCondition;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
@@ -221,7 +222,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     // @Scheduled(initialDelay = 10, fixedRate = 60, timeUnit = TimeUnit.SECONDS)
     public void checkBreakPointJob() {
-        if (!flightTaskProperties.getBreakPointAuto()) {
+        if (!flightTaskProperties.getBreakPointCondition().getEnabled()) {
             return;
         }
 
@@ -245,8 +246,8 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             if (!deviceRedisService.checkDeviceOnline(dockSn)
                     || dockOsd.isEmpty()
                     || DockModeCodeEnum.IDLE != dockOsd.get().getModeCode()
-                    || dockOsd.get().getDroneChargeState().getCapacityPercent() < flightTaskProperties.getBreakPointBatteryCapacity()
-                    || dockOsd.get().getWindSpeed() > flightTaskProperties.getBreakPointWindSpeed()) {
+                    || dockOsd.get().getDroneChargeState().getCapacityPercent() < flightTaskProperties.getBreakPointCondition().getBatteryCapacity()
+                    || dockOsd.get().getWindSpeed() > flightTaskProperties.getBreakPointCondition().getWindSpeed()) {
                 return;
             }
             try {
@@ -439,9 +440,16 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             throw new IllegalArgumentException("飞行计划不存在。");
         }
 
-        boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.get().getDockSn());
+        String dockSn = waylineJob.get().getDockSn();
+        boolean isOnline = deviceRedisService.checkDeviceOnline(dockSn);
         if (!isOnline) {
             throw new RuntimeException("机场离线状态，无法执行。");
+        }
+
+        // 自定义阻飞检查
+        if (flightTaskProperties.getStopFlyingCondition().getEnabled() && !checkFlyingCondition(jobId, dockSn)) {
+            log.error("机场当前状态或当前环境条件不满足安全飞行，已取消当前飞行计划。");
+            return false;
         }
 
         WaylineJobDTO job = waylineJob.get();
@@ -475,6 +483,43 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         this.flightTaskClient.startFlightTask(job);
 
         return true;
+    }
+
+    /**
+     * 飞行任务阻飞检查
+     * @param jobId
+     * @param dockSn
+     * @return
+     */
+    private Boolean checkFlyingCondition(String jobId, String dockSn) {
+        Optional<OsdDock> osdDockOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDock.class);
+        if (osdDockOpt.isEmpty()) {
+            throw new RuntimeException("机场离线，请稍候重试");
+        }
+        OsdDock osdDock = osdDockOpt.get();
+        boolean canFlying = true;
+        WaylineErrorCodeEnum errorCode = WaylineErrorCodeEnum.UNKNOWN;
+        StopFlyingCondition stopFlyingCondition = flightTaskProperties.getStopFlyingCondition().getDeviceCondition(dockSn);
+        if (osdDock.getWindSpeed() >= stopFlyingCondition.getWindSpeed()) {
+            log.warn("[Flying-Check] ===> False, SN: {}, ErrorCode: {}", dockSn, errorCode);
+            canFlying = false;
+            errorCode = WaylineErrorCodeEnum.STRONG_WIND;
+        }
+        if (!canFlying) {
+            waylineJobService.updateJob(WaylineJobDTO.builder()
+                    .jobId(jobId)
+                    .executeTime(LocalDateTime.now())
+                    .status(WaylineJobStatusEnum.CANCEL.getVal())
+                    .completedTime(LocalDateTime.now())
+                    .code(errorCode.getCode()).build());
+            TopicServicesResponse<ServicesReplyData> serviceReply = abstractWaylineService.flighttaskUndo(
+                    SDKManager.getDeviceSDK(dockSn),
+                    new FlighttaskUndoRequest().setFlightIds(Collections.singletonList(jobId)));
+            if (!serviceReply.getData().getResult().isSuccess()) {
+                log.error("Cancel job ====> Error: {}", serviceReply.getData().getResult());
+            }
+        }
+        return canFlying;
     }
 
     @Override
