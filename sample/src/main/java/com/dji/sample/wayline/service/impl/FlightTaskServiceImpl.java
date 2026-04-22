@@ -1,5 +1,6 @@
 package com.dji.sample.wayline.service.impl;
 
+import cn.hutool.cron.CronUtil;
 import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.CustomClaim;
@@ -11,11 +12,13 @@ import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.enums.UserTypeEnum;
 import com.dji.sample.manage.service.IDeviceRedisService;
+import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.media.model.MediaFileCountDTO;
 import com.dji.sample.media.service.IFileService;
 import com.dji.sample.media.service.IMediaRedisService;
 import com.dji.sample.wayline.FlightTaskProperties;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
+import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineTaskConditionDTO;
 import com.dji.sample.wayline.model.enums.WaylineErrorCodeEnum;
@@ -28,10 +31,7 @@ import com.dji.sample.wayline.service.IFlightTaskService;
 import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
-import com.dji.sdk.cloudapi.device.DockModeCodeEnum;
-import com.dji.sdk.cloudapi.device.ExitWaylineWhenRcLostEnum;
-import com.dji.sdk.cloudapi.device.OsdDock;
-import com.dji.sdk.cloudapi.device.OsdDockDrone;
+import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.cloudapi.media.UploadFlighttaskMediaPrioritize;
 import com.dji.sdk.cloudapi.media.api.AbstractMediaService;
 import com.dji.sdk.cloudapi.wayline.*;
@@ -106,6 +106,8 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     private IFileService fileService;
     @Autowired
     private FlightTaskProperties flightTaskProperties;
+    @Autowired
+    private IDeviceService deviceService;
 
 
     @Scheduled(initialDelay = 10, fixedRate = 5, timeUnit = TimeUnit.SECONDS)
@@ -692,10 +694,18 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         waylineRedisService.setRunningWaylineJob(response.getGateway(), eventsReceiver);
 
         if (statusEnum.isEnd()) {
+            String droneSn = deviceOpt.get().getChildDeviceSn();
             Optional<OsdDock> dockOsdOpt = deviceRedisService.getDeviceOsd(response.getGateway(), OsdDock.class);
-            Optional<OsdDockDrone> droneOsdOpt = deviceRedisService.getDeviceOsd(deviceOpt.get().getChildDeviceSn(), OsdDockDrone.class);
-            log.info("Task completed. SN: {}, FlightId: {}, DroneModeCode: {}, DroneInDock: {}", response.getGateway(), response.getBid(),
-                    droneOsdOpt.map(OsdDockDrone::getModeCode), dockOsdOpt.map(OsdDock::getDroneInDock));
+            DroneModeCodeEnum droneModeCodeEnum = deviceService.getDeviceMode(droneSn);
+            Boolean droneInDock = dockOsdOpt.map(OsdDock::getDroneInDock).orElse(false);
+            log.info("Task completed. SN: {}, FlightId: {}, DroneModeCode: {}, DroneInDock: {}",
+                    response.getGateway(), response.getBid(), droneModeCodeEnum, droneInDock);
+            try {
+                returnHomeMonitor(response.getGateway(), droneSn, response.getBid(), droneModeCodeEnum, droneInDock);
+            } catch (Exception e) {
+                log.error("Add Return home monitor error.", e);
+            }
+
             WaylineJobDTO job = WaylineJobDTO.builder()
                     .jobId(response.getBid())
                     .status(WaylineJobStatusEnum.SUCCESS.getVal())
@@ -767,6 +777,107 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         this.flightTaskClient.flightTaskProgress(response.getBid(), output);
 
         return new TopicEventsResponse<>();
+    }
+
+    /**
+     * 航线任务结束后添加飞机返航监控
+     *
+     * @param dockSn
+     * @param droneSn
+     * @param jobId
+     * @param modeCodeEnum
+     * @param droneInDock
+     */
+    private void returnHomeMonitor(String dockSn, String droneSn, String jobId, DroneModeCodeEnum modeCodeEnum, Boolean droneInDock) {
+        if (droneInDock) {
+            log.info("飞机已入舱，无需添加飞机入舱监控任务。SN: {}", dockSn);
+            return;
+        }
+
+        // 如果是返航，就添加返航监控，否则暂时不加监控（如果是手动打断进行别的操作，不进行监控）
+        if (DroneModeCodeEnum.DISCONNECTED != modeCodeEnum && DroneModeCodeEnum.RETURN_AUTO != modeCodeEnum
+                && DroneModeCodeEnum.LANDING_AUTO != modeCodeEnum && DroneModeCodeEnum.LANDING_FORCED != modeCodeEnum) {
+            log.info("航线任务结束后，飞行器不是返航状态、降落状态或未连接状态（信号导致未连接），不添加返航监控任务。");
+            return;
+        }
+
+        Optional<DroneReturnHomeMonitor> returnHomeMonitorOpt = waylineRedisService.getReturnHomeMonitor(dockSn);
+        if (returnHomeMonitorOpt.isPresent() && jobId.equals(returnHomeMonitorOpt.get().getJobId())) {
+            log.warn("航线任务返航监听已存在, SN: {}, jobId: {}", dockSn, jobId);
+            return;
+        }
+
+        String taskId = UUID.randomUUID().toString();
+        CronUtil.schedule(taskId, flightTaskProperties.getReturnHomeCron(), () -> {
+            /*
+             * 根据 机场状态、飞机状态、飞机在舱内状态 判断飞机返航结果：
+             * 1. 机场作业中 && 飞机在舱内：返航成功
+             * 2. 机场作业中 && 飞机关机状态 && 飞机不在舱内：无法判断，有可能信号不好(继续监控）
+             * 3. 机场作业中 && 飞机降落状态 && 飞机和机场相对距离大于预设距离：返航失败，通知用户
+             * 4. 机场作业中 && 飞机空闲状态 && 不在舱内：返航失败，通知用户
+             * 5. 机场空闲中 && 飞机不在舱内：返航失败，通知用户
+             * 6. 其它情况：继续监控（如果一直监控不到，最终状态为：机场空闲状态，飞机未连接状态，此时会走判断条件5）
+             */
+            Optional<OsdDock> dockOsdOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDock.class);
+            if (dockOsdOpt.isEmpty()) {
+                returnHomeMonitorOpt.ifPresent(x -> CronUtil.remove(x.getTaskId()));
+                waylineRedisService.delReturnHomeMonitor(dockSn);
+                return;
+            }
+            OsdDock osdDock = dockOsdOpt.get();
+            DroneModeCodeEnum deviceModeCodeEnum = deviceService.getDeviceMode(droneSn);
+            Optional<OsdDockDrone> droneOsdOpt = deviceRedisService.getDeviceOsd(droneSn, OsdDockDrone.class);
+
+            DockModeCodeEnum dockModeEnum = deviceService.getDockMode(dockSn);
+            if (DockModeCodeEnum.WORKING == dockModeEnum) {
+                if (osdDock.getDroneInDock()) {
+                    log.info("机场作业中，飞机在舱内，返航成功。");
+                    returnHomeSuccess(dockSn);
+                    return;
+                }
+                // 判断飞机状态
+                if ((DroneModeCodeEnum.LANDING_AUTO == deviceModeCodeEnum || DroneModeCodeEnum.LANDING_FORCED == deviceModeCodeEnum)
+                        && droneOsdOpt.isPresent() && droneOsdOpt.get().getHomeDistance() > flightTaskProperties.getHomeDistanceMonitor()) {
+                    log.error("飞机降落状态，并且飞行器和机场水平距离大于设定值，飞机落在舱外。");
+                    returnHomeFailAndNotifyUser(dockSn);
+                } else if (DroneModeCodeEnum.IDLE == deviceModeCodeEnum && !osdDock.getDroneInDock()) {
+                    log.error("飞机空闲状态，飞机不在舱内，返航失败。");
+                    returnHomeFailAndNotifyUser(dockSn);
+                }
+            } else if (DockModeCodeEnum.IDLE == dockModeEnum && !osdDock.getDroneInDock()) {
+                log.error("机场空闲中，飞机不在舱内，返航失败。");
+                returnHomeFailAndNotifyUser(dockSn);
+            }
+            returnHomeMonitorOpt.ifPresent(x -> {
+                droneOsdOpt.ifPresent(y ->
+                        x.setDroneModeCodeEnum(x.getDroneModeCodeEnum())
+                                .setLongitude(y.getLongitude())
+                                .setLatitude(y.getLatitude())
+                                .setBatteryCapacityPercent(y.getBattery().getCapacityPercent()));
+                waylineRedisService.setReturnHomeMonitor(dockSn, x);
+            });
+        });
+        waylineRedisService.setReturnHomeMonitor(dockSn,
+                new DroneReturnHomeMonitor()
+                        .setTaskId(taskId)
+                        .setDockSn(dockSn)
+                        .setDroneSn(droneSn)
+                        .setJobId(jobId)
+                        .setDroneModeCodeEnum(modeCodeEnum));
+    }
+
+    private void returnHomeSuccess(String dockSn) {
+        waylineRedisService.getReturnHomeMonitor(dockSn).ifPresent(x -> CronUtil.remove(x.getTaskId()));
+        waylineRedisService.delReturnHomeMonitor(dockSn);
+    }
+
+    private void returnHomeFailAndNotifyUser(String dockSn) {
+        waylineRedisService.getReturnHomeMonitor(dockSn).ifPresent(x -> {
+            flightTaskClient.returnHomeFailReport(x);
+
+            CronUtil.remove(x.getTaskId());
+            waylineRedisService.delReturnHomeMonitor(dockSn);
+        });
     }
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)

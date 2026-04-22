@@ -32,8 +32,6 @@ import com.dji.sdk.cloudapi.tsa.TopologyDeviceModel;
 import com.dji.sdk.common.*;
 import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.exception.CloudSDKException;
-import com.dji.sdk.mqtt.IMqttTopicService;
-import com.dji.sdk.mqtt.MqttGatewayPublish;
 import com.dji.sdk.mqtt.drc.DrcUpSubscribe;
 import com.dji.sdk.mqtt.events.EventsSubscribe;
 import com.dji.sdk.mqtt.osd.OsdSubscribe;
@@ -72,16 +70,7 @@ import java.util.stream.Collectors;
 public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
-    private MqttGatewayPublish messageSender;
-
-    @Autowired
     private IDeviceMapper mapper;
-
-    @Autowired
-    private IDeviceDictionaryService dictionaryService;
-
-    @Autowired
-    private IMqttTopicService topicService;
 
     @Autowired
     private IWorkspaceService workspaceService;
@@ -97,9 +86,6 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private IDeviceFirmwareService deviceFirmwareService;
-
-    @Autowired
-    private ICapacityCameraService capacityCameraService;
 
     @Autowired
     private IDeviceRedisService deviceRedisService;

@@ -4,6 +4,7 @@ import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
+import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.service.IWaylineRedisService;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
@@ -155,5 +156,20 @@ public class WaylineRedisServiceImpl implements IWaylineRedisService {
     @Override
     public Boolean delPausedInFlightWayline(String gateway) {
         return RedisOpsUtils.del(RedisConst.IN_FLIGHT_WAYLINE_PAUSED_PREFIX + gateway);
+    }
+
+    @Override
+    public void setReturnHomeMonitor(String dockSn, DroneReturnHomeMonitor monitor) {
+        RedisOpsUtils.set(RedisConst.RETURN_HOME_MONITOR_PREFIX + dockSn, monitor);
+    }
+
+    @Override
+    public Optional<DroneReturnHomeMonitor> getReturnHomeMonitor(String dockSn) {
+        return Optional.ofNullable((DroneReturnHomeMonitor) RedisOpsUtils.get(RedisConst.RETURN_HOME_MONITOR_PREFIX + dockSn));
+    }
+
+    @Override
+    public Boolean delReturnHomeMonitor(String dockSn) {
+        return RedisOpsUtils.del(RedisConst.RETURN_HOME_MONITOR_PREFIX + dockSn);
     }
 }

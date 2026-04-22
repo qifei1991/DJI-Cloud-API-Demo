@@ -72,4 +72,8 @@ public final class RedisConst {
     public static final String IN_FLIGHT_WAYLINE_RUNNING_PREFIX = "in_flight_wayline_running" + DELIMITER;
 
     public static final String IN_FLIGHT_WAYLINE_PAUSED_PREFIX = "in_flight_wayline_paused" + DELIMITER;
+
+    public static final String DRC_HEART_BEAT_PREFIX = DRC_PREFIX + "heart_beat" + DELIMITER;
+
+    public static final String RETURN_HOME_MONITOR_PREFIX = "return_home_monitor" + DELIMITER;
 }

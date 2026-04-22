@@ -31,4 +31,14 @@ public class FlightTaskProperties {
      * 满足自动续飞的最低风速
      */
     private Float breakPointWindSpeed = 10F;
+
+    /**
+     * 飞行任务返航时飞机回舱监控任务间隔表达式，复合 cron 表达式语法
+     */
+    private String returnHomeCron = "0/10 * * * * ?";
+
+    /**
+     * 返航监控距离机场水平距离告警阈值，单位米， 默认1米
+     */
+    private Integer homeDistanceMonitor = 1;
 }

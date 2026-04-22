@@ -2,6 +2,7 @@ package com.dji.sample.wayline.service;
 
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
+import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
 import com.dji.sdk.cloudapi.wayline.InFlightWaylineProgress;
@@ -133,4 +134,10 @@ public interface IWaylineRedisService {
     String getPausedInFlightWayline(String gateway);
 
     Boolean delPausedInFlightWayline(String gateway);
+
+    void setReturnHomeMonitor(String dockSn, DroneReturnHomeMonitor monitor);
+
+    Optional<DroneReturnHomeMonitor> getReturnHomeMonitor(String dockSn);
+
+    Boolean delReturnHomeMonitor(String dockSn);
 }

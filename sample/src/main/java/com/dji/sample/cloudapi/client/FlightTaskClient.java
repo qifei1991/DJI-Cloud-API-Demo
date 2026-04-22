@@ -10,6 +10,7 @@ import com.dji.sample.cloudapi.util.ClientUri;
 import com.dji.sample.control.model.param.TakeoffToPointParam;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceService;
+import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sdk.cloudapi.control.FlyToPointProgress;
 import com.dji.sdk.cloudapi.control.TakeoffToPointProgress;
@@ -102,6 +103,7 @@ public class FlightTaskClient extends AbstractClient {
         this.applicationJsonPost(ClientUri.URI_SORTIES_PROGRESS, progressReceiver, jobId);
     }
 
+    @Async("asyncThreadPool")
     public void startTakeoffTo(String dockSn, TakeoffToPointParam params) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(params.getFlightId())
@@ -122,6 +124,7 @@ public class FlightTaskClient extends AbstractClient {
      * @param dockSn
      * @param receiver
      */
+    @Async("asyncThreadPool")
     public void finishTakeoffTo(String dockSn, TakeoffToPointProgress receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlightId())
@@ -135,6 +138,7 @@ public class FlightTaskClient extends AbstractClient {
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
+    @Async("asyncThreadPool")
     public void finishFlyTo(String dockSn, FlyToPointProgress receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlyToId())
@@ -146,6 +150,7 @@ public class FlightTaskClient extends AbstractClient {
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
     }
 
+    @Async("asyncThreadPool")
     public void takeoffToProgress(String dockSn, TopicEventsRequest<TakeoffToPointProgress> request) {
         TakeoffToPointProgress receiver = request.getData();
         applicationJsonPost(ClientUri.URI_TAKEOFF_TO_PROGRESS,
@@ -165,6 +170,7 @@ public class FlightTaskClient extends AbstractClient {
         );
     }
 
+    @Async("asyncThreadPool")
     public void inFlightWaylineProgress(String dockSn, TopicEventsRequest<InFlightWaylineProgress> request) {
         InFlightWaylineProgress eventData = request.getData();
         applicationJsonPost(ClientUri.URI_IN_FLIGHT_WAYLINE_PROGRESS,
@@ -178,5 +184,10 @@ public class FlightTaskClient extends AbstractClient {
                         .setStatus(eventData.getStatus())
                         .setResult(eventData.getResult())
                         .setWayPointIndex(eventData.getWayPointIndex()));
+    }
+
+    @Async("asyncThreadPool")
+    public void returnHomeFailReport(DroneReturnHomeMonitor monitor) {
+        applicationJsonPost(ClientUri.URI_RETURN_HOME_FAIL, monitor);
     }
 }

@@ -7,7 +7,6 @@ import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.component.mqtt.model.MapKeyConst;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
-import com.dji.sample.component.websocket.service.IWebSocketMessageService;
 import com.dji.sample.control.model.dto.JwtAclDTO;
 import com.dji.sample.control.model.dto.MqttAclAccessRule;
 import com.dji.sample.control.model.enums.DroneAuthorityEnum;
@@ -79,12 +78,6 @@ public class DrcServiceImpl implements IDrcService {
     private IDeviceService deviceService;
 
     @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
-    private IWebSocketMessageService webSocketMessageService;
-
-    @Autowired
     private IControlService controlService;
 
     @Autowired
@@ -95,6 +88,9 @@ public class DrcServiceImpl implements IDrcService {
 
     @Autowired
     private AbstractControlService abstractControlService;
+
+    @Autowired
+    private DrcRedisService drcRedisService;
 
     @Override
     public void setDrcModeInRedis(String dockSn, String clientId) {
@@ -213,14 +209,16 @@ public class DrcServiceImpl implements IDrcService {
 
     private void addDrcHeartBeat(DrcModeParam param, GatewayManager gatewayMgr) {
         log.info("- [Drc HeartBeat] 先删除再添加, SN: {}", gatewayMgr.getGatewaySn());
-        CronUtil.remove(param.getDockSn());
-        CronUtil.schedule(param.getDockSn(), DRC_HEART_CRON, () -> {
-            log.info("[Drc HeartBeat] 发送心跳, ID: {}", param.getDockSn());
+        drcRedisService.getDrcHeartBeat(param.getDockSn()).ifPresent(CronUtil::remove);
+        String taskId = UUID.randomUUID().toString();
+        CronUtil.schedule(taskId, DRC_HEART_CRON, () -> {
+            log.info("[Drc HeartBeat] 发送心跳, SN: {}", param.getDockSn());
             abstractControlService.heartBeatDown(gatewayMgr,
                     new HeartBeatRequest()
                             .setSeq(0L)
                             .setTimestamp(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()));
         });
+        drcRedisService.setDrcHeartBeat(param.getDockSn(), taskId);
     }
 
     /**
@@ -276,7 +274,8 @@ public class DrcServiceImpl implements IDrcService {
         // 清除DRC心跳任务
         if (checkHeartBeatSinceVersion(gatewayMgr)) {
             log.info("- [Drc HeartBeat] 删除, SN: {}", gatewayMgr.getGatewaySn());
-            CronUtil.remove(param.getDockSn());
+            drcRedisService.getDrcHeartBeat(param.getDockSn()).ifPresent(CronUtil::remove);
+            drcRedisService.deleteDrcHeartBeat(param.getDockSn());
         }
 
         this.delDrcModeInRedis(param.getDockSn());
@@ -288,18 +287,21 @@ public class DrcServiceImpl implements IDrcService {
      */
     @Scheduled(initialDelay = 10, fixedRate = 60, timeUnit = TimeUnit.SECONDS)
     public void cleanDrcHeartBeatTask() {
-        List<String> ids = CronUtil.getScheduler().getTaskTable().getIds();
-        if (CollUtil.isEmpty(ids)) {
+        Set<String> allKeys = RedisOpsUtils.getAllKeys(RedisConst.DRC_HEART_BEAT_PREFIX + "*");
+        if (CollUtil.isEmpty(allKeys)) {
             return;
         }
-        log.info("- [Drc HeartBeat] 定时任务数量: {}", ids.size());
-        ids.stream().filter(StringUtils::hasText).forEach(dockSn -> {
+        log.info("- [Drc HeartBeat] 定时任务数量: {}", allKeys.size());
+        int start = RedisConst.DRC_HEART_BEAT_PREFIX.length();
+        allKeys.forEach(key -> {
+            String dockSn = key.substring(start);
             Optional<DeviceDTO> deviceOnlineOpt = deviceRedisService.getDeviceOnline(dockSn);
             if (deviceOnlineOpt.isEmpty() || !deviceService.checkDockDrcMode(dockSn)
                     || Objects.isNull(deviceOnlineOpt.get().getChildren())
                     || !deviceOnlineOpt.get().getChildren().getStatus()) {
                 log.info("- [Drc HeartBeat] 删除设备心跳，ID: {}", dockSn);
-                CronUtil.remove(dockSn);
+                drcRedisService.getDrcHeartBeat(dockSn).ifPresent(CronUtil::remove);
+                drcRedisService.deleteDrcHeartBeat(dockSn);
             }
         });
     }
