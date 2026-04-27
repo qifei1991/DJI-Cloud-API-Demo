@@ -47,7 +47,7 @@ public class FlightTaskClient extends AbstractClient {
      * @param job WaylineJobDTO
      */
     @Async("asyncThreadPool")
-    public void startFlightTask(WaylineJobDTO job) {
+    public void startWaylineTask(WaylineJobDTO job) {
         // 断点续飞的任务，不生成飞行记录
         if (StringUtils.hasText(job.getParentId()) && job.getContinuable()) {
             return;
@@ -61,6 +61,7 @@ public class FlightTaskClient extends AbstractClient {
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
                 .groupId(job.getGroupId())
+                .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
                 .flightTaskMode(job.getTaskType())
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
@@ -72,7 +73,7 @@ public class FlightTaskClient extends AbstractClient {
      * @param job WaylineJobDTO
      */
     @Async("asyncThreadPool")
-    public void flightTaskCompleted(WaylineJobDTO job) {
+    public void waylineTaskCompleted(WaylineJobDTO job) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
                 .groupId(job.getGroupId())
@@ -104,7 +105,7 @@ public class FlightTaskClient extends AbstractClient {
     }
 
     @Async("asyncThreadPool")
-    public void startTakeoffTo(String dockSn, TakeoffToPointParam params) {
+    public void startTakeOffTask(String dockSn, TakeoffToPointParam params) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(params.getFlightId())
                 .groupId(params.getFlightId())
@@ -114,6 +115,7 @@ public class FlightTaskClient extends AbstractClient {
                 .startTime(DateUtil.now())
                 .peekHeight(params.getSecurityTakeoffHeight())
                 .userName(params.getUsername())
+                .flightTaskType(FlightTypeEnum.TAKEOFF_TASK)
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -125,7 +127,7 @@ public class FlightTaskClient extends AbstractClient {
      * @param receiver
      */
     @Async("asyncThreadPool")
-    public void finishTakeoffTo(String dockSn, TakeoffToPointProgress receiver) {
+    public void takeOffTaskComplete(String dockSn, TakeoffToPointProgress receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlightId())
                 .groupId(receiver.getFlightId())
@@ -139,7 +141,7 @@ public class FlightTaskClient extends AbstractClient {
     }
 
     @Async("asyncThreadPool")
-    public void finishFlyTo(String dockSn, FlyToPointProgress receiver) {
+    public void flyToTaskComplete(String dockSn, FlyToPointProgress receiver) {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlyToId())
                 .groupId(receiver.getFlyToId())
@@ -151,7 +153,7 @@ public class FlightTaskClient extends AbstractClient {
     }
 
     @Async("asyncThreadPool")
-    public void takeoffToProgress(String dockSn, TopicEventsRequest<TakeoffToPointProgress> request) {
+    public void takeOffTaskProgress(String dockSn, TopicEventsRequest<TakeoffToPointProgress> request) {
         TakeoffToPointProgress receiver = request.getData();
         applicationJsonPost(ClientUri.URI_TAKEOFF_TO_PROGRESS,
                 new TakeoffToProgressParam()

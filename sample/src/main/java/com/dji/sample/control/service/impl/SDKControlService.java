@@ -60,7 +60,7 @@ public class SDKControlService extends AbstractControlService {
 
         // 判断是否飞行完成
         if (List.of(FlyToStatusEnum.WAYLINE_OK, FlyToStatusEnum.WAYLINE_CANCEL).contains(eventsReceiver.getStatus())) {
-            this.flightTaskClient.finishFlyTo(dockSn, eventsReceiver);
+            this.flightTaskClient.flyToTaskComplete(dockSn, eventsReceiver);
         }
 
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
@@ -85,11 +85,11 @@ public class SDKControlService extends AbstractControlService {
                         .build());
 
         // 一键起飞任务进度通知
-        flightTaskClient.takeoffToProgress(dockSn, request);
+        flightTaskClient.takeOffTaskProgress(dockSn, request);
 
         // add by Qfei, 一键起飞任务整个完成之后的通知
         if (TakeoffStatusEnum.TASK_FINISH == eventsReceiver.getStatus()) {
-            this.flightTaskClient.finishTakeoffTo(dockSn, eventsReceiver);
+            this.flightTaskClient.takeOffTaskComplete(dockSn, eventsReceiver);
         }
 
         return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());

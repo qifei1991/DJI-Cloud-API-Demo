@@ -183,7 +183,7 @@ public class ControlServiceImpl implements IControlService {
         ServicesReplyData reply = response.getData();
         if (reply.getResult().isSuccess()) {
             // add by Qfei, 一键起飞的时候，创建飞行记录
-            this.flightTaskClient.startTakeoffTo(sn, param);
+            this.flightTaskClient.startTakeOffTask(sn, param);
             return HttpResultResponse.success();
         }
         return HttpResultResponse.error("一键起飞失败, " + reply.getResult());

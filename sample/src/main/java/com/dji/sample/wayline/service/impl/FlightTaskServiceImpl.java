@@ -480,7 +480,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         waylineRedisService.setRunningWaylineJob(job.getDockSn(), EventsReceiver.<FlighttaskProgress>builder().bid(jobId).sn(job.getDockSn()).build());
 
         // add by Qfei, report start a wayline job.
-        this.flightTaskClient.startFlightTask(job);
+        this.flightTaskClient.startWaylineTask(job);
 
         return true;
     }
@@ -812,7 +812,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 }
                 job.setGroupId(x.getGroupId());
             });
-            this.flightTaskClient.flightTaskCompleted(job);
+            this.flightTaskClient.waylineTaskCompleted(job);
         }
 
         webSocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
