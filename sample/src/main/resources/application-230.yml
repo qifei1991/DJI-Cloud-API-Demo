@@ -21,6 +21,11 @@ spring:
       connection-error-retry-attempts: 3  # 失败后重试连接次数
       time-between-eviction-runs-millis: 60000 # 检测可以关闭的空闲连接间隔时间，默认60*1000L
       min-evictable-idle-time-millis: 300000 # 连接在池中的最小生存时间；默认1000L * 60L * 30L;
+      max-evictable-idle-time-millis: 900000 # 连接空闲最大时间，超过该时间后销毁连接
+      remove-abandoned: true #是否自动回收超时连接
+      remove-abandoned-timeout: 1800 # 超时时间(秒),超过此时间的连接会被强制回
+      log-abandoned: true # 关闭 abandoned 连接时输出错误日志
+      phy-timeout-millis: 60000 # 连接物理超时时间，单位毫秒
       validation-query: select 1
       test-while-idle: true
       test-on-borrow: false
@@ -149,11 +154,11 @@ flight-task:
   home-distance-monitor: 1 #返航降落时距离机场距离阈值，单位：米
   break-point-condition:
     enabled: false # 自动断点续飞
-    wind-speed: 9 #风速
+    wind-speed: 8 #风速
     battery-capacity: 90 #满足自动续飞的最低电量
   stop-flying-condition:
     enabled: true #飞行计划阻飞价差
-    wind-speed: 9 #风速
+    wind-speed: 8 #风速
 
 # Tutorial: https://www.alibabacloud.com/help/en/object-storage-service/latest/use-a-temporary-credential-provided-by-sts-to-access-oss
 #oss:

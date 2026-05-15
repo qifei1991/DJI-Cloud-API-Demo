@@ -2,6 +2,7 @@ package com.dji.sample.cloudapi.config;
 
 import cn.hutool.core.collection.CollUtil;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.AntPathMatcher;
 
@@ -11,6 +12,7 @@ import org.springframework.util.AntPathMatcher;
  */
 @Configuration
 @ConfigurationProperties(prefix = "client")
+@ConfigurationPropertiesBinding
 public class ClientConfig {
 
     private static final AntPathMatcher antPathMatcher = new AntPathMatcher();

@@ -145,7 +145,7 @@ CREATE TABLE `logs_file_index` (
 # manage_device
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `manage_device`;
+-- DROP TABLE IF EXISTS `manage_device`;
 
 CREATE TABLE `manage_device` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -170,7 +170,7 @@ CREATE TABLE `manage_device` (
   `device_desc` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
   `url_normal` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'The icon displayed on the remote control.',
   `url_select` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'The icon displayed on the remote control when it is selected.',
-  `organization_id` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT ''
+  `organization_id` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
   PRIMARY KEY (`id`),
   UNIQUE KEY `product_sn_UNIQUE` (`device_sn`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Device information';
