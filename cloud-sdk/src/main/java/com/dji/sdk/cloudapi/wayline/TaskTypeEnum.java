@@ -13,6 +13,8 @@ import java.util.Arrays;
  */
 public enum TaskTypeEnum {
 
+    TAKEOFF(-1),
+
     IMMEDIATE(0),
 
     TIMED(1),

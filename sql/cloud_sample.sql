@@ -618,5 +618,22 @@ CREATE TABLE `speaker_job` (
     `update_time` bigint NOT NULL COMMENT 'required, can''t modify.',
     PRIMARY KEY (`id`),
     UNIQUE KEY `interconnection_id_UNIQUE` (`job_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='互联互通任务'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='互联互通任务';
 
+
+DROP TABLE IF EXISTS `manage_dock_settings`;
+CREATE TABLE `manage_dock_settings`
+(
+   `id` int unsigned NOT NULL AUTO_INCREMENT,
+    `device_sn` varchar(64) NOT NULL DEFAULT '' COMMENT 'device sn.',
+    `workspace_id` varchar(64) NOT NULL DEFAULT '' COMMENT 'Which workspace the current wayline belongs to.',
+    `wind_speed` int DEFAULT NULL COMMENT '风速',
+    `rainfall` int DEFAULT NULL COMMENT '降雨量,{0:"无雨",1:"小雨",2:"中雨",3:"大雨"}',
+    `drone_lost_report_phone` varchar(16) NOT NULL DEFAULT '' COMMENT 'The phone number to report when the drone is missing.',
+    `create_time` bigint NOT NULL,
+    `create_username` varchar(64) NOT NULL DEFAULT '' COMMENT 'The user of the creator.',
+    `update_time` bigint NOT NULL COMMENT 'required, can''t modify.',
+    `update_username` varchar(64) NOT NULL DEFAULT '' COMMENT 'The user of the updater.',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `device_sn_UNIQUE` (`device_sn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='机场设置';

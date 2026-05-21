@@ -227,8 +227,8 @@ livestream:
     rtmp:
       url: rtmp://192.168.1.230:1935/live/ # Example: 'rtmp://192.168.1.1/live/'
     agora:
-#      channel: Please enter the agora channel.
-#      token: Please enter the agora temporary token.
+      # channel: Please enter the agora channel.
+      # token: Please enter the agora temporary token.
       uid: 876543230
     whip:
       url: http://192.168.1.230:1985/rtc/v1/whip/?app=live&stream= # Example：http://192.168.1.1:1985/rtc/v1/whip/?app=live&stream=

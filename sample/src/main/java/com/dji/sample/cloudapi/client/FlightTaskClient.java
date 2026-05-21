@@ -17,6 +17,7 @@ import com.dji.sdk.cloudapi.control.TakeoffToPointProgress;
 import com.dji.sdk.cloudapi.media.FlightTypeEnum;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
 import com.dji.sdk.cloudapi.wayline.InFlightWaylineProgress;
+import com.dji.sdk.cloudapi.wayline.TaskTypeEnum;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,7 @@ public class FlightTaskClient extends AbstractClient {
                 .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .dockSn(job.getDockSn())
                 .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
+                .flightTaskMode(job.getTaskType())
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
@@ -116,6 +118,7 @@ public class FlightTaskClient extends AbstractClient {
                 .peekHeight(params.getSecurityTakeoffHeight())
                 .userName(params.getUsername())
                 .flightTaskType(FlightTypeEnum.TAKEOFF_TASK)
+                .flightTaskMode(TaskTypeEnum.TAKEOFF)
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -135,6 +138,7 @@ public class FlightTaskClient extends AbstractClient {
                 .endTime(DateUtil.now())
                 .dockSn(dockSn)
                 .flightTaskType(FlightTypeEnum.TAKEOFF_TASK)
+                .flightTaskMode(TaskTypeEnum.TAKEOFF)
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
