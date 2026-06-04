@@ -1,8 +1,6 @@
 package com.dji.sample.manage.model.dto;
 
 import com.dji.sdk.cloudapi.device.RainfallEnum;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -19,7 +17,6 @@ import javax.validation.constraints.Pattern;
 @Data
 @NoArgsConstructor
 @Accessors(chain = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class DockSetDTO {
 
     @NotBlank(message = "Dock SN can not be blank.")
@@ -40,6 +37,11 @@ public class DockSetDTO {
      */
     @Pattern(regexp = "^1[3|4|5|6|7|8|9][0-9]{9}(,1[3|4|5|6|7|8|9][0-9]{9})*$", message = "手机号格式不匹配")
     private String droneLostReportPhone;
+
+    /**
+     * 返航预留电量
+     */
+    private Integer remainingPowerForReturnHome;
 
     private Long createTime;
 

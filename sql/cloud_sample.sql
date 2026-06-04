@@ -630,6 +630,7 @@ CREATE TABLE `manage_dock_settings`
     `wind_speed` int DEFAULT NULL COMMENT '风速',
     `rainfall` int DEFAULT NULL COMMENT '降雨量,{0:"无雨",1:"小雨",2:"中雨",3:"大雨"}',
     `drone_lost_report_phone` varchar(16) NOT NULL DEFAULT '' COMMENT 'The phone number to report when the drone is missing.',
+    `remaining_power_for_return_home` int DEFAULT NULL COMMENT 'The remaining power for return home. min: 10%; max: 90%;',
     `create_time` bigint NOT NULL,
     `create_username` varchar(64) NOT NULL DEFAULT '' COMMENT 'The user of the creator.',
     `update_time` bigint NOT NULL COMMENT 'required, can''t modify.',

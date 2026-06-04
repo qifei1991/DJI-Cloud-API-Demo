@@ -12,7 +12,9 @@ import java.util.List;
  */
 public interface IDockSetService {
 
-    List<DockSetDTO> getDockSet(String workspaceId);
+    List<DockSetDTO> getDockSettings(String workspaceId);
 
-    void saveDockSet(String workspaceId, List<DockSetDTO> dockSetDTO);
+    DockSetDTO getDockSettings(String workspaceId, String deviceSn);
+
+    void saveDockSettings(String workspaceId, List<DockSetDTO> dockSetDTO);
 }

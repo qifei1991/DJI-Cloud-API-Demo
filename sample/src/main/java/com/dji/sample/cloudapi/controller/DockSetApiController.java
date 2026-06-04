@@ -23,13 +23,20 @@ public class DockSetApiController {
 
     @GetMapping("/workspaces/{workspace_id}/settings")
     public HttpResultResponse getDockSettings(@PathVariable("workspace_id") String workspaceId) {
-        return HttpResultResponse.success(dockSetService.getDockSet(workspaceId));
+        return HttpResultResponse.success(dockSetService.getDockSettings(workspaceId));
+    }
+
+    @GetMapping("/workspaces/{workspace_id}/devices/{dock_sn}/settings")
+    public HttpResultResponse getDockSettingsByDeviceSn(
+            @PathVariable("workspace_id") String workspaceId,
+            @PathVariable("dock_sn") String dockSn) {
+        return HttpResultResponse.success(dockSetService.getDockSettings(workspaceId, dockSn));
     }
 
     @PostMapping("/workspaces/{workspace_id}/settings")
     public HttpResultResponse saveDockSettings(@PathVariable("workspace_id") String workspaceId,
             @RequestBody List<DockSetDTO> dockSetList) {
-        dockSetService.saveDockSet(workspaceId, dockSetList);
+        dockSetService.saveDockSettings(workspaceId, dockSetList);
         return HttpResultResponse.success();
     }
 }

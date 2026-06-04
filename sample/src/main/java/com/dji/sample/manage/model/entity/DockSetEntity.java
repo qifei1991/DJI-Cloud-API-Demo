@@ -37,6 +37,9 @@ public class DockSetEntity implements Serializable {
     @TableField(value = "drone_lost_report_phone")
     private String droneLostReportPhone;
 
+    @TableField(value = "remaining_power_for_return_home")
+    private Integer remainingPowerForReturnHome;
+
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private Long createTime;
 

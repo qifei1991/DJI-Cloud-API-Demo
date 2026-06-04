@@ -43,6 +43,7 @@ public class GlobalMVCConfigurer implements WebMvcConfigurer {
         }
         // Exclude the cloud-api interface.
         excludePaths.add(apiPrefix + "/**");
+        excludePaths.add("/updatelogs.html");
         // Intercept for all request interfaces.
         registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns(excludePaths);
     }
