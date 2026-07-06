@@ -10,6 +10,7 @@ import com.dji.sample.psdk.model.dto.SpeakerJobDTO;
 import com.dji.sample.psdk.model.entity.SpeakerJobEntity;
 import com.dji.sample.psdk.model.enums.SpeakerContentTypeEnum;
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
+import com.dji.sample.psdk.model.param.SpeakerTtsPlayParam;
 import com.dji.sample.psdk.service.IPsdkService;
 import com.dji.sample.psdk.service.IPsdkWidgetRedisService;
 import com.dji.sample.psdk.service.ISpeakerContentService;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -179,5 +181,28 @@ public class SpeakerJobServiceImpl implements ISpeakerJobService {
                 .createTime(entity.getCreateTime())
                 .updateTime(entity.getUpdateTime())
                 .build();
+    }
+
+    @Override
+    public HttpResultResponse speakerTtsPlay(String workspaceId, SpeakerTtsPlayParam param) {
+        Integer psdkIndex = psdkService.getSetParamPsdkIndex(param);
+        String jobId = UUID.randomUUID().toString();
+        TopicServicesResponse<ServicesReplyData> serviceReply = sdkPsdkPublishService.speakerTtsPlayStart(
+                SDKManager.getDeviceSDK(param.getDeviceSn()),
+                new SpeakerTtsPlayStartRequest()
+                        .setJobId(jobId)
+                        .setPsdkIndex(psdkIndex)
+                        .setTts(new PlayTtsFile()
+                                .setName(StringUtils.hasText(param.getName())
+                                        ? param.getName()
+                                        : "TTS-" + DatePattern.PURE_DATETIME_FORMAT.format(new Date()))
+                                .setText(param.getContent())
+                                .setMd5(DigestUtils.md5DigestAsHex(param.getContent().getBytes()))
+                        ));
+        if (!serviceReply.getData().getResult().isSuccess()) {
+            updateJobStatus(jobId, SpeakerJobStatusEnum.PLAY_START_FAIL);
+            return HttpResultResponse.error(serviceReply.getData().getResult().getMessage());
+        }
+        return HttpResultResponse.success(jobId);
     }
 }

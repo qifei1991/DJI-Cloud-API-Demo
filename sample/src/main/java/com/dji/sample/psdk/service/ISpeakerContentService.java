@@ -1,6 +1,7 @@
 package com.dji.sample.psdk.service;
 
 import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
+import com.dji.sample.cloudapi.model.param.UpdateSpeakerContentParam;
 import com.dji.sample.psdk.model.dto.SpeakerContentDTO;
 import com.dji.sdk.common.PaginationData;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,4 +63,13 @@ public interface ISpeakerContentService {
      * @return
      */
     String create(String workspaceId, MultipartFile file, CreateSpeakerContentParam param);
+
+    /**
+     * 更新互联互通内容
+     * @param workspaceId 工作空间ID
+     * @param file 内容
+     * @param param 喊话参数对象
+     * @return
+     */
+    Integer update(String workspaceId, MultipartFile file, UpdateSpeakerContentParam param);
 }

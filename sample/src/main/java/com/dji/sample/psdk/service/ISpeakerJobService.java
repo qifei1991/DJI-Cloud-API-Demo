@@ -1,6 +1,7 @@
 package com.dji.sample.psdk.service;
 
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
+import com.dji.sample.psdk.model.param.SpeakerTtsPlayParam;
 import com.dji.sdk.cloudapi.psdk.SpeakerJobStatusEnum;
 import com.dji.sdk.common.HttpResultResponse;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,4 +30,6 @@ public interface ISpeakerJobService {
     HttpResultResponse speakerPlayStart(String workspaceId, SpeakerPlayParam issueJobParam);
 
     HttpResultResponse speakerPlayStop(String workspaceId, SpeakerPlayParam issueJobParam);
+
+    HttpResultResponse speakerTtsPlay(String workspaceId, SpeakerTtsPlayParam speakerPlayParam);
 }

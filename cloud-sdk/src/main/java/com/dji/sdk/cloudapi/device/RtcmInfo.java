@@ -7,6 +7,7 @@ import com.dji.sdk.common.BaseModel;
  * @date 2024/5/22 17:16
  */
 public class RtcmInfo extends BaseModel {
+
     private Rtcm rtcmInfo;
 
     @Override

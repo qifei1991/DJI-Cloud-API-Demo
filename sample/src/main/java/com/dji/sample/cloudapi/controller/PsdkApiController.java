@@ -1,11 +1,13 @@
 package com.dji.sample.cloudapi.controller;
 
 import com.dji.sample.cloudapi.model.param.CreateSpeakerContentParam;
+import com.dji.sample.cloudapi.model.param.UpdateSpeakerContentParam;
 import com.dji.sample.psdk.model.dto.PsdkWidgetValuesDTO;
 import com.dji.sample.psdk.model.dto.SpeakerContentDTO;
 import com.dji.sample.psdk.model.enums.SpeakerContentTypeEnum;
 import com.dji.sample.psdk.model.param.SpeakerPlayParam;
 import com.dji.sample.psdk.model.param.SpeakerPlaySetParam;
+import com.dji.sample.psdk.model.param.SpeakerTtsPlayParam;
 import com.dji.sample.psdk.service.IPsdkService;
 import com.dji.sample.psdk.service.ISpeakerContentService;
 import com.dji.sample.psdk.service.ISpeakerJobService;
@@ -51,13 +53,19 @@ public class PsdkApiController {
         return speakerJobService.issueCreateAudioJob(workspaceId, deviceSn, file, creator, organizationCode);
     }
 
-    @PostMapping("{workspace_id}/speaker/play/start")
+    @PostMapping("/{workspace_id}/speaker/tts/play")
+    public HttpResultResponse speakerTtsPlay(@PathVariable("workspace_id") String workspaceId,
+            @RequestBody SpeakerTtsPlayParam speakerPlayParam) {
+        return speakerJobService.speakerTtsPlay(workspaceId, speakerPlayParam);
+    }
+
+    @PostMapping("/{workspace_id}/speaker/play/start")
     public HttpResultResponse speakerPlayStart(@PathVariable("workspace_id") String workspaceId,
             @RequestBody SpeakerPlayParam speakerPlayParam) {
         return speakerJobService.speakerPlayStart(workspaceId, speakerPlayParam);
     }
 
-    @PostMapping("{workspace_id}/speaker/play/stop")
+    @PostMapping("/{workspace_id}/speaker/play/stop")
     public HttpResultResponse speakerPlayStop(@PathVariable("workspace_id") String workspaceId,
             @RequestBody SpeakerPlayParam speakerPlayParam) {
         return speakerJobService.speakerPlayStop(workspaceId, speakerPlayParam);
@@ -108,6 +116,37 @@ public class PsdkApiController {
                 speakerContentService.create(workspaceId, file, new CreateSpeakerContentParam()
                         .setType(SpeakerContentTypeEnum.find(type))
                         .setCreator(creator)
+                        .setCode(code)
+                        .setName(name)
+                        .setContent(content)));
+    }
+
+    /**
+     * 创建内容
+     * @param workspaceId 工作空间ID
+     * @param type 喊话内容类型，0TTS，1音频
+     * @param name 内容名称名称
+     * @param username 更新人
+     * @param code 组织机构编码
+     * @param file 音频文件
+     * @param content TTS内容
+     * @return
+     */
+    @PutMapping("/{workspace_id}/contents")
+    public HttpResultResponse update(
+            @PathVariable("workspace_id") String workspaceId,
+            @RequestParam(name = "content_id") String contentId,
+            @RequestParam("type") Integer type,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "username", defaultValue = "manager-server") String username,
+            @RequestPart(name = "file", required = false) MultipartFile file,
+            @RequestParam(value = "content", required = false) String content) {
+        return HttpResultResponse.success(
+                speakerContentService.update(workspaceId, file, new UpdateSpeakerContentParam()
+                        .setType(SpeakerContentTypeEnum.find(type))
+                        .setContentId(contentId)
+                        .setUsername(username)
                         .setCode(code)
                         .setName(name)
                         .setContent(content)));
