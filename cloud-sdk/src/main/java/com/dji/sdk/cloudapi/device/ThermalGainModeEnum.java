@@ -15,7 +15,8 @@ import java.util.Arrays;
 public enum ThermalGainModeEnum {
 
     /**
-     * {"0":"自动","1":"低增益, 测温范围0°C-500°C","2":"高增益, 测温范围-20°C-150°C"}
+     * {"0":"自动","1":"低增益, 测温范围0°C-500°C","2":"高增益, 测温范围-20°C-150°C", "3":"超清"}
+     * 上云API无法设置 0-自动
      */
 
     AUTOMATIC(0),
@@ -23,6 +24,8 @@ public enum ThermalGainModeEnum {
     LOW(1),
 
     HIGH(2),
+
+    SUPER(3),
     ;
 
     private final int mode;

@@ -731,11 +731,12 @@ public class DeviceServiceImpl implements IDeviceService {
         JsonNode value = useChildValue(basicDeviceProperty) ? param.get(property) : param;
 
         BaseModel baseModel = objectMapper.convertValue(value, propertyEnum.getProperty().getClazz());
-        if (PropertySetFieldEnum.CAMERA_WATERMARK_SETTINGS == propertyEnum) {
+        /* if (PropertySetFieldEnum.CAMERA_WATERMARK_SETTINGS == propertyEnum) {
             log.info("Set watermark: Value: {}, CameraWaterSettings: {}", value, baseModel);
-        }
+        } */
         PropertySetReplyResultEnum result = abstractPropertyService.propertySet(
                 SDKManager.getDeviceSDK(dockSn), propertyEnum.getProperty(), baseModel);
+        log.info("Set property: {}, Result: {}", propertyEnum.getProperty(), result);
         return result.getResult();
     }
 
