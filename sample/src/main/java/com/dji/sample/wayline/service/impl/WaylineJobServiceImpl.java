@@ -345,7 +345,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .executeTime(Objects.nonNull(entity.getExecuteTime()) ?
                         LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getExecuteTime()), ZoneId.systemDefault()) : null)
                 .completedTime(WaylineJobStatusEnum.find(entity.getStatus()).getEnd() ?
-                        LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getUpdateTime()), ZoneId.systemDefault()) : null)
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getCompletedTime()), ZoneId.systemDefault()) : null)
                 .taskType(TaskTypeEnum.find(entity.getTaskType()))
                 .waylineType(WaylineTypeEnum.find(entity.getWaylineType()))
                 .rthAltitude(entity.getRthAltitude())
@@ -356,9 +356,6 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 .groupId(entity.getGroupId())
                 .continuable(entity.getContinuable());
 
-        if (Objects.nonNull(entity.getEndTime())) {
-            builder.endTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(entity.getEndTime()), ZoneId.systemDefault()));
-        }
         if (WaylineJobStatusEnum.IN_PROGRESS.getVal() == entity.getStatus()) {
             builder.progress(waylineRedisService.getRunningWaylineJob(entity.getDockSn())
                     .map(EventsReceiver::getOutput)

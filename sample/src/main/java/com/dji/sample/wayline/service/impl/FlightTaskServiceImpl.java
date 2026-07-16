@@ -635,11 +635,11 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         if (breakPointReceiver.isEmpty()) {
             return HttpResultResponse.error("无法获取航线断点信息，无法继续飞行。");
         }
+        log.info("断点信息：{}", breakPointReceiver.get());
         Optional<WaylineJobDTO> waylineJob = waylineJobService.createWaylineJobByParent(workspaceId, jobId, true);
         if (waylineJob.isEmpty()) {
             return HttpResultResponse.error("创建断点飞行任务失败。");
         }
-
         if (!this.prepareFlightTask(waylineJob.get())) {
             waylineJobService.deleteJob(workspaceId, jobId);
             return HttpResultResponse.error("飞行任务下发失败。");
@@ -739,12 +739,12 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         waylineRedisService.setRunningWaylineJob(response.getGateway(), eventsReceiver);
 
         if (statusEnum.isEnd()) {
+            log.info("Task complete. Output: {}", output);
             String droneSn = deviceOpt.get().getChildDeviceSn();
             Optional<OsdDock> dockOsdOpt = deviceRedisService.getDeviceOsd(response.getGateway(), OsdDock.class);
             DroneModeCodeEnum droneModeCodeEnum = deviceService.getDeviceMode(droneSn);
             Boolean droneInDock = dockOsdOpt.map(OsdDock::getDroneInDock).orElse(false);
-            log.info("Task completed. SN: {}, FlightId: {}, DroneModeCode: {}, DroneInDock: {}",
-                    response.getGateway(), response.getBid(), droneModeCodeEnum, droneInDock);
+            log.info("{}:{}, DroneModeCode: {}, DroneInDock: {}", response.getGateway(), response.getBid(), droneModeCodeEnum, droneInDock);
             try {
                 returnHomeMonitor(response.getGateway(), droneSn, response.getBid(), droneModeCodeEnum, droneInDock);
             } catch (Exception e) {
@@ -778,7 +778,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 job.setStatus(WaylineJobStatusEnum.FAILED.getVal());
 
                 ProgressExtBreakPoint breakPoint = output.getExt().getBreakPoint();
-                log.info("Job status: {}, break point: {}", statusEnum.getStatus(), breakPoint);
+                log.info("{}:{}, BreakPoint: {}", response.getGateway(), response.getBid(), breakPoint);
                 /*
                  * add by Qfei, 2025-3-27 17:28:22
                  * 判断断点信息是否为空
@@ -812,14 +812,16 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 }
                 job.setGroupId(x.getGroupId());
             });
-            this.flightTaskClient.waylineTaskCompleted(job);
+
+            // 通知飞行任务完成
+            flightTaskClient.waylineTaskCompleted(job);
         }
 
         webSocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
                 BizCodeEnum.FLIGHT_TASK_PROGRESS.getCode(), eventsReceiver);
 
         // add by Qfei, report flight task progress.
-        this.flightTaskClient.flightTaskProgress(response.getBid(), output);
+        flightTaskClient.flightTaskProgress(response.getBid(), output);
 
         return new TopicEventsResponse<>();
     }
