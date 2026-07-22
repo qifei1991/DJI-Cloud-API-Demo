@@ -441,4 +441,23 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         }
         return builder.build();
     }
+
+    @Override
+    public Boolean mediaUploadCompleted(String jobId) {
+        WaylineJobEntity jobEntity = mapper.selectOne(
+                new LambdaQueryWrapper<WaylineJobEntity>()
+                        .eq(WaylineJobEntity::getJobId, jobId));
+        // 不是断点续飞任务
+        if (!jobEntity.getContinuable()) {
+            return fileService.getFilesByWorkspaceAndJobId(jobEntity.getWorkspaceId(), jobId).size() >= jobEntity.getMediaCount();
+        }
+        // 断点续飞任务，查找 最后一次 飞行是否成功且媒体文件上传完成
+        WaylineJobEntity latestJobEntity = mapper.selectOne(new LambdaQueryWrapper<WaylineJobEntity>()
+                .eq(WaylineJobEntity::getGroupId, jobId)
+                .orderByDesc(WaylineJobEntity::getCreateTime)
+                .last("limit 1"));
+        return WaylineJobStatusEnum.SUCCESS.getVal() == latestJobEntity.getStatus()
+                && fileService.getFilesByWorkspaceAndJobId(jobEntity.getWorkspaceId(), jobId).size() >= latestJobEntity.getMediaCount();
+    }
+
 }

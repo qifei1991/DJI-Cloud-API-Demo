@@ -136,10 +136,15 @@ public class WaylineJobApiController {
     }
 
     @PutMapping("/{workspace_id}/in-flight-wayline/jobs/{job_id}")
-    public HttpResultResponse updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
+    public HttpResultResponse updateInFlightWaylineStatus(@PathVariable(name = "workspace_id") String workspaceId,
             @PathVariable(name = "job_id") String inFlightWaylineId,
             @Valid @RequestBody UpdateInFlightWaylineParam param) {
         flightTaskService.updateInFlightWaylineStatus(workspaceId, inFlightWaylineId, param);
         return HttpResultResponse.success();
+    }
+
+    @GetMapping("/jobs/{job_id}/media-upload-completed")
+    public HttpResultResponse mediaUploadCompleted(@PathVariable("job_id") String jobId) {
+        return HttpResultResponse.success(waylineJobService.mediaUploadCompleted(jobId));
     }
 }

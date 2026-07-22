@@ -95,4 +95,5 @@ public interface IWaylineJobService {
 
     void deleteJob(String workspaceId, String jobId);
 
+    Boolean mediaUploadCompleted(String jobId);
 }

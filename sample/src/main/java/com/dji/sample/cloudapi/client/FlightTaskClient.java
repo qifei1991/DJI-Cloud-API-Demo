@@ -50,18 +50,18 @@ public class FlightTaskClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void startWaylineTask(WaylineJobDTO job) {
         // 断点续飞的任务，不生成飞行记录
-        if (StringUtils.hasText(job.getParentId()) && job.getContinuable()) {
+        /* if (StringUtils.hasText(job.getParentId()) && job.getContinuable()) {
             return;
-        }
+        } */
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
+                .groupId(StringUtils.hasText(job.getGroupId()) ? job.getGroupId() : job.getJobId())
                 .name(job.getJobName())
                 .waylineId(job.getFileId())
                 .state(job.getStatus())
                 .flightType(WaylineType.getWaylineType(job.getWaylineType().getValue()).getFlightType())
                 .startTime(Optional.ofNullable(job.getExecuteTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
                 .userName(job.getUsername())
-                .groupId(job.getGroupId())
                 .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
                 .flightTaskMode(job.getTaskType())
                 .build();
