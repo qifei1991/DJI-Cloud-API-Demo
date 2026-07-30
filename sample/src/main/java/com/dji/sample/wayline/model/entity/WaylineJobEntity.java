@@ -94,4 +94,7 @@ public class WaylineJobEntity implements Serializable {
 
     @TableField("exit_wayline_when_rc_lost")
     private Integer exitWaylineWhenRcLost;
+
+    @TableField("landing_dock_sn")
+    private String landingDockSn;
 }

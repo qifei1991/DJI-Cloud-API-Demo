@@ -65,7 +65,8 @@ public class SDKDeviceService extends AbstractDeviceService {
 
     @Override
     public TopicStatusResponse<MqttReply> updateTopoOnline(TopicStatusRequest<UpdateTopo> request, MessageHeaders headers) {
-        UpdateTopoSubDevice updateTopoSubDevice = request.getData().getSubDevices().get(0);
+        UpdateTopo updateTopo = request.getData();
+        UpdateTopoSubDevice updateTopoSubDevice = updateTopo.getSubDevices().get(0);
         String deviceSn = updateTopoSubDevice.getSn();
         log.info("- [设备上线]上线设备SN，网关SN: {}, 飞行器SN: {}", request.getFrom(), deviceSn);
 
@@ -74,8 +75,8 @@ public class SDKDeviceService extends AbstractDeviceService {
         log.info("- [设备上线]判断设备是否在线，dock: {}, subDevice: {}.", gatewayOpt.isPresent(), deviceOpt.isPresent());
 
         GatewayManager gatewayManager = SDKManager.registerDevice(request.getFrom(), deviceSn,
-                request.getData().getDomain(), request.getData().getType(),
-                request.getData().getSubType(), request.getData().getThingVersion(), updateTopoSubDevice.getThingVersion());
+                updateTopo.getDomain(), updateTopo.getType(), updateTopo.getSubType(), updateTopo.getThingVersion(),
+                updateTopoSubDevice.getThingVersion());
 
         // 设备都在线的情况下更新设备上线状态和时间
         if (deviceOpt.isPresent() && gatewayOpt.isPresent()) {
@@ -86,7 +87,7 @@ public class SDKDeviceService extends AbstractDeviceService {
         // 更新绑定飞机的所有网关信息，避免飞机在别的机场绑定过
         changeSubDeviceParent(deviceSn, request.getFrom());
 
-        DeviceDTO gateway = deviceGatewayConvertToDevice(request.getFrom(), request.getData());
+        DeviceDTO gateway = deviceGatewayConvertToDevice(request.getFrom(), updateTopo);
         Optional<DeviceDTO> gatewayEntityOpt = onlineSaveDevice(gateway, deviceSn, null);
         log.info("- [设备上线]保存机场设备信息，{}.", gatewayEntityOpt);
         if (gatewayEntityOpt.isEmpty()) {
@@ -397,22 +398,20 @@ public class SDKDeviceService extends AbstractDeviceService {
 
     private void changeSubDeviceParent(String deviceSn, String gatewaySn) {
         List<DeviceDTO> gatewaysList = deviceService.getDevicesByParams(
-                DeviceQueryParam.builder()
-                        .childSn(deviceSn)
-                        .build());
+                DeviceQueryParam.builder().childSn(deviceSn).build());
         gatewaysList.stream()
                 .filter(gateway -> !gateway.getDeviceSn().equals(gatewaySn))
                 .forEach(gateway -> {
                     gateway.setChildDeviceSn("");
                     deviceService.updateDevice(gateway);
                     deviceRedisService.getDeviceOnline(gateway.getDeviceSn())
-                            .ifPresent(device -> {
-                                device.setChildDeviceSn(null);
-                                deviceRedisService.setDeviceOnline(device);
+                            .ifPresent(gatewayDevice -> {
+                                gatewayDevice.setChildDeviceSn(null);
+                                gatewayDevice.setChildren(null);
+                                deviceRedisService.setDeviceOnline(gatewayDevice);
                             });
                 });
     }
-
 
     public void deviceOnlineAgain(String workspaceId, String gatewaySn, String deviceSn) {
         DeviceDTO device = DeviceDTO.builder().loginTime(LocalDateTime.now()).deviceSn(deviceSn).build();
@@ -425,6 +424,13 @@ public class SDKDeviceService extends AbstractDeviceService {
         deviceService.updateDevice(device);
         gateway = deviceRedisService.getDeviceOnline(gatewaySn).map(g -> {
             g.setChildDeviceSn(deviceSn);
+
+            // 判断机场 index 是否有值，如果没有，初始化机场 index 字段值
+            if (Objects.isNull(g.getDockIndex())) {
+                Integer maxIndex = deviceService.getWorkspaceDockMaxIndex(workspaceId);
+                g.setDockIndex(maxIndex);
+                deviceService.updateDevice(DeviceDTO.builder().dockIndex(maxIndex).deviceSn(gatewaySn).build());
+            }
             return g;
         }).get();
         device = deviceRedisService.getDeviceOnline(deviceSn).map(d -> {
@@ -509,6 +515,7 @@ public class SDKDeviceService extends AbstractDeviceService {
                         device.setDeviceDesc(entity.getDeviceDesc());
                     });
         }
+
         boolean success = deviceService.saveOrUpdateDevice(device);
         if (!success) {
             return Optional.empty();
@@ -518,6 +525,15 @@ public class SDKDeviceService extends AbstractDeviceService {
         DeviceDTO redisDevice = deviceOpt.get();
         redisDevice.setStatus(true);
         redisDevice.setParentSn(parentSn);
+
+        // 处理机场 index 字段
+        if (DeviceDomainEnum.DOCK == redisDevice.getDomain()
+                && Objects.isNull(redisDevice.getDockIndex())
+                && StringUtils.hasText(redisDevice.getWorkspaceId())) {
+            Integer maxIndex = deviceService.getWorkspaceDockMaxIndex(redisDevice.getWorkspaceId());
+            redisDevice.setDockIndex(maxIndex);
+            deviceService.updateDevice(DeviceDTO.builder().dockIndex(maxIndex).deviceSn(redisDevice.getDeviceSn()).build());
+        }
 
         deviceRedisService.setDeviceOnline(redisDevice);
         return deviceOpt;
@@ -548,7 +564,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public void dockLiveStatusUpdate(TopicStateRequest<DockLiveStatus> request, MessageHeaders headers) {
         log.error("*************** dockLiveStatusUpdate not implemented! ***************");
-        log.info("DockLiveStatusUpdate: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockLiveStatusUpdate: from: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -560,7 +576,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public void rcLiveStatusUpdate(TopicStateRequest<RcLiveStatus> request, MessageHeaders headers) {
         log.error("*************** rcLiveStatusUpdate not implemented! ***************");
-        log.info("RcLiveStatusUpdate: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("RcLiveStatusUpdate: from: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -572,7 +588,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public void dockWpmzVersionUpdate(TopicStateRequest<DockDroneWpmzVersion> request, MessageHeaders headers) {
         log.error("*************** dockWpmzVersionUpdate not implemented! ***************");
-        log.info("DockWpmzVersionUpdate: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockWpmzVersionUpdate: from: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -584,7 +600,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public void dockThermalSupportedPaletteStyle(TopicStateRequest<DockDroneThermalSupportedPaletteStyle> request, MessageHeaders headers) {
         log.error("*************** dockThermalSupportedPaletteStyle not implemented! ***************");
-        log.info("DockThermalSupportedPaletteStyle: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockThermalSupportedPaletteStyle: from: {}, data: {}", request.getFrom(), request.getData());
     }
 
     /**
@@ -597,7 +613,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockDroneRthMode(TopicStateRequest<DockDroneRthMode> request, MessageHeaders headers) {
         log.error("*************** dockDroneRthMode not implemented! ***************");
-        log.info("DockDroneRthMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockDroneRthMode: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
 
@@ -610,7 +626,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockDroneCurrentRthMode(TopicStateRequest<DockDroneCurrentRthMode> request, MessageHeaders headers) {
         log.error("*************** dockDroneCurrentRthMode not implemented! ***************");
-        log.info("DockDroneCurrentRthMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockDroneCurrentRthMode: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
 
@@ -623,7 +639,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockDroneCommanderModeLostAction(TopicStateRequest<DockDroneCommanderModeLostAction> request, MessageHeaders headers) {
         log.error("*************** dockDroneCommanderModeLostAction not implemented! ***************");
-        log.info("DockDroneCommanderModeLostAction: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockDroneCommanderModeLostAction: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
 
@@ -636,7 +652,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockDroneCurrentCommanderFlightMode(TopicStateRequest<DockDroneCurrentCommanderFlightMode> request, MessageHeaders headers) {
         log.error("*************** dockDroneCurrentCommanderFlightMode not implemented! ***************");
-        log.info("DockDroneCurrentCommanderFlightMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockDroneCurrentCommanderFlightMode: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
 
@@ -650,7 +666,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockDroneCommanderFlightHeight(TopicStateRequest<DockDroneCommanderFlightHeight> request, MessageHeaders headers) {
         log.error("*************** dockDroneCommanderFlightHeight not implemented! ***************");
-        log.info("DockDroneCommanderFlightHeight: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockDroneCommanderFlightHeight: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
 
@@ -663,7 +679,7 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockDroneModeCodeReason(TopicStateRequest<DockDroneModeCodeReason> request, MessageHeaders headers) {
         log.error("*************** dockDroneModeCodeReason not implemented! ***************");
-        log.info("DockDroneModeCodeReason: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockDroneModeCodeReason: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
     }
 
@@ -675,8 +691,17 @@ public class SDKDeviceService extends AbstractDeviceService {
      */
     @Override
     public TopicStateResponse<MqttReply> dongleInfos(TopicStateRequest<DongleInfos> request, MessageHeaders headers) {
-        log.error("*************** dongleInfos not implemented! ***************");
-        log.info("DongleInfos: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DongleInfos: from: {}, data: {}", request.getFrom(), request.getData());
+        List<DongleInfo> dongleInfos = request.getData().getDongleInfos();
+        if (dongleInfos != null && !dongleInfos.isEmpty()) {
+            if (request.getFrom().equals(request.getGateway())) {
+                deviceRedisService.getDeviceOsd(request.getFrom(), OsdDock.class).ifPresent(oldDock ->
+                        deviceRedisService.setDeviceOsd(request.getFrom(), oldDock.setDongleInfos(dongleInfos)));
+            } else {
+                deviceRedisService.getDeviceOsd(request.getFrom(), OsdDockDrone.class).ifPresent(oldDockDrone ->
+                        deviceRedisService.setDeviceOsd(request.getFrom(), oldDockDrone.setDongleInfos(dongleInfos)));
+            }
+        }
         return new TopicStateResponse<>();
     }
 
@@ -689,14 +714,50 @@ public class SDKDeviceService extends AbstractDeviceService {
     @Override
     public TopicStateResponse<MqttReply> dockSilentMode(TopicStateRequest<DockSilentMode> request, MessageHeaders headers) {
         log.error("*************** dockSilentMode not implemented! ***************");
-        log.info("DockSilentMode: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockSilentMode: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
+    }
+
+    public TopicStateResponse<MqttReply> wirelessLinkTopo(TopicStateRequest<WirelessLinkTopoInfo> request, MessageHeaders headers) {
+        log.info("WirelessLinkTopo: from: {}, data: {}", request.getFrom(), request.getData());
+        WirelessLinkTopo wirelessLinkTopo = request.getData().getWirelessLinkTopo();
+        if (Objects.nonNull(wirelessLinkTopo)) {
+            deviceRedisService.setDeviceWirelessLinkTopo(request.getFrom(), wirelessLinkTopo);
+
+            if (request.getFrom().equals(request.getGateway())) {
+                deviceRedisService.getDeviceOsd(request.getFrom(), OsdDock.class).ifPresent(oldDock ->
+                        deviceRedisService.setDeviceOsd(request.getFrom(), oldDock.setWirelessLinkTopo(wirelessLinkTopo)));
+            } else {
+                deviceRedisService.getDeviceOsd(request.getFrom(), OsdDockDrone.class).ifPresent(oldDockDrone ->
+                        deviceRedisService.setDeviceOsd(request.getFrom(), oldDockDrone.setWirelessLinkTopo(wirelessLinkTopo)));
+            }
+        }
+
+        return new TopicStateResponse<MqttReply>().setData(MqttReply.success());
     }
 
     @Override
     public TopicStateResponse<MqttReply> dockAirTransferEnable(TopicStateRequest<AirTransferEnable> request, MessageHeaders headers) {
         log.error("*************** dockAirTransferEnable not implemented! ***************");
-        log.info("DockAirTransferEnable: gateway: {}, data: {}", request.getFrom(), request.getData());
+        log.info("DockAirTransferEnable: from: {}, data: {}", request.getFrom(), request.getData());
         return new TopicStateResponse<>();
+    }
+
+    @Override
+    public TopicStateResponse<MqttReply> dockRtcmInfo(TopicStateRequest<RtcmInfo> request, MessageHeaders headers) {
+        log.info("DockRtcmInfo: from: {}, data: {}", request.getFrom(), request.getData());
+        if (Objects.nonNull(request.getData().getRtcmInfo())) {
+            deviceRedisService.setDeviceRtcm(request.getFrom(), request.getData().getRtcmInfo());
+
+            deviceRedisService.getDeviceOsd(request.getFrom(), OsdDock.class).ifPresent(osd ->
+                    deviceRedisService.setDeviceOsd(request.getFrom(), osd.setRtcmInfo(request.getData().getRtcmInfo())));
+        }
+        return new TopicStateResponse<MqttReply>().setData(MqttReply.success());
+    }
+
+    public TopicStateResponse<MqttReply> dockIsBeidouVersion(TopicStateRequest<BeidouVersion> request, MessageHeaders headers) {
+        log.error("*************** dockIsBeidouVersion not implemented! ***************");
+        log.info("DockIsBeidouVersion: from: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicStateResponse<MqttReply>().setData(MqttReply.success());
     }
 }

@@ -1,5 +1,7 @@
 package com.dji.sdk.cloudapi.device;
 
+import com.dji.sdk.cloudapi.RtcmSourceTypeEnum;
+
 /**
  * @author Qfei
  * @date 2024/5/22 17:19
@@ -8,8 +10,8 @@ public class Rtcm {
     private String host;
     private String port;
     private String mountPoint;
-    private Integer rtcmDeviceType;
-    private Integer sourceType;
+    private RtcmDeviceTypeEnum rtcmDeviceType;
+    private RtcmSourceTypeEnum sourceType;
 
     @Override
     public String toString() {
@@ -49,20 +51,20 @@ public class Rtcm {
         return this;
     }
 
-    public Integer getRtcmDeviceType() {
+    public RtcmDeviceTypeEnum getRtcmDeviceType() {
         return rtcmDeviceType;
     }
 
-    public Rtcm setRtcmDeviceType(Integer rtcmDeviceType) {
+    public Rtcm setRtcmDeviceType(RtcmDeviceTypeEnum rtcmDeviceType) {
         this.rtcmDeviceType = rtcmDeviceType;
         return this;
     }
 
-    public Integer getSourceType() {
+    public RtcmSourceTypeEnum getSourceType() {
         return sourceType;
     }
 
-    public Rtcm setSourceType(Integer sourceType) {
+    public Rtcm setSourceType(RtcmSourceTypeEnum sourceType) {
         this.sourceType = sourceType;
         return this;
     }

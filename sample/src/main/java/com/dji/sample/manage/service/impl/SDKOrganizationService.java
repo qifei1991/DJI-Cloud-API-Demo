@@ -125,6 +125,11 @@ public class SDKOrganizationService extends AbstractOrganizationService {
         });
 
         dockOpt.get().setOrganizationId(organizationId);
+        dockOpt.ifPresent(dockDto -> {
+            if (Objects.isNull(dockDto.getDockIndex()) && StringUtils.hasText(dockDto.getWorkspaceId())) {
+                dockDto.setDockIndex(deviceService.getWorkspaceDockMaxIndex(dockDto.getWorkspaceId()));
+            }
+        });
         boolean success = deviceService.saveOrUpdateDevice(dockOpt.get());
         bindResult.add(success ? OrganizationBindInfo.success(dock.getSn()) :
                 new OrganizationBindInfo(dock.getSn(), CommonErrorEnum.DEVICE_BINDING_FAILED.getCode()));

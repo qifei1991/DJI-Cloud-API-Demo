@@ -59,10 +59,16 @@ public enum StateDataKeyEnum {
 
     DOCK_SILENT_MODE(ChannelName.INBOUND_STATE_DOCK_SILENT_MODE, DockSilentMode.class),
 
-    INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE(ChannelName.INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE, AirTransferEnable.class),
+    DOCK_AND_DRONE_WIRELESS_LINK_TOPO(ChannelName.INBOUND_STATE_DOCK_AND_DRONE_WIRELESS_LINK_TOPO, WirelessLinkTopoInfo.class),
+
+    DOCK_AIR_TRANSFER_ENABLE(ChannelName.INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE, AirTransferEnable.class),
 
     // psdk状态
     DOCK_DRONE_PSDK_WIDGET_VALUES(ChannelName.INBOUND_STATE_DOCK_DRONE_PSDK_WIDGET_VALUES, PsdkWidgetValues.class),
+
+    DOCK_RTCM_INFO(ChannelName.INBOUND_STATE_DOCK_RTCM_INFO, RtcmInfo.class),
+
+    IS_BEIDOU_VERSION(ChannelName.INBOUND_STATE_DOCK_IS_BEIDOU_VERSION, BeidouVersion.class),
 
     UNKNOWN(ChannelName.DEFAULT, Object.class);
 

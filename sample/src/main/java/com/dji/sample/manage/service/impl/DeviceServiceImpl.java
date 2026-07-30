@@ -483,6 +483,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     .firmwareStatus(DeviceFirmwareStatusEnum.NOT_UPGRADE)
                     .thingVersion(entity.getVersion())
                     .organizationId(entity.getOrganizationId())
+                    .dockIndex(entity.getDockIndex())
                     .build();
         } catch (CloudSDKException e) {
             log.error("{} Entity: {}", e.getLocalizedMessage(), entity);
@@ -823,7 +824,50 @@ public class DeviceServiceImpl implements IDeviceService {
                         DeviceFirmwareStatusEnum.CONSISTENT_UPGRADE != dto.getFirmwareStatus())
                 .deviceDesc(dto.getDeviceDesc())
                 .organizationId(dto.getOrganizationId())    // modify by Qfei, 2025-11-24 14:33:51
+                .dockIndex(dto.getDockIndex())
                 .build();
     }
 
+    @Override
+    public Optional<CenterNode> getDroneWirelessLinkTopoCenterNode(String droneSn) {
+        return deviceRedisService.getDeviceWirelessLinkTopo(droneSn)
+                .map(WirelessLinkTopo::getCenterNode)
+                .or(() -> deviceRedisService.getDeviceOsd(droneSn, OsdDockDrone.class)
+                        .map(OsdDockDrone::getWirelessLinkTopo)
+                        .map(WirelessLinkTopo::getCenterNode)
+                );
+    }
+
+    @Override
+    public Optional<LeafNode> getDockWirelessLinkTopoLeafNode(String dockSn) {
+        return deviceRedisService.getDeviceWirelessLinkTopo(dockSn)
+                .map(WirelessLinkTopo::getLeafNodes)
+                .orElseGet(() -> deviceRedisService.getDeviceOsd(dockSn, OsdDock.class)
+                        .map(OsdDock::getWirelessLinkTopo)
+                        .map(WirelessLinkTopo::getLeafNodes)
+                        .orElse(Collections.emptyList()))
+                .stream()
+                .filter(x -> dockSn.equals(x.getSn()))
+                // .filter(x -> Boolean.TRUE.equals(x.getValid()))
+                .findFirst();
+    }
+
+    @Override
+    public Integer getWorkspaceDockMaxIndex(String workspaceId) {
+        List<Object> indexList = mapper.selectObjs(Wrappers.lambdaQuery(DeviceEntity.class)
+                .eq(DeviceEntity::getWorkspaceId, workspaceId)
+                .eq(DeviceEntity::getDomain, DeviceDomainEnum.DOCK.getDomain())
+                .isNotNull(DeviceEntity::getDockIndex)
+                .select(DeviceEntity::getDockIndex));
+        Set<Integer> usedIndices = indexList.stream()
+                .filter(Objects::nonNull)
+                .map(x -> (Integer) x)
+                .collect(Collectors.toSet());
+        for (int i = 1; i <= 31; i++) {
+            if (!usedIndices.contains(i)) {
+                return i;
+            }
+        }
+        return 0;
+    }
 }

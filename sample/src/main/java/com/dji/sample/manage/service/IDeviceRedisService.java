@@ -2,6 +2,8 @@ package com.dji.sample.manage.service;
 
 import com.dji.sample.component.mqtt.model.EventsReceiver;
 import com.dji.sample.manage.model.dto.DeviceDTO;
+import com.dji.sdk.cloudapi.device.Rtcm;
+import com.dji.sdk.cloudapi.device.WirelessLinkTopo;
 import com.dji.sdk.cloudapi.firmware.OtaProgress;
 
 import java.util.Optional;
@@ -111,4 +113,12 @@ public interface IDeviceRedisService {
     void gatewayOffline(String gatewaySn);
 
     void subDeviceOffline(String deviceSn);
+
+    void setDeviceWirelessLinkTopo(String sn, WirelessLinkTopo data);
+
+    Optional<WirelessLinkTopo> getDeviceWirelessLinkTopo(String sn);
+
+    void setDeviceRtcm(String sn, Rtcm data);
+
+    Optional<Rtcm> getDeviceRtcm(String sn);
 }

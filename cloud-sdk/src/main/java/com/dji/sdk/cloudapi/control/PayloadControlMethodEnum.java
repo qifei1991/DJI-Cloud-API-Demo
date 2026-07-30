@@ -13,10 +13,13 @@ import java.util.Arrays;
 public enum PayloadControlMethodEnum {
 
     CAMERA_MODE_SWITCH(ControlMethodEnum.CAMERA_MODE_SWITCH, CameraModeSwitchRequest.class),
+    DRC_CAMERA_MODE_SWITCH(ControlMethodEnum.DRC_CAMERA_MODE_SWITCH, CameraModeSwitchRequest.class),
 
     CAMERA_PHOTO_TAKE(ControlMethodEnum.CAMERA_PHOTO_TAKE, CameraPhotoTakeRequest.class),
+    DRC_CAMERA_PHOTO_TAKE(ControlMethodEnum.DRC_CAMERA_PHOTO_TAKE, CameraPhotoTakeRequest.class),
 
     CAMERA_PHOTO_STOP(ControlMethodEnum.CAMERA_PHOTO_STOP, CameraPhotoStopRequest.class),
+    DRC_CAMERA_PHOTO_STOP(ControlMethodEnum.DRC_CAMERA_PHOTO_STOP, CameraPhotoStopRequest.class),
 
     CAMERA_RECORDING_START(ControlMethodEnum.CAMERA_RECORDING_START, CameraRecordingStartRequest.class),
 

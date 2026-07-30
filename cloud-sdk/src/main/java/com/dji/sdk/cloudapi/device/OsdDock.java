@@ -1,7 +1,12 @@
 package com.dji.sdk.cloudapi.device;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
+import com.dji.sdk.cloudapi.HomePositionIsValidEnum;
+import com.dji.sdk.cloudapi.SelfConvergeCoordinate;
+import com.dji.sdk.cloudapi.property.SilentModeEnum;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
+
+import java.util.List;
 
 /**
  * @author sean
@@ -92,6 +97,42 @@ public class OsdDock {
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0)
     private UserExperienceImprovementEnum userExperienceImprovement;
 
+    /**
+     * home点有效性
+     */
+    private HomePositionIsValidEnum homePositionIsValid;
+
+    /**
+     * 机场朝向角	double	{"max":"180","min":"-180","step":"","unit_name":"度 / °"}
+     */
+    private Float heading;
+
+    /**
+     * 机场RTK标定源
+     */
+    private Rtcm rtcmInfo;
+
+    /**
+     * 图传连接拓扑
+     */
+    private WirelessLinkTopo wirelessLinkTopo;
+
+    private Boolean airTransferEnable;
+
+    private SilentModeEnum silentMode;
+
+    /**
+     * 4G Dongle信息
+     */
+    private List<DongleInfo> dongleInfos;
+
+    /**
+     * 固件一致性升级
+     */
+    private CompatibleStatusEnum compatibleStatus;
+
+    private SelfConvergeCoordinate selfConvergeCoordinate;
+
     public OsdDock() {
     }
 
@@ -137,6 +178,15 @@ public class OsdDock {
                 ", wirelessLink=" + wirelessLink +
                 ", drcState=" + drcState +
                 ", userExperienceImprovement=" + userExperienceImprovement +
+                ", homePositionIsValid=" + homePositionIsValid +
+                ", heading=" + heading +
+                ", rtcmInfo=" + rtcmInfo +
+                ", wirelessLinkTopo=" + wirelessLinkTopo +
+                ", airTransferEnable=" + airTransferEnable +
+                ", silentMode=" + silentMode +
+                ", dongleInfos=" + dongleInfos +
+                ", compatibleStatus=" + compatibleStatus +
+                ", selfConvergeCoordinate=" + selfConvergeCoordinate +
                 '}';
     }
 
@@ -488,6 +538,87 @@ public class OsdDock {
 
     public OsdDock setUserExperienceImprovement(UserExperienceImprovementEnum userExperienceImprovement) {
         this.userExperienceImprovement = userExperienceImprovement;
+        return this;
+    }
+
+    public Rtcm getRtcmInfo() {
+        return rtcmInfo;
+    }
+
+    public OsdDock setRtcmInfo(Rtcm rtcmInfo) {
+        this.rtcmInfo = rtcmInfo;
+        return this;
+    }
+
+    public HomePositionIsValidEnum getHomePositionIsValid() {
+        return homePositionIsValid;
+    }
+
+    public OsdDock setHomePositionIsValid(HomePositionIsValidEnum homePositionIsValid) {
+        this.homePositionIsValid = homePositionIsValid;
+        return this;
+    }
+
+    public Float getHeading() {
+        return heading;
+    }
+
+    public OsdDock setHeading(Float heading) {
+        this.heading = heading;
+        return this;
+    }
+
+    public WirelessLinkTopo getWirelessLinkTopo() {
+        return wirelessLinkTopo;
+    }
+
+    public OsdDock setWirelessLinkTopo(WirelessLinkTopo wirelessLinkTopo) {
+        this.wirelessLinkTopo = wirelessLinkTopo;
+        return this;
+    }
+
+    public Boolean getAirTransferEnable() {
+        return airTransferEnable;
+    }
+
+    public OsdDock setAirTransferEnable(Boolean airTransferEnable) {
+        this.airTransferEnable = airTransferEnable;
+        return this;
+    }
+
+    public SilentModeEnum getSilentMode() {
+        return silentMode;
+    }
+
+    public OsdDock setSilentMode(SilentModeEnum silentMode) {
+        this.silentMode = silentMode;
+        return this;
+    }
+
+    public List<DongleInfo> getDongleInfos() {
+        return dongleInfos;
+    }
+
+    public OsdDock setDongleInfos(List<DongleInfo> dongleInfos) {
+        this.dongleInfos = dongleInfos;
+        return this;
+    }
+
+    public CompatibleStatusEnum getCompatibleStatus() {
+        return compatibleStatus;
+    }
+
+    public OsdDock setCompatibleStatus(CompatibleStatusEnum compatibleStatus) {
+        this.compatibleStatus = compatibleStatus;
+        return this;
+    }
+
+    public SelfConvergeCoordinate getSelfConvergeCoordinate() {
+        return selfConvergeCoordinate;
+    }
+
+    public OsdDock setSelfConvergeCoordinate(SelfConvergeCoordinate selfConvergeCoordinate) {
+        this.selfConvergeCoordinate = selfConvergeCoordinate;
         return this;
     }
 }

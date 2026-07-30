@@ -205,6 +205,14 @@ public abstract class AbstractControlService {
                 request);
     }
 
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> drcCameraModeSwitch(GatewayManager gateway, CameraModeSwitchRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.CAMERA_MODE_SWITCH.getMethod(),
+                request);
+    }
+
     /**
      * Payload control - take single photo
      * @param gateway
@@ -219,6 +227,14 @@ public abstract class AbstractControlService {
                 request);
     }
 
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> drcCameraPhotoTake(GatewayManager gateway, CameraPhotoTakeRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.DRC_CAMERA_PHOTO_TAKE.getMethod(),
+                request);
+    }
+
     /**
      * Payload control - stop taking photo
      * Currently only panoramic photo mode is supported.
@@ -228,6 +244,14 @@ public abstract class AbstractControlService {
      */
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
     public TopicServicesResponse<ServicesReplyData> cameraPhotoStop(GatewayManager gateway, CameraPhotoStopRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                ControlMethodEnum.CAMERA_PHOTO_STOP.getMethod(),
+                request);
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_2, exclude = GatewayTypeEnum.RC, include = GatewayTypeEnum.DOCK)
+    public TopicServicesResponse<ServicesReplyData> drcCameraPhotoStop(GatewayManager gateway, CameraPhotoStopRequest request) {
         return servicesPublish.publish(
                 gateway.getGatewaySn(),
                 ControlMethodEnum.CAMERA_PHOTO_STOP.getMethod(),

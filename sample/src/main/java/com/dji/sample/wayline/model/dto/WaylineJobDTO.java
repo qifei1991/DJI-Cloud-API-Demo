@@ -1,16 +1,11 @@
 package com.dji.sample.wayline.model.dto;
 
-import com.dji.sdk.annotations.CloudSDKVersion;
 import com.dji.sdk.cloudapi.wayline.*;
-import com.dji.sdk.config.version.CloudSDKVersionEnum;
-import com.dji.sdk.config.version.GatewayTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
@@ -88,4 +83,9 @@ public class WaylineJobDTO {
     @Builder.Default
     private RthModeEnum rthMode = RthModeEnum.PRESET_HEIGHT;
     private WaylinePrecisionTypeEnum waylinePrecisionType;
+
+    /**
+     * 降落机场
+     */
+    private String landingDockSn;
 }

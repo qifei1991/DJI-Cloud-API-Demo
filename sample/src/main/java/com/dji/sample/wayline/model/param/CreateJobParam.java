@@ -66,4 +66,9 @@ public class CreateJobParam {
     private RthModeEnum rthMode = RthModeEnum.PRESET_HEIGHT;
 
     private WaylinePrecisionTypeEnum waylinePrecisionType = WaylinePrecisionTypeEnum.RTK;
+
+    /**
+     * 返航降落机场
+     */
+    private String landDockSn;
 }

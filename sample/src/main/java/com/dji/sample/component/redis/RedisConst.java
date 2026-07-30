@@ -76,4 +76,8 @@ public final class RedisConst {
     public static final String DRC_HEART_BEAT_PREFIX = DRC_PREFIX + "heart_beat" + DELIMITER;
 
     public static final String RETURN_HOME_MONITOR_PREFIX = "return_home_monitor" + DELIMITER;
+
+    public static final String WIRELESS_LINK_TOPO_PREFIX = "wireless_link_topo" + DELIMITER;
+
+    public static final String RTCM_PREFIX = "rtcm" + DELIMITER;
 }

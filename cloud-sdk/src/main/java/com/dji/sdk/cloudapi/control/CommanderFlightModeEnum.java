@@ -7,6 +7,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 /**
+ * <pre>
+ *     指点飞行模式设置值	enum_int	{"0":"智能高度飞行","1":"设定高度飞行"}
+ * </pre>
  * @author sean
  * @version 1.7
  * @date 2023/8/7

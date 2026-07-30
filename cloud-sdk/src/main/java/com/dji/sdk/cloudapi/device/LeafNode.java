@@ -1,14 +1,20 @@
 package com.dji.sdk.cloudapi.device;
 
 /**
+ * <pre>
+ *   »»leaf_nodes	机场或遥控器对频信息	array	{"size": -, "item_type": struct}
+ *    »»»sdr_id	扰码信息	int	{"max":"","min":"","step":"","unit_name":null}
+ *    »»»sn	设备sn	text	{"length":""}
+ *    »»»control_source_index	控制源序号	int	{"max":"2","min":"1","step":"1","unit_name":"无 / "}
+ * </pre>
  * @author Qfei
  * @date 2024/5/10 18:06
  */
-public class LeftNode {
+public class LeafNode {
 
     private Integer controlSourceIndex;
 
-    private Integer sdrId;
+    private Long sdrId;
 
     private String sn;
 
@@ -16,7 +22,7 @@ public class LeftNode {
 
     @Override
     public String toString() {
-        return "LeftNode{" +
+        return "LeafNode{" +
                 "controlSourceIndex=" + controlSourceIndex +
                 ", sdrId=" + sdrId +
                 ", sn='" + sn + '\'' +
@@ -28,16 +34,16 @@ public class LeftNode {
         return controlSourceIndex;
     }
 
-    public LeftNode setControlSourceIndex(Integer controlSourceIndex) {
+    public LeafNode setControlSourceIndex(Integer controlSourceIndex) {
         this.controlSourceIndex = controlSourceIndex;
         return this;
     }
 
-    public Integer getSdrId() {
+    public Long getSdrId() {
         return sdrId;
     }
 
-    public LeftNode setSdrId(Integer sdrId) {
+    public LeafNode setSdrId(Long sdrId) {
         this.sdrId = sdrId;
         return this;
     }
@@ -46,7 +52,7 @@ public class LeftNode {
         return sn;
     }
 
-    public LeftNode setSn(String sn) {
+    public LeafNode setSn(String sn) {
         this.sn = sn;
         return this;
     }
@@ -55,7 +61,7 @@ public class LeftNode {
         return valid;
     }
 
-    public LeftNode setValid(Boolean valid) {
+    public LeafNode setValid(Boolean valid) {
         this.valid = valid;
         return this;
     }

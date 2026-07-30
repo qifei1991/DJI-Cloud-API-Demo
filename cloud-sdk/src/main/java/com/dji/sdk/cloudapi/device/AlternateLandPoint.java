@@ -16,7 +16,7 @@ public class AlternateLandPoint {
     private Float safeLandHeight;
 
     @JsonProperty("is_configured")
-    private Boolean configured;
+    private ConfiguredEnum configured;
 
     public AlternateLandPoint() {
     }
@@ -58,11 +58,11 @@ public class AlternateLandPoint {
         return this;
     }
 
-    public Boolean getConfigured() {
+    public ConfiguredEnum getConfigured() {
         return configured;
     }
 
-    public AlternateLandPoint setConfigured(Boolean configured) {
+    public AlternateLandPoint setConfigured(ConfiguredEnum configured) {
         this.configured = configured;
         return this;
     }

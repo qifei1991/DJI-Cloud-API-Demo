@@ -1,6 +1,8 @@
 package com.dji.sdk.cloudapi.device;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
+import com.dji.sdk.cloudapi.control.CommanderFlightModeEnum;
+import com.dji.sdk.cloudapi.control.CommanderModeLostActionEnum;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -30,6 +32,10 @@ public class OsdDockDrone {
     private Float height;
 
     private Float homeDistance;
+
+    private Float homeLatitude;
+
+    private Float homeLongitude;
 
     private Float horizontalSpeed;
 
@@ -91,6 +97,65 @@ public class OsdDockDrone {
 
     private String trackId;
 
+    private String bestLinkGateway;
+
+    private WirelessLinkTopo wirelessLinkTopo;
+
+    /**
+     * 4G Dongle信息
+     */
+    private List<DongleInfo> dongleInfos;
+
+    /**
+     * 固件一致性升级
+     */
+    private CompatibleStatusEnum compatibleStatus;
+
+    /**
+     * 飞行器控制模式
+     */
+    private CommanderFlightModeEnum commanderFlightMode;
+
+    /**
+     * 指点飞行高度	float	{"max":3000,"min":2,"step":0.1,"unit_name":"米 / m"}
+     */
+    private Float commanderFlightHeight;
+
+    /**
+     * 指点飞行失控动作
+     */
+    private CommanderModeLostActionEnum commanderModeLostAction;
+
+    /**
+     * 相机水印设置
+     */
+    private CameraWatermarkSettings cameraWatermarkSettings;
+
+    /**
+     * 飞行器进入当前状态的原因
+     */
+    private ModeCodeReasonEnum modeCodeReason;
+
+    /**
+     * 当前控制源
+     */
+    private String controlSource;
+
+    /**
+     * 低电量警告阈值
+     */
+    private Integer lowBatteryWarningThreshold;
+
+    /**
+     * 严重低电量警告阈值
+     */
+    private Integer seriousLowBatteryWarningThreshold;
+
+    /**
+     * 返航预留电量	int	{"max":100,"min":0}
+     */
+    private Integer remainingPowerForReturnHome;
+
     public OsdDockDrone() {
     }
 
@@ -106,6 +171,8 @@ public class OsdDockDrone {
                 ", gear=" + gear +
                 ", height=" + height +
                 ", homeDistance=" + homeDistance +
+                ", homeLatitude=" + homeLatitude +
+                ", homeLongitude=" + homeLongitude +
                 ", horizontalSpeed=" + horizontalSpeed +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
@@ -134,6 +201,19 @@ public class OsdDockDrone {
                 ", nearHeightLimit=" + nearHeightLimit +
                 ", maintainStatus=" + maintainStatus +
                 ", trackId='" + trackId + '\'' +
+                ", bestLinkGateway='" + bestLinkGateway + '\'' +
+                ", wirelessLinkTopo=" + wirelessLinkTopo +
+                ", dongleInfos=" + dongleInfos +
+                ", compatibleStatus=" + compatibleStatus +
+                ", commanderFlightMode=" + commanderFlightMode +
+                ", commanderFlightHeight=" + commanderFlightHeight +
+                ", commanderModeLostAction=" + commanderModeLostAction +
+                ", cameraWatermarkSettings=" + cameraWatermarkSettings +
+                ", modeCodeReason=" + modeCodeReason +
+                ", controlSource='" + controlSource + '\'' +
+                ", lowBatteryWarningThreshold=" + lowBatteryWarningThreshold +
+                ", seriousLowBatteryWarningThreshold=" + seriousLowBatteryWarningThreshold +
+                ", remainingPowerForReturnHome=" + remainingPowerForReturnHome +
                 '}';
     }
 
@@ -467,6 +547,141 @@ public class OsdDockDrone {
 
     public OsdDockDrone setTrackId(String trackId) {
         this.trackId = trackId;
+        return this;
+    }
+
+    public String getBestLinkGateway() {
+        return bestLinkGateway;
+    }
+
+    public OsdDockDrone setBestLinkGateway(String bestLinkGateway) {
+        this.bestLinkGateway = bestLinkGateway;
+        return this;
+    }
+
+    public WirelessLinkTopo getWirelessLinkTopo() {
+        return wirelessLinkTopo;
+    }
+
+    public OsdDockDrone setWirelessLinkTopo(WirelessLinkTopo wirelessLinkTopo) {
+        this.wirelessLinkTopo = wirelessLinkTopo;
+        return this;
+    }
+
+    public Float getHomeLatitude() {
+        return homeLatitude;
+    }
+
+    public OsdDockDrone setHomeLatitude(Float homeLatitude) {
+        this.homeLatitude = homeLatitude;
+        return this;
+    }
+
+    public Float getHomeLongitude() {
+        return homeLongitude;
+    }
+
+    public OsdDockDrone setHomeLongitude(Float homeLongitude) {
+        this.homeLongitude = homeLongitude;
+        return this;
+    }
+
+    public List<DongleInfo> getDongleInfos() {
+        return dongleInfos;
+    }
+
+    public OsdDockDrone setDongleInfos(List<DongleInfo> dongleInfos) {
+        this.dongleInfos = dongleInfos;
+        return this;
+    }
+
+    public CompatibleStatusEnum getCompatibleStatus() {
+        return compatibleStatus;
+    }
+
+    public OsdDockDrone setCompatibleStatus(CompatibleStatusEnum compatibleStatus) {
+        this.compatibleStatus = compatibleStatus;
+        return this;
+    }
+
+    public CommanderFlightModeEnum getCommanderFlightMode() {
+        return commanderFlightMode;
+    }
+
+    public OsdDockDrone setCommanderFlightMode(CommanderFlightModeEnum commanderFlightMode) {
+        this.commanderFlightMode = commanderFlightMode;
+        return this;
+    }
+
+    public Float getCommanderFlightHeight() {
+        return commanderFlightHeight;
+    }
+
+    public OsdDockDrone setCommanderFlightHeight(Float commanderFlightHeight) {
+        this.commanderFlightHeight = commanderFlightHeight;
+        return this;
+    }
+
+    public CommanderModeLostActionEnum getCommanderModeLostAction() {
+        return commanderModeLostAction;
+    }
+
+    public OsdDockDrone setCommanderModeLostAction(CommanderModeLostActionEnum commanderModeLostAction) {
+        this.commanderModeLostAction = commanderModeLostAction;
+        return this;
+    }
+
+    public CameraWatermarkSettings getCameraWatermarkSettings() {
+        return cameraWatermarkSettings;
+    }
+
+    public OsdDockDrone setCameraWatermarkSettings(CameraWatermarkSettings cameraWatermarkSettings) {
+        this.cameraWatermarkSettings = cameraWatermarkSettings;
+        return this;
+    }
+
+    public ModeCodeReasonEnum getModeCodeReason() {
+        return modeCodeReason;
+    }
+
+    public OsdDockDrone setModeCodeReason(ModeCodeReasonEnum modeCodeReason) {
+        this.modeCodeReason = modeCodeReason;
+        return this;
+    }
+
+    public String getControlSource() {
+        return controlSource;
+    }
+
+    public OsdDockDrone setControlSource(String controlSource) {
+        this.controlSource = controlSource;
+        return this;
+    }
+
+    public Integer getLowBatteryWarningThreshold() {
+        return lowBatteryWarningThreshold;
+    }
+
+    public OsdDockDrone setLowBatteryWarningThreshold(Integer lowBatteryWarningThreshold) {
+        this.lowBatteryWarningThreshold = lowBatteryWarningThreshold;
+        return this;
+    }
+
+    public Integer getSeriousLowBatteryWarningThreshold() {
+        return seriousLowBatteryWarningThreshold;
+    }
+
+    public OsdDockDrone setSeriousLowBatteryWarningThreshold(Integer seriousLowBatteryWarningThreshold) {
+        this.seriousLowBatteryWarningThreshold = seriousLowBatteryWarningThreshold;
+        return this;
+    }
+
+    public Integer getRemainingPowerForReturnHome() {
+        return remainingPowerForReturnHome;
+    }
+
+    public OsdDockDrone setRemainingPowerForReturnHome(Integer remainingPowerForReturnHome) {
+        this.remainingPowerForReturnHome = remainingPowerForReturnHome;
         return this;
     }
 }

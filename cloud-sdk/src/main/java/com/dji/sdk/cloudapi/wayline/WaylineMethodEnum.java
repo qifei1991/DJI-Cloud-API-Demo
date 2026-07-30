@@ -21,6 +21,8 @@ public enum WaylineMethodEnum {
 
     FLIGHTTASK_RECOVERY("flighttask_recovery"),
 
+    FLIGHTTASK_STOP("flighttask_stop"), // 蛙跳任务中，当一个机场上报任务结束后，需要下发此指令到另一机场结束任务
+
     RETURN_HOME("return_home"),
 
     RETURN_HOME_CANCEL("return_home_cancel"),

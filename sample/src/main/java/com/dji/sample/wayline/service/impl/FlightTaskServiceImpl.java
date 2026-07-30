@@ -49,6 +49,7 @@ import com.dji.sdk.mqtt.services.ServicesReplyData;
 import com.dji.sdk.mqtt.services.TopicServicesResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.messaging.MessageHeaders;
@@ -63,6 +64,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -341,24 +343,25 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Override
     public HttpResultResponse publishOneFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+        return StringUtils.hasText(waylineJob.getLandingDockSn())
+                ? publishMultiDockFlightTask(waylineJob)
+                : publishCommonOneFlightTask(waylineJob);
+    }
 
+    private HttpResultResponse publishCommonOneFlightTask(WaylineJobDTO waylineJob) throws SQLException {
         boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
         if (!isOnline) {
             throw new RuntimeException("机场已离线。");
         }
-
-        boolean isSuccess = this.prepareFlightTask(waylineJob);
-        if (!isSuccess) {
+        if (!prepareFlightTask(waylineJob)) {
             return HttpResultResponse.error("飞行任务下发准备失败。");
         }
-
         // Issue an immediate task execution command.
         if (TaskTypeEnum.IMMEDIATE == waylineJob.getTaskType()) {
             if (!executeFlightTask(waylineJob.getWorkspaceId(), waylineJob.getJobId())) {
                 return HttpResultResponse.error("飞行任务下发执行失败。");
             }
         }
-
         // Issue a timed task execution command.
         if (TaskTypeEnum.TIMED == waylineJob.getTaskType()) {
             // key: wayline_job_timed, value: {workspace_id}:{dock_sn}:{job_id}
@@ -369,7 +372,34 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 return HttpResultResponse.error("创建定时任务失败。");
             }
         }
+        return HttpResultResponse.success();
+    }
 
+    private HttpResultResponse publishMultiDockFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+        boolean isTakeDockOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
+        boolean isLandDockOnline = deviceRedisService.checkDeviceOnline(waylineJob.getLandingDockSn());
+        if (!isTakeDockOnline || !isLandDockOnline) {
+            throw new RuntimeException("起飞机场或降落机场离线，无法下发任务。");
+        }
+        if (!prepareMultiDockFlightTask(waylineJob)) {
+            return HttpResultResponse.error("飞行任务下发准备失败。");
+        }
+        // Issue an immediate task execution command.
+        if (TaskTypeEnum.IMMEDIATE == waylineJob.getTaskType()) {
+            if (!executeFlightTask(waylineJob.getWorkspaceId(), waylineJob.getJobId())) {
+                return HttpResultResponse.error("飞行任务下发执行失败。");
+            }
+        }
+        // Issue a timed task execution command.
+        if (TaskTypeEnum.TIMED == waylineJob.getTaskType()) {
+            // key: wayline_job_timed, value: {workspace_id}:{dock_sn}:{job_id}
+            boolean isAdd = RedisOpsUtils.zAdd(RedisConst.WAYLINE_JOB_TIMED_EXECUTE,
+                    waylineJob.getWorkspaceId() + RedisConst.DELIMITER + waylineJob.getDockSn() + RedisConst.DELIMITER + waylineJob.getJobId(),
+                    waylineJob.getBeginTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+            if (!isAdd) {
+                return HttpResultResponse.error("创建定时任务失败。");
+            }
+        }
         return HttpResultResponse.success();
     }
 
@@ -431,6 +461,86 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         return true;
     }
 
+    private Boolean prepareMultiDockFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+        // get wayline file
+        Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
+        if (waylineFile.isEmpty()) {
+            throw new SQLException("无法获取飞行任务的航线文件，请查证。");
+        }
+
+        // get file url
+        URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.get().getId());
+
+        FlighttaskPrepareRequest flightTask = new FlighttaskPrepareRequest()
+                .setFlightId(waylineJob.getJobId())
+                .setExecuteTime(waylineJob.getBeginTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                .setTaskType(waylineJob.getTaskType())
+                .setWaylineType(waylineJob.getWaylineType())
+                .setRthAltitude(waylineJob.getRthAltitude())
+                .setOutOfControlAction(waylineJob.getOutOfControlAction())
+                .setExitWaylineWhenRcLost(ExitWaylineWhenRcLostEnum.EXECUTE_RC_LOST_ACTION)
+                .setFile(new FlighttaskFile()
+                        .setUrl(url.toString())
+                        .setFingerprint(waylineFile.get().getSign()))
+                .setSimulateMission(waylineJob.getSimulateMission())
+                .setWaylinePrecisionType(waylineJob.getWaylinePrecisionType());
+        if (Objects.nonNull(waylineJob.getRthMode())) {
+            flightTask.setRthMode(waylineJob.getRthMode());
+        }
+
+        if (TaskTypeEnum.CONDITIONAL == waylineJob.getTaskType()) {
+            if (Objects.isNull(waylineJob.getConditions())) {
+                throw new IllegalArgumentException("无法获取当前飞行任务的可执行条件。");
+            }
+            flightTask.setReadyConditions(waylineJob.getConditions().getReadyConditions());
+            flightTask.setExecutableConditions(waylineJob.getConditions().getExecutableConditions());
+        }
+
+        // modify by Qfei, 2023-10-11 10:31:44
+        if (waylineJob.getContinuable() && StringUtils.hasText(waylineJob.getParentId())) {
+            flightTask.setBreakPoint(waylineJob.getBreakPoint());
+        }
+
+        log.debug(":: Prepare task: {}", flightTask);
+
+        CompletableFuture<TopicServicesResponse<ServicesReplyData>> takeDockReplyFeature = CompletableFuture.supplyAsync(() ->
+                abstractWaylineService.flighttaskPrepare(SDKManager.getDeviceSDK(waylineJob.getDockSn()), flightTask));
+        CompletableFuture<TopicServicesResponse<ServicesReplyData>> landDockReplyFeature = CompletableFuture.supplyAsync(() ->
+                abstractWaylineService.flighttaskPrepare(SDKManager.getDeviceSDK(waylineJob.getLandingDockSn()), flightTask));
+        CompletableFuture<Integer> completableFuture = takeDockReplyFeature.thenCombineAsync(landDockReplyFeature,
+                (takeDockReply, landDockReply) -> {
+                    if (takeDockReply.getData().getResult().isSuccess() && landDockReply.getData().getResult().isSuccess()) {
+                        return 0;
+                    }
+                    if (!takeDockReply.getData().getResult().isSuccess()) {
+                        log.error("Prepare takeoff dock task ====> Error code: {}", takeDockReply.getData().getResult());
+                        return takeDockReply.getData().getResult().getCode();
+                    }
+                    if (!landDockReply.getData().getResult().isSuccess()) {
+                        log.error("Prepare landing dock task ====> Error code: {}", landDockReply.getData().getResult());
+                        return landDockReply.getData().getResult().getCode();
+                    }
+                    return 0;
+                });
+        try {
+            Integer resultCode = completableFuture.get();
+
+            if (resultCode != 0) {
+                log.error("Prepare task ====> Error code: {}", resultCode);
+                waylineJobService.updateJob(WaylineJobDTO.builder()
+                        .workspaceId(waylineJob.getWorkspaceId())
+                        .jobId(waylineJob.getJobId())
+                        .executeTime(LocalDateTime.now())
+                        .status(WaylineJobStatusEnum.FAILED.getVal())
+                        .completedTime(LocalDateTime.now())
+                        .code(resultCode).build());
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("获取飞行任务准备结果异常。", e);
+        }
+    }
 
     @Override
     public Boolean executeFlightTask(String workspaceId, String jobId) {
@@ -439,21 +549,22 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         if (waylineJob.isEmpty()) {
             throw new IllegalArgumentException("飞行计划不存在。");
         }
+        WaylineJobDTO job = waylineJob.get();
+        return StringUtils.hasText(job.getLandingDockSn()) ? executeMultiDockFlightTask(job) : executeCommonFlightTask(job);
+    }
 
-        String dockSn = waylineJob.get().getDockSn();
+    public Boolean executeCommonFlightTask(WaylineJobDTO job) {
+        String jobId = job.getJobId();
+        String dockSn = job.getDockSn();
         boolean isOnline = deviceRedisService.checkDeviceOnline(dockSn);
         if (!isOnline) {
             throw new RuntimeException("机场离线状态，无法执行。");
         }
-
         // 自定义阻飞检查
         if (flightTaskProperties.getStopFlyingCondition().getEnabled() && !checkFlyingCondition(jobId, dockSn)) {
             log.error("机场当前状态或当前环境条件不满足安全飞行，已取消当前飞行计划。");
             return false;
         }
-
-        WaylineJobDTO job = waylineJob.get();
-
         TopicServicesResponse<ServicesReplyData> serviceReply = abstractWaylineService.flighttaskExecute(
                 SDKManager.getDeviceSDK(job.getDockSn()), new FlighttaskExecuteRequest().setFlightId(jobId));
         if (!serviceReply.getData().getResult().isSuccess()) {
@@ -471,18 +582,185 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             }
             return false;
         }
-
         waylineJobService.updateJob(WaylineJobDTO.builder()
                 .jobId(jobId)
                 .executeTime(LocalDateTime.now())
                 .status(WaylineJobStatusEnum.IN_PROGRESS.getVal())
                 .build());
-        waylineRedisService.setRunningWaylineJob(job.getDockSn(), EventsReceiver.<FlighttaskProgress>builder().bid(jobId).sn(job.getDockSn()).build());
+        waylineRedisService.setRunningWaylineJob(job.getDockSn(),
+                EventsReceiver.<FlighttaskProgress>builder()
+                        .bid(jobId)
+                        .sn(job.getDockSn())
+                        .build());
 
         // add by Qfei, report start a wayline job.
         this.flightTaskClient.startWaylineTask(job);
 
         return true;
+    }
+
+    public boolean executeMultiDockFlightTask(WaylineJobDTO job) {
+        String jobId = job.getJobId();
+        String dockSn = job.getDockSn();
+        String landDockSn = job.getLandingDockSn();
+        // Check if both takeoff and landing docks are online
+        if (!deviceRedisService.checkDeviceOnline(dockSn) || !deviceRedisService.checkDeviceOnline(landDockSn)) {
+            log.error("起飞机场或降落机场离线，无法执行蛙跳任务。");
+            return false;
+        }
+        // Check the takeoff condition of the takeoff dock. 阻飞检查
+        if (flightTaskProperties.getStopFlyingCondition().getEnabled() && !checkFlyingCondition(jobId, dockSn)) {
+            log.error("机场当前状态或当前环境条件不满足安全起飞条件，已取消当前飞行计划。");
+            return false;
+        }
+        DeviceDTO takeoffDockDevice = deviceRedisService.getDeviceOnline(dockSn).get();
+        DeviceDTO landingDockDevice = deviceRedisService.getDeviceOnline(landDockSn).get();
+
+        String droneSn = takeoffDockDevice.getChildDeviceSn();
+        // Check if the takeoff dock has no sub-device and landing dock has sub-device
+        if (!StringUtils.hasText(droneSn) || StringUtils.hasText(landingDockDevice.getChildDeviceSn())) {
+            log.error("起飞机场内没有飞行器或降落机场内有飞行器，无法执行蛙跳任务。");
+            return false;
+        }
+        // Check if the takeoff and landing docks have OSD information
+        Optional<OsdDock> osdDockOpt = deviceRedisService.getDeviceOsd(dockSn, OsdDock.class);
+        Optional<OsdDock> landDockOpt = deviceRedisService.getDeviceOsd(landDockSn, OsdDock.class);
+        if (osdDockOpt.isEmpty() || landDockOpt.isEmpty()) {
+            log.error("起飞或返航机场OSD信息获取失败，无法执行蛙跳任务。");
+            return false;
+        }
+        OsdDock osdDock = osdDockOpt.get();
+        OsdDock landDock = landDockOpt.get();
+        // Check if the wireless link topo information exists
+        Optional<CenterNode> centerNodeOpt = deviceService.getDroneWirelessLinkTopoCenterNode(droneSn);
+        Optional<LeafNode> dockLeafNodeOpt = deviceService.getDockWirelessLinkTopoLeafNode(dockSn);
+        Optional<LeafNode> landDockLeafNodeOpt = deviceService.getDockWirelessLinkTopoLeafNode(landDockSn);
+        if (centerNodeOpt.isEmpty() || dockLeafNodeOpt.isEmpty() || landDockLeafNodeOpt.isEmpty()) {
+            log.error("获取机场和飞行器图传连接拓扑信息失败，无法执行蛙跳任务。");
+            return false;
+        }
+        // Check if the RTK information exists
+        Optional<Rtcm> dockRtcmOpt = deviceRedisService.getDeviceRtcm(dockSn).or(() -> osdDockOpt.map(OsdDock::getRtcmInfo));
+        Optional<Rtcm> landRtcmOpt = deviceRedisService.getDeviceRtcm(landDockSn).or(() -> landDockOpt.map(OsdDock::getRtcmInfo));
+        if (dockRtcmOpt.isEmpty() || landRtcmOpt.isEmpty()) {
+            log.error("起飞或降落机场RTK标定源信息获取失败，无法执行蛙跳任务。");
+            return false;
+        }
+
+        // 处理机场设备 index 值
+        handlerDockIndex(takeoffDockDevice, landingDockDevice);
+
+        CompletableFuture<Integer> completableFuture = getExecuteJobFuture(job, takeoffDockDevice, landingDockDevice, osdDock, landDock,
+                centerNodeOpt.get(), dockLeafNodeOpt.get(), landDockLeafNodeOpt.get(), dockRtcmOpt.get(), landRtcmOpt.get());
+
+        try {
+            Integer resultCode = completableFuture.get(30, TimeUnit.SECONDS);
+            if (resultCode != MqttReply.CODE_SUCCESS) {
+                log.info("Execute job ====> ErrorCode: {}", resultCode);
+                waylineJobService.updateJob(WaylineJobDTO.builder()
+                        .jobId(jobId)
+                        .executeTime(LocalDateTime.now())
+                        .status(WaylineJobStatusEnum.FAILED.getVal())
+                        .completedTime(LocalDateTime.now())
+                        .code(resultCode).build());
+                // The conditional task fails and enters the blocking status.
+                if (TaskTypeEnum.CONDITIONAL == job.getTaskType() && WaylineErrorCodeEnum.find(resultCode).isBlock()) {
+                    waylineRedisService.setBlockedWaylineJob(job.getDockSn(), jobId);
+                }
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("Execute job Error.", e);
+            return false;
+        }
+
+        waylineJobService.updateJob(WaylineJobDTO.builder()
+                .jobId(jobId)
+                .status(WaylineJobStatusEnum.IN_PROGRESS.getVal())
+                .executeTime(LocalDateTime.now())
+                .build());
+        waylineRedisService.setRunningWaylineJob(job.getDockSn(),
+                EventsReceiver.<FlighttaskProgress>builder().bid(jobId).sn(job.getDockSn()).build());
+        waylineRedisService.setRunningWaylineJob(job.getLandingDockSn(),
+                EventsReceiver.<FlighttaskProgress>builder().bid(jobId).sn(job.getLandingDockSn()).build());
+
+        // add by Qfei, report start a wayline job.
+        this.flightTaskClient.startWaylineTask(job);
+
+        return true;
+    }
+
+    private @NotNull CompletableFuture<Integer> getExecuteJobFuture(WaylineJobDTO job,
+            DeviceDTO takeoffDockDTO, DeviceDTO landingDockDTO, OsdDock osdDock, OsdDock landDock,
+            CenterNode centerNode, LeafNode dockLeafNode, LeafNode landDockLeafNode, Rtcm dockRtcm, Rtcm landRtcm) {
+        FlighttaskExecuteRequest flighttaskExecuteRequest = new FlighttaskExecuteRequest()
+                .setFlightId(job.getJobId())
+                .setMultiDockTask(new FlightTaskMultiDockTask()
+                        .setWirelessLinkTopo(new WirelessLinkTopo()
+                                .setCenterNode(centerNode)
+                                .setLeafNodes(List.of(
+                                        dockLeafNode.setControlSourceIndex(1),
+                                        landDockLeafNode.setControlSourceIndex(2))))
+                        .setDockInfos(List.of(
+                                new FlightTaskDockInfo()
+                                        .setIndex(takeoffDockDTO.getDockIndex())
+                                        .setDockType(DockTypeEnum.TAKEOFF)
+                                        .setSn(takeoffDockDTO.getDeviceSn())
+                                        .setLatitude(osdDock.getLatitude())
+                                        .setLongitude(osdDock.getLongitude())
+                                        .setHeight(osdDock.getHeight())
+                                        .setHeading(osdDock.getHeading())
+                                        .setHomePositionIsValid(osdDock.getHomePositionIsValid())
+                                        .setRtcmInfo(dockRtcm)
+                                        .setAlternateLandPoint(osdDock.getAlternateLandPoint()),
+                                new FlightTaskDockInfo()
+                                        .setIndex(landingDockDTO.getDockIndex())
+                                        .setDockType(DockTypeEnum.LANDING)
+                                        .setSn(landingDockDTO.getDeviceSn())
+                                        .setLatitude(landDock.getLatitude())
+                                        .setLongitude(landDock.getLongitude())
+                                        .setHeight(landDock.getHeight())
+                                        .setHeading(landDock.getHeading())
+                                        .setHomePositionIsValid(landDock.getHomePositionIsValid())
+                                        .setRtcmInfo(landRtcm)
+                                        .setAlternateLandPoint(landDock.getAlternateLandPoint())
+                        )));
+        CompletableFuture<TopicServicesResponse<ServicesReplyData>> takeDockReplyFuture = CompletableFuture.supplyAsync(() ->
+                abstractWaylineService.flighttaskExecute(SDKManager.getDeviceSDK(job.getDockSn()), flighttaskExecuteRequest));
+        CompletableFuture<TopicServicesResponse<ServicesReplyData>> landDockReplyFuture = CompletableFuture.supplyAsync(() ->
+                abstractWaylineService.flighttaskExecute(SDKManager.getDeviceSDK(job.getDockSn()), flighttaskExecuteRequest));
+        return takeDockReplyFuture.thenCombineAsync(landDockReplyFuture,
+                (takeDockReply, landDockReply) -> {
+                    if (takeDockReply.getData().getResult().isSuccess() && landDockReply.getData().getResult().isSuccess()) {
+                        return 0;
+                    }
+                    if (!takeDockReply.getData().getResult().isSuccess()) {
+                        log.error("Execute takeoff dock task ====> Error code: {}", takeDockReply.getData().getResult());
+                        return takeDockReply.getData().getResult().getCode();
+                    }
+                    if (!landDockReply.getData().getResult().isSuccess()) {
+                        log.error("Execute landing dock task ====> Error code: {}", landDockReply.getData().getResult());
+                        return landDockReply.getData().getResult().getCode();
+                    }
+                    return 0;
+                });
+    }
+
+    private void handlerDockIndex(DeviceDTO takeoffDockDevice, DeviceDTO landingDockDevice) {
+        Integer dockIndex = takeoffDockDevice.getDockIndex();
+        if (Objects.isNull(dockIndex)) {
+            dockIndex = deviceService.getWorkspaceDockMaxIndex(takeoffDockDevice.getWorkspaceId());
+            deviceService.updateDevice(DeviceDTO.builder().deviceSn(takeoffDockDevice.getDeviceSn()).dockIndex(dockIndex).build());
+            takeoffDockDevice.setDockIndex(dockIndex);
+            deviceRedisService.setDeviceOnline(takeoffDockDevice);
+        }
+        Integer landDockIndex = landingDockDevice.getDockIndex();
+        if (Objects.isNull(landDockIndex) || dockIndex.equals(landDockIndex)) {
+            landDockIndex = deviceService.getWorkspaceDockMaxIndex(landingDockDevice.getWorkspaceId());
+            deviceService.updateDevice(DeviceDTO.builder().deviceSn(landingDockDevice.getDeviceSn()).dockIndex(landDockIndex).build());
+            landingDockDevice.setDockIndex(landDockIndex);
+            deviceRedisService.setDeviceOnline(landingDockDevice);
+        }
     }
 
     /**
@@ -640,7 +918,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         if (waylineJob.isEmpty()) {
             return HttpResultResponse.error("创建断点飞行任务失败。");
         }
-        if (!this.prepareFlightTask(waylineJob.get())) {
+        if (!prepareFlightTask(waylineJob.get())) {
             waylineJobService.deleteJob(workspaceId, jobId);
             return HttpResultResponse.error("飞行任务下发失败。");
         }
@@ -740,15 +1018,36 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
         if (statusEnum.isEnd()) {
             log.info("Task complete. Output: {}", output);
+
+            // 通知另一个机场任务终止
+            Optional<WaylineJobDTO> jobOpt = waylineJobService.getJobByJobId(null, response.getBid());
+            if (jobOpt.isPresent() && StringUtils.hasText(jobOpt.get().getLandingDockSn())) {
+                String targetDockSn = jobOpt.get().getDockSn().equals(response.getGateway())
+                        ? jobOpt.get().getLandingDockSn()
+                        : jobOpt.get().getDockSn();
+                log.info("蛙跳任务，下发任务停止指令. gateway: {}, targetDockSn: {}", response.getGateway(), targetDockSn);
+                TopicServicesResponse<ServicesReplyData> stopServicesReply = abstractWaylineService.flighttaskStop(
+                        SDKManager.getDeviceSDK(targetDockSn),
+                        new FlighttaskStopRequest()
+                                .setFlightId(response.getBid())
+                                .setReason(FlighttaskStopReasonEnum.getDockReason(response.getData().getResult().getCode())));
+                if (!stopServicesReply.getData().getResult().isSuccess()) {
+                    log.error("蛙跳任务：下发任务停止指令失败. Error: {}", stopServicesReply.getData().getResult());
+                }
+            }
+
+            // 判断机场是否关联飞行器，如果有，判断机场是否在舱内
             String droneSn = deviceOpt.get().getChildDeviceSn();
-            Optional<OsdDock> dockOsdOpt = deviceRedisService.getDeviceOsd(response.getGateway(), OsdDock.class);
-            DroneModeCodeEnum droneModeCodeEnum = deviceService.getDeviceMode(droneSn);
-            Boolean droneInDock = dockOsdOpt.map(OsdDock::getDroneInDock).orElse(false);
-            log.info("{}:{}, DroneModeCode: {}, DroneInDock: {}", response.getGateway(), response.getBid(), droneModeCodeEnum, droneInDock);
-            try {
-                returnHomeMonitor(response.getGateway(), droneSn, response.getBid(), droneModeCodeEnum, droneInDock);
-            } catch (Exception e) {
-                log.error("Add Return home monitor error.", e);
+            if (StringUtils.hasText(droneSn)) {
+                Optional<OsdDock> dockOsdOpt = deviceRedisService.getDeviceOsd(response.getGateway(), OsdDock.class);
+                DroneModeCodeEnum droneModeCodeEnum = deviceService.getDeviceMode(droneSn);
+                Boolean droneInDock = dockOsdOpt.map(OsdDock::getDroneInDock).orElse(false);
+                log.info("{}:{}, DroneModeCode: {}, DroneInDock: {}", response.getGateway(), response.getBid(), droneModeCodeEnum, droneInDock);
+                try {
+                    returnHomeMonitor(response.getGateway(), droneSn, response.getBid(), droneModeCodeEnum, droneInDock);
+                } catch (Exception e) {
+                    log.error("Add Return home monitor error.", e);
+                }
             }
 
             WaylineJobDTO job = WaylineJobDTO.builder()
@@ -787,7 +1086,19 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                  *   b. 如果执行的是新建任务，此种情况当前任务不能执行续飞操作，需要重新创建新的飞行任务
                  * 2. 如果不为空，保存当前任务的断点信息，可以执行续飞操作
                  */
-                if (Objects.isNull(breakPoint)) {
+                if (FlighttaskStatusEnum.PARTIALLY_DONE == statusEnum) {
+                    waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
+                } else {
+                    jobDTO.ifPresent(x -> {
+                        if (Boolean.TRUE.equals(x.getContinuable()) && StringUtils.hasText(x.getParentId())) {
+                            waylineRedisService.getProgressExtBreakPoint(x.getParentId())
+                                    .ifPresentOrElse(parBreakPoint ->
+                                                    waylineRedisService.setProgressExtBreakPoint(response.getBid(), parBreakPoint),
+                                            () -> job.setContinuable(false));
+                        }
+                    });
+                }
+                /* if (Objects.isNull(breakPoint)) {
                     jobDTO.ifPresent(x -> {
                         if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
                             waylineRedisService.getProgressExtBreakPoint(x.getParentId())
@@ -798,7 +1109,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                     });
                 } else {
                     waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
-                }
+                } */
             }
             waylineJobService.updateJob(job);
             waylineRedisService.delRunningWaylineJob(response.getGateway());
@@ -1020,10 +1331,20 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Override
     public TopicRequestsResponse<MqttReply<FlightTaskProgressGetResponse>> flightTaskProgressGet(TopicRequestsRequest<FlightTaskProgressGetRequest> request, MessageHeaders headers) {
-        log.error("*************** flightTaskProgressGet not implemented! ***************");
-        log.info("- Return home information: gateway: {}, data: {}", request.getGateway(), request.getData());
-
-        return new TopicRequestsResponse<>();
+        String targetDockSn = request.getData().getSn();
+        log.info("- FlightTaskProgress get: gateway: {}, target: {}", request.getGateway(), targetDockSn);
+        Optional<EventsReceiver<FlighttaskProgress>> taskProgressReceiverOpt = waylineRedisService.getRunningWaylineJob(targetDockSn);
+        if (taskProgressReceiverOpt.isEmpty()) {
+            log.error("   > The flight task progress is null for the given dock sn.");
+            return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.SYSTEM_ERROR));
+        }
+        EventsReceiver<FlighttaskProgress> progressEventsReceiver = taskProgressReceiverOpt.get();
+        return new TopicRequestsResponse<MqttReply<FlightTaskProgressGetResponse>>()
+                .setData(MqttReply.success(
+                        new FlightTaskProgressGetResponse()
+                                .setFlightId(progressEventsReceiver.getBid())
+                                .setStatus(progressEventsReceiver.getOutput().getStatus())
+                                .setProgress(progressEventsReceiver.getOutput().getProgress())));
     }
 
     @Override

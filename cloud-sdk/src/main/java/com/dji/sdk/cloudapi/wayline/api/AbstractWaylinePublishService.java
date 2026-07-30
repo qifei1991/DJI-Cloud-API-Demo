@@ -102,6 +102,14 @@ public class AbstractWaylinePublishService {
                 WaylineMethodEnum.FLIGHTTASK_RECOVERY.getMethod());
     }
 
+    @CloudSDKVersion(exclude = GatewayTypeEnum.RC)
+    public TopicServicesResponse<ServicesReplyData> flighttaskStop(GatewayManager gateway, FlighttaskStopRequest request) {
+        return servicesPublish.publish(
+                gateway.getGatewaySn(),
+                WaylineMethodEnum.FLIGHTTASK_STOP.getMethod(),
+                request);
+    }
+
     /**
      * Return to Home (RTH)
      * @param gateway

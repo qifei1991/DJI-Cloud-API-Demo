@@ -1,10 +1,7 @@
 package com.dji.sdk.cloudapi.flightarea.api;
 
 import com.dji.sdk.annotations.CloudSDKVersion;
-import com.dji.sdk.cloudapi.flightarea.FlightAreasDroneLocation;
-import com.dji.sdk.cloudapi.flightarea.FlightAreasGetRequest;
-import com.dji.sdk.cloudapi.flightarea.FlightAreasGetResponse;
-import com.dji.sdk.cloudapi.flightarea.FlightAreasSyncProgress;
+import com.dji.sdk.cloudapi.flightarea.*;
 import com.dji.sdk.config.version.CloudSDKVersionEnum;
 import com.dji.sdk.mqtt.ChannelName;
 import com.dji.sdk.mqtt.MqttReply;
@@ -57,5 +54,11 @@ public abstract class AbstractFlightAreaService {
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_0)
     public TopicRequestsResponse<MqttReply<FlightAreasGetResponse>> flightAreasGet(TopicRequestsRequest<FlightAreasGetRequest> request, MessageHeaders headers) {
         throw new UnsupportedOperationException("flightAreasGet not implemented");
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_3)
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_EVENTS_RELEASE_TERMINAL_CONTROL_AREA, outputChannel = ChannelName.OUTBOUND_EVENTS)
+    public TopicEventsResponse<MqttReply> releaseTerminalControlArea(TopicEventsRequest<ReleaseTerminalControlArea> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("releaseTerminalControlArea not implemented");
     }
 }

@@ -6,6 +6,8 @@ import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.ICapacityCameraService;
 import com.dji.sample.manage.service.IDeviceRedisService;
+import com.dji.sdk.cloudapi.device.Rtcm;
+import com.dji.sdk.cloudapi.device.WirelessLinkTopo;
 import com.dji.sdk.cloudapi.firmware.OtaProgress;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,5 +122,21 @@ public class DeviceRedisServiceImpl implements IDeviceRedisService {
         delDeviceOsd(deviceSn);
         delHmsKeysBySn(deviceSn);
         capacityCameraService.deleteCapacityCameraByDeviceSn(deviceSn);
+    }
+
+    public void setDeviceWirelessLinkTopo(String sn, WirelessLinkTopo data) {
+        RedisOpsUtils.set(RedisConst.WIRELESS_LINK_TOPO_PREFIX + sn, data);
+    }
+
+    public Optional<WirelessLinkTopo> getDeviceWirelessLinkTopo(String sn) {
+        return Optional.ofNullable((WirelessLinkTopo) RedisOpsUtils.get(RedisConst.WIRELESS_LINK_TOPO_PREFIX + sn));
+    }
+
+    public void setDeviceRtcm(String sn, Rtcm data) {
+        RedisOpsUtils.set(RedisConst.RTCM_PREFIX + sn, data);
+    }
+
+    public Optional<Rtcm> getDeviceRtcm(String sn) {
+        return Optional.ofNullable((Rtcm) RedisOpsUtils.get(RedisConst.RTCM_PREFIX + sn));
     }
 }

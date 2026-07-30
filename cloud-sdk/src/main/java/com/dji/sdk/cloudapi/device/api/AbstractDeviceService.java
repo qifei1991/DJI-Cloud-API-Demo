@@ -254,7 +254,7 @@ public class AbstractDeviceService {
      * @param request  data
      * @param headers  The headers for a {@link Message}.
      */
-    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_1, include = GatewayTypeEnum.DOCK2)
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_1, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3})
     @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_AND_DRONE_DONGLE_INFOS, outputChannel = ChannelName.OUTBOUND_STATE)
     public TopicStateResponse<MqttReply> dongleInfos(TopicStateRequest<DongleInfos> request, MessageHeaders headers) {
         throw new UnsupportedOperationException("dongleInfos not implemented");
@@ -271,10 +271,27 @@ public class AbstractDeviceService {
         throw new UnsupportedOperationException("dockSilentMode not implemented");
     }
 
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_1, include = { GatewayTypeEnum.DOCK2, GatewayTypeEnum.DOCK3})
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_AND_DRONE_WIRELESS_LINK_TOPO, outputChannel = ChannelName.OUTBOUND_STATE)
+    public TopicStateResponse<MqttReply> wirelessLinkTopo(TopicStateRequest<WirelessLinkTopoInfo> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("wirelessLinkTopo not implemented");
+    }
+
     @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_3)
     @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE, outputChannel = ChannelName.OUTBOUND_STATE)
     public TopicStateResponse<MqttReply> dockAirTransferEnable(TopicStateRequest<AirTransferEnable> request, MessageHeaders headers) {
         throw new UnsupportedOperationException("dockAirTransferEnable not implemented");
     }
 
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_3)
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_RTCM_INFO, outputChannel = ChannelName.OUTBOUND_STATE)
+    public TopicStateResponse<MqttReply> dockRtcmInfo(TopicStateRequest<RtcmInfo> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("dockRtcmInfo not implemented");
+    }
+
+    @CloudSDKVersion(since = CloudSDKVersionEnum.V1_0_3)
+    @ServiceActivator(inputChannel = ChannelName.INBOUND_STATE_DOCK_IS_BEIDOU_VERSION, outputChannel = ChannelName.OUTBOUND_STATE)
+    public TopicStateResponse<MqttReply> dockIsBeidouVersion(TopicStateRequest<BeidouVersion> request, MessageHeaders headers) {
+        throw new UnsupportedOperationException("dockIsBeidouVersion not implemented");
+    }
 }

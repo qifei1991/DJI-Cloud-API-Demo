@@ -91,4 +91,8 @@ public class DeviceEntity implements Serializable {
     // modify Qfei, 2025-11-24 14:33:11
     @TableField(value = "organization_id")
     private String organizationId;
+
+    // modify Qfei, 2026-7-28 16:07:31
+    @TableField(value = "dock_index")
+    private Integer dockIndex;
 }

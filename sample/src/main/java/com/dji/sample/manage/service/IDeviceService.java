@@ -5,10 +5,7 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.model.dto.DeviceFirmwareUpgradeDTO;
 import com.dji.sample.manage.model.dto.TopologyDeviceDTO;
 import com.dji.sample.manage.model.param.DeviceQueryParam;
-import com.dji.sdk.cloudapi.device.ControlSourceEnum;
-import com.dji.sdk.cloudapi.device.DeviceOsdHost;
-import com.dji.sdk.cloudapi.device.DockModeCodeEnum;
-import com.dji.sdk.cloudapi.device.DroneModeCodeEnum;
+import com.dji.sdk.cloudapi.device.*;
 import com.dji.sdk.config.version.GatewayManager;
 import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.PaginationData;
@@ -199,4 +196,10 @@ public interface IDeviceService {
     void pushOsdDataToWeb(String workspaceId, BizCodeEnum codeEnum, String sn, Object data);
 
     void updateFlightControl(DeviceDTO gateway, ControlSourceEnum controlSource);
+
+    Optional<CenterNode> getDroneWirelessLinkTopoCenterNode(String dockSn);
+
+    Optional<LeafNode> getDockWirelessLinkTopoLeafNode(String dockSn);
+
+    Integer getWorkspaceDockMaxIndex(String workspaceId);
 }

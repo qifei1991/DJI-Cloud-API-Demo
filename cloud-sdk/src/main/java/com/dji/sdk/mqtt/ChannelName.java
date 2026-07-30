@@ -66,9 +66,15 @@ public class ChannelName {
 
     public static final String INBOUND_STATE_DOCK_SILENT_MODE = "inboundStateDockSilentMode";
 
+    public static final String INBOUND_STATE_DOCK_AND_DRONE_WIRELESS_LINK_TOPO = "inboundStateDockAndDroneWirelessLinkTopo";
+
     public static final String INBOUND_STATE_DOCK_DRONE_PSDK_WIDGET_VALUES = "inboundStateDockDronePsdkWidgetValues";
 
     public static final String INBOUND_STATE_DOCK_AIR_TRANSFER_ENABLE = "inboundStateDockAirTransferEnable";
+
+    public static final String INBOUND_STATE_DOCK_RTCM_INFO = "inboundStateDockRtcmInfo";
+
+    public static final String INBOUND_STATE_DOCK_IS_BEIDOU_VERSION = "inboundStateDockIsBeidouVersion";
 
 
     public static final String OUTBOUND_STATE = "outboundState";
@@ -173,6 +179,8 @@ public class ChannelName {
     public static final String INBOUND_EVENTS_SPEAKER_PLAY_START_PROGRESS = "inboundEventsSpeakerAudioPlayStartProgress";
 
     public static final String INBOUND_EVENTS_MEDIA_UPLOAD_TRACK = "inboundEventsMediaUploadTrack";
+
+    public static final String INBOUND_EVENTS_RELEASE_TERMINAL_CONTROL_AREA = "inboundEventsReleaseTerminalControlArea";
 
     // 喊话器播放状态通知
     public static final String INBOUND_EVENTS_SPEAKER_PLAY_STATUS_NOTIFY = "inboundEventsSpeakerPlayStatusNotify";

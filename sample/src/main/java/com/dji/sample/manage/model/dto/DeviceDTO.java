@@ -79,4 +79,7 @@ public class DeviceDTO {
     private List<DeviceHmsDTO> hmsList;
 
     private String organizationId;
+
+    // 机场 index
+    private Integer dockIndex;
 }

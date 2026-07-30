@@ -29,6 +29,14 @@ public enum ControlMethodEnum {
 
     CAMERA_PHOTO_STOP("camera_photo_stop"),
 
+    DRC_CAMERA_MODE_SWITCH("drc_camera_mode_switch"), // 定时拍照，相机模式切换
+
+    DRC_INTERVAL_PHOTO_SET("drc_interval_photo_set"),
+
+    DRC_CAMERA_PHOTO_TAKE("drc_camera_photo_take"),
+
+    DRC_CAMERA_PHOTO_STOP("drc_camera_photo_stop"),
+
     CAMERA_RECORDING_START("camera_recording_start"),
 
     CAMERA_RECORDING_STOP("camera_recording_stop"),
@@ -102,8 +110,6 @@ public enum ControlMethodEnum {
     DRC_VIDEO_RESOLUTION_SET("drc_video_resolution_set"),
 
     DRC_LINKAGE_ZOOM_SET("drc_linkage_zoom_set"),
-
-    DRC_INTERVAL_PHOTO_SET("drc_interval_photo_set"),
 
     CAMERA_FRAME_ZOOM("camera_frame_zoom"),
 
