@@ -332,4 +332,11 @@ public class FlightAreaServiceImpl extends AbstractFlightAreaService implements 
         }
         return flightArea;
     }
+
+    @Override
+    public TopicEventsResponse<MqttReply> releaseTerminalControlArea(TopicEventsRequest<ReleaseTerminalControlArea> request, MessageHeaders headers) {
+        log.error("*************** releaseTerminalControlArea not implemented! ***************");
+        log.info("releaseTerminalControlArea: from: {}, data: {}", request.getFrom(), request.getData());
+        return new TopicEventsResponse<MqttReply>().setData(MqttReply.success());
+    }
 }

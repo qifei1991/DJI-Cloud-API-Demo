@@ -6,6 +6,7 @@ import com.dji.sdk.cloudapi.debug.RemoteDebugProgress;
 import com.dji.sdk.cloudapi.firmware.OtaProgress;
 import com.dji.sdk.cloudapi.flightarea.FlightAreasDroneLocation;
 import com.dji.sdk.cloudapi.flightarea.FlightAreasSyncProgress;
+import com.dji.sdk.cloudapi.flightarea.ReleaseTerminalControlArea;
 import com.dji.sdk.cloudapi.hms.Hms;
 import com.dji.sdk.cloudapi.log.FileUploadProgress;
 import com.dji.sdk.cloudapi.map.OfflineMapSyncProgress;
@@ -108,6 +109,8 @@ public enum EventsMethodEnum {
     IN_FLIGHT_WAYLINE_PROGRESS("in_flight_wayline_progress", ChannelName.INBOUND_EVENTS_IN_FLIGHT_WAYLINE_PROGRESS, new TypeReference<InFlightWaylineProgress>() {}),
 
     MEDIA_UPLOAD_TRACK("track", ChannelName.INBOUND_EVENTS_MEDIA_UPLOAD_TRACK, new TypeReference<MediaUploadTrackList>() {}),
+
+    RELEASE_TERMINAL_CONTROL_AREA("release_terminal_control_area", ChannelName.INBOUND_EVENTS_RELEASE_TERMINAL_CONTROL_AREA, new TypeReference<ReleaseTerminalControlArea>() {}),
 
     UNKNOWN("", ChannelName.DEFAULT, new TypeReference<>() {});
 
