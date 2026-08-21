@@ -3,7 +3,6 @@ package com.dji.sdk.mqtt;
 import com.dji.sdk.common.Common;
 import com.dji.sdk.exception.CloudSDKErrorEnum;
 import com.dji.sdk.exception.CloudSDKException;
-import com.dji.sdk.websocket.api.WebSocketMessageSend;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class MqttGatewayPublish {
 
-    private static final Logger log = LoggerFactory.getLogger(WebSocketMessageSend.class);
+    private static final Logger log = LoggerFactory.getLogger(MqttGatewayPublish.class);
 
     private static final int DEFAULT_QOS = 0;
     public static final int DEFAULT_RETRY_COUNT = 2;

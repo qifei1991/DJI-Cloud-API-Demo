@@ -1086,19 +1086,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                  *   b. 如果执行的是新建任务，此种情况当前任务不能执行续飞操作，需要重新创建新的飞行任务
                  * 2. 如果不为空，保存当前任务的断点信息，可以执行续飞操作
                  */
-                if (FlighttaskStatusEnum.PARTIALLY_DONE == statusEnum) {
-                    waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
-                } else {
-                    jobDTO.ifPresent(x -> {
-                        if (Boolean.TRUE.equals(x.getContinuable()) && StringUtils.hasText(x.getParentId())) {
-                            waylineRedisService.getProgressExtBreakPoint(x.getParentId())
-                                    .ifPresentOrElse(parBreakPoint ->
-                                                    waylineRedisService.setProgressExtBreakPoint(response.getBid(), parBreakPoint),
-                                            () -> job.setContinuable(false));
-                        }
-                    });
-                }
-                /* if (Objects.isNull(breakPoint)) {
+                if (Objects.isNull(breakPoint)) {
                     jobDTO.ifPresent(x -> {
                         if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
                             waylineRedisService.getProgressExtBreakPoint(x.getParentId())
@@ -1109,7 +1097,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                     });
                 } else {
                     waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
-                } */
+                }
             }
             waylineJobService.updateJob(job);
             waylineRedisService.delRunningWaylineJob(response.getGateway());
