@@ -17,14 +17,14 @@ DROP TABLE IF EXISTS `mqtt_user`;
 
 CREATE TABLE `mqtt_user` (
     `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-    `username` varchar(100) DEFAULT NULL,
-    `password_hash` varchar(100) DEFAULT NULL,
-    `salt` varchar(35) DEFAULT NULL,
+    `username` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+    `password_hash` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+    `salt` varchar(35) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
     `is_superuser` tinyint(1) DEFAULT 0,
     `created` datetime DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `mqtt_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 INSERT INTO `mqtt_user` (id, username, password_hash, salt, is_superuser, created)
 VALUES
@@ -171,6 +171,7 @@ CREATE TABLE `manage_device` (
   `url_normal` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'The icon displayed on the remote control.',
   `url_select` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '' COMMENT 'The icon displayed on the remote control when it is selected.',
   `organization_id` varchar(16) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT '',
+  `dock_index` int null comment '机场序列',
   PRIMARY KEY (`id`),
   UNIQUE KEY `product_sn_UNIQUE` (`device_sn`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Device information';

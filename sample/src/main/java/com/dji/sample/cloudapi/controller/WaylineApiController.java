@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 @RequestMapping("${url.cloud-api.prefix}${url.cloud-api.version}/wayline/workspaces")
 public class WaylineApiController {
 
-    @Value("${aircraft-manager-server.workspace-id}")
-    String defaultWorkspaceId;
     @Autowired
     private IWaylineFileService waylineFileService;
 

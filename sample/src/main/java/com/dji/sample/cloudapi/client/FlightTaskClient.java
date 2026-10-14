@@ -50,9 +50,9 @@ public class FlightTaskClient extends AbstractClient {
     @Async("asyncThreadPool")
     public void startWaylineTask(WaylineJobDTO job) {
         // 断点续飞的任务，不生成飞行记录
-        /* if (StringUtils.hasText(job.getParentId()) && job.getContinuable()) {
+        if (StringUtils.hasText(job.getParentId()) && job.getContinuable()) {
             return;
-        } */
+        }
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(job.getJobId())
                 .groupId(StringUtils.hasText(job.getGroupId()) ? job.getGroupId() : job.getJobId())
@@ -64,6 +64,7 @@ public class FlightTaskClient extends AbstractClient {
                 .userName(job.getUsername())
                 .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
                 .flightTaskMode(job.getTaskType())
+                .dockSn(job.getDockSn())
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -85,6 +86,7 @@ public class FlightTaskClient extends AbstractClient {
                 .dockSn(job.getDockSn())
                 .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
                 .flightTaskMode(job.getTaskType())
+                .dockSn(job.getDockSn())
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
@@ -119,6 +121,7 @@ public class FlightTaskClient extends AbstractClient {
                 .userName(params.getUsername())
                 .flightTaskType(FlightTypeEnum.TAKEOFF_TASK)
                 .flightTaskMode(TaskTypeEnum.TAKEOFF)
+                .dockSn(dockSn)
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(dockSn));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -149,6 +152,7 @@ public class FlightTaskClient extends AbstractClient {
         SortiesRecordParam recordParam = SortiesRecordParam.builder()
                 .sortiesId(receiver.getFlyToId())
                 .groupId(receiver.getFlyToId())
+                .dockSn(dockSn)
                 .state(2)
                 .endTime(DateUtil.now())
                 .build();

@@ -103,7 +103,7 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
         WaylineJobEntity jobEntity = WaylineJobEntity.builder()
                 .name(param.getName())
                 .dockSn(param.getDockSn())
-                .landingDockSn(param.getDockSn())
+                .landingDockSn(param.getLandingDockSn())
                 .fileId(param.getFileId())
                 .username(username)
                 .workspaceId(workspaceId)

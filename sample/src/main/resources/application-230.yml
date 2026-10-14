@@ -204,6 +204,11 @@ logging:
     com.dji: debug
   file:
     name: logs/cloud-api-sample.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB #单个日志文件最大大小，超过后自动滚动生成新文件
+      max-history: 30 #保留的历史日志文件数量（天数），默认是 7 天
+      total-size-cap: 1GB #所有日志文件的总大小上限，超过后会删除最旧的归档
 
 ntp:
   server:

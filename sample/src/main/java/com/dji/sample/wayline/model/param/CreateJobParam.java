@@ -70,5 +70,5 @@ public class CreateJobParam {
     /**
      * 返航降落机场
      */
-    private String landDockSn;
+    private String landingDockSn;
 }

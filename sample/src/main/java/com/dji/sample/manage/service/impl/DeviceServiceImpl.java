@@ -308,7 +308,8 @@ public class DeviceServiceImpl implements IDeviceService {
         subDeviceOsd.ifPresent(x -> {
             subDevice.setLongitude(x.getLongitude());
             subDevice.setLatitude(x.getLatitude());
-            subDevice.setAttitudeHead(Objects.isNull(x.getAttitudeHead()) ? 0 : x.getAttitudeHead());
+            subDevice.setHeading(Objects.isNull(x.getAttitudeHead()) ? 0 : x.getAttitudeHead());
+            subDevice.setHeight(x.getHeight());
         });
     }
 
@@ -334,6 +335,8 @@ public class DeviceServiceImpl implements IDeviceService {
             gateway.setDroneInDock(BooleanUtil.toInt(x.getDroneInDock()));
             gateway.setLongitude(x.getLongitude());
             gateway.setLatitude(x.getLatitude());
+            gateway.setHeading(x.getHeading());
+            gateway.setHeight(x.getHeight());
         });
     }
 

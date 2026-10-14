@@ -1086,7 +1086,37 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                  *   b. 如果执行的是新建任务，此种情况当前任务不能执行续飞操作，需要重新创建新的飞行任务
                  * 2. 如果不为空，保存当前任务的断点信息，可以执行续飞操作
                  */
-                if (Objects.isNull(breakPoint)) {
+                jobDTO.ifPresentOrElse(x -> {
+                    job.setGroupId(x.getGroupId());
+
+                    if (!x.getContinuable()) {
+                        log.info("非续飞任务，不记录断点信息。");
+                        return;
+                    }
+
+                    if (Objects.isNull(breakPoint)) {
+                        if (!StringUtils.hasText(x.getParentId())) {
+                            log.info("断点信息为空并且父级飞行计划ID为空，无法设置断点信息。");
+                            return;
+                        }
+                        waylineRedisService.getProgressExtBreakPoint(x.getParentId()).ifPresentOrElse(parBreakPoint -> {
+                            log.info("父级断点信息存在，将父级断点信息赋值当前飞行计划。ParentId：{}, BreakPoint：{}", x.getParentId(), parBreakPoint);
+                            waylineRedisService.setProgressExtBreakPoint(response.getBid(), parBreakPoint);
+                            waylineRedisService.delProgressExtBreakPoint(x.getParentId());
+                        }, () -> {
+                            log.info("断点信息为空并且父级断点信息为空，无法设置断点信息。");
+                            job.setContinuable(false);
+                        });
+                    } else {
+                        waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
+                        // 如果执行的断点续飞任务，将Redis中存储的之前飞行的断点信息删除
+                        if (StringUtils.hasText(x.getParentId())) {
+                            waylineRedisService.delProgressExtBreakPoint(x.getParentId());
+                        }
+                    }
+                }, () -> log.info("飞行job查询为空，不处理断点信息，JobId：{}", response.getBid()));
+
+                /* if (Objects.isNull(breakPoint)) {
                     jobDTO.ifPresent(x -> {
                         if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
                             waylineRedisService.getProgressExtBreakPoint(x.getParentId())
@@ -1097,20 +1127,20 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                     });
                 } else {
                     waylineRedisService.setProgressExtBreakPoint(response.getBid(), breakPoint);
-                }
+                } */
             }
             waylineJobService.updateJob(job);
             waylineRedisService.delRunningWaylineJob(response.getGateway());
             waylineRedisService.delPausedWaylineJob(response.getBid());
 
             // add by Qfei, report flight task end.
-            jobDTO.ifPresent(x -> {
+            /* jobDTO.ifPresent(x -> {
                 // 如果执行的断点续飞任务，将Redis中存储的之前飞行的断点信息删除
                 if (x.getContinuable() && StringUtils.hasText(x.getParentId())) {
                     waylineRedisService.delProgressExtBreakPoint(x.getParentId());
                 }
                 job.setGroupId(x.getGroupId());
-            });
+            }); */
 
             // 通知飞行任务完成
             flightTaskClient.waylineTaskCompleted(job);

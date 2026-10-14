@@ -71,9 +71,21 @@ public class DeviceDTO {
     private String thingVersion;
 
     private Integer modeCode;
+
     private Float longitude;
+
     private Float latitude;
-    private Float attitudeHead;
+
+    /**
+     * 机场的椭球高度/飞机绝对高度
+     */
+    private Float height;
+
+    /**
+     * 机场朝向角/飞机偏航轴角度
+     */
+    private Float heading;
+
     private Integer droneInDock;
 
     private List<DeviceHmsDTO> hmsList;
