@@ -12,6 +12,7 @@ import com.dji.sample.manage.model.dto.DeviceDTO;
 import com.dji.sample.manage.service.IDeviceService;
 import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
+import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sdk.cloudapi.control.FlyToPointProgress;
 import com.dji.sdk.cloudapi.control.TakeoffToPointProgress;
 import com.dji.sdk.cloudapi.media.FlightTypeEnum;
@@ -42,6 +43,8 @@ public class FlightTaskClient extends AbstractClient {
 
     @Autowired
     private IDeviceService deviceService;
+    @Autowired
+    private IWaylineJobService waylineJobService;
 
     /**
      * Report the aircraft-manager that started a flight task.
@@ -75,27 +78,33 @@ public class FlightTaskClient extends AbstractClient {
      * @param job WaylineJobDTO
      */
     @Async("asyncThreadPool")
-    public void waylineTaskCompleted(WaylineJobDTO job) {
-        SortiesRecordParam recordParam = SortiesRecordParam.builder()
-                .sortiesId(job.getJobId())
-                .groupId(job.getGroupId())
-                .name(job.getJobName())
-                .fileTotal(job.getMediaCount())
-                .state(job.getStatus())
-                .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
-                .dockSn(job.getDockSn())
-                .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
-                .flightTaskMode(job.getTaskType())
-                .dockSn(job.getDockSn())
-                .build();
-        recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
-        this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParam);
+    public void waylineTaskCompleted(String workspaceId, String jobId) {
+        SortiesRecordParam.SortiesRecordParamBuilder recordParamBuilder = SortiesRecordParam.builder()
+                .sortiesId(jobId);
+
+        waylineJobService.getJobByJobId(workspaceId, jobId).ifPresent(job -> {
+            recordParamBuilder
+                    .groupId(job.getGroupId())
+                    .name(job.getJobName())
+                    .fileTotal(job.getMediaCount())
+                    .state(job.getStatus())
+                    .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
+                    .dockSn(job.getDockSn())
+                    .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
+                    .flightTaskMode(job.getTaskType())
+                    .dockSn(job.getDockSn())
+                    .aircraftSn(obtainDroneSn(job.getDockSn()))
+                    .build();
+        });
+        this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParamBuilder.build());
     }
 
     private String obtainDroneSn(String dockSn) {
+        if (!StringUtils.hasText(dockSn)) {
+            return null;
+        }
         // Set the drone sn that shoots the media
-        Optional<DeviceDTO> dockDTO = deviceService.getDeviceBySn(dockSn);
-        return dockDTO.map(DeviceDTO::getChildDeviceSn).orElse(null);
+        return deviceService.getDeviceBySn(dockSn).map(DeviceDTO::getChildDeviceSn).orElse(null);
     }
 
     /**

@@ -228,8 +228,7 @@ public class DeviceServiceImpl implements IDeviceService {
                         .eq(StringUtils.hasText(param.getWorkspaceId()),
                                 DeviceEntity::getWorkspaceId, param.getWorkspaceId())
                         .eq(param.getBoundStatus() != null, DeviceEntity::getBoundStatus, param.getBoundStatus())
-                        .orderBy(param.isOrderBy(),
-                                param.isAsc(), DeviceEntity::getId))
+                        .orderBy(param.isOrderBy(), param.isAsc(), DeviceEntity::getId))
                 .stream()
                 .map(this::deviceEntityConvertToDTO)
                 .collect(Collectors.toList());

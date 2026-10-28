@@ -1143,7 +1143,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             }); */
 
             // 通知飞行任务完成
-            flightTaskClient.waylineTaskCompleted(job);
+            flightTaskClient.waylineTaskCompleted(deviceOpt.get().getWorkspaceId(), job.getJobId());
         }
 
         webSocketMessageService.sendBatch(deviceOpt.get().getWorkspaceId(), UserTypeEnum.WEB.getVal(),
