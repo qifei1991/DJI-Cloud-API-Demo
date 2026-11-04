@@ -1,0 +1,11 @@
+# docker build context 只保留 Dockerfile COPY 需要的内容，其余全部排除，加速 context 上传
+.git
+.gitignore
+.idea
+logs
+api
+sql
+*.iml
+cloud-sdk
+sample/target/*
+!sample/target/sample-*.jar

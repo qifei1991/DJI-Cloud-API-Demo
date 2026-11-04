@@ -17,6 +17,7 @@ import com.dji.sdk.cloudapi.control.FlyToPointProgress;
 import com.dji.sdk.cloudapi.control.TakeoffToPointProgress;
 import com.dji.sdk.cloudapi.media.FlightTypeEnum;
 import com.dji.sdk.cloudapi.wayline.FlighttaskProgress;
+import com.dji.sdk.cloudapi.wayline.FlighttaskStatusEnum;
 import com.dji.sdk.cloudapi.wayline.InFlightWaylineProgress;
 import com.dji.sdk.cloudapi.wayline.TaskTypeEnum;
 import com.dji.sdk.mqtt.events.TopicEventsRequest;
@@ -68,6 +69,7 @@ public class FlightTaskClient extends AbstractClient {
                 .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
                 .flightTaskMode(job.getTaskType())
                 .dockSn(job.getDockSn())
+                .continuable(job.getContinuable())
                 .build();
         recordParam.setAircraftSn(obtainDroneSn(job.getDockSn()));
         this.applicationJsonPost(ClientUri.URI_SORTIES_START, recordParam);
@@ -78,24 +80,25 @@ public class FlightTaskClient extends AbstractClient {
      * @param job WaylineJobDTO
      */
     @Async("asyncThreadPool")
-    public void waylineTaskCompleted(String workspaceId, String jobId) {
+    public void waylineTaskCompleted(String workspaceId, String jobId, FlighttaskStatusEnum statusEnum) {
         SortiesRecordParam.SortiesRecordParamBuilder recordParamBuilder = SortiesRecordParam.builder()
                 .sortiesId(jobId);
 
-        waylineJobService.getJobByJobId(workspaceId, jobId).ifPresent(job -> {
-            recordParamBuilder
-                    .groupId(job.getGroupId())
-                    .name(job.getJobName())
-                    .fileTotal(job.getMediaCount())
-                    .state(job.getStatus())
-                    .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
-                    .dockSn(job.getDockSn())
-                    .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
-                    .flightTaskMode(job.getTaskType())
-                    .dockSn(job.getDockSn())
-                    .aircraftSn(obtainDroneSn(job.getDockSn()))
-                    .build();
-        });
+        waylineJobService.getJobByJobId(workspaceId, jobId).ifPresent(job ->
+                recordParamBuilder
+                        .groupId(job.getGroupId())
+                        .name(job.getJobName())
+                        .fileTotal(job.getMediaCount())
+                        .state(job.getStatus())
+                        .endTime(Optional.ofNullable(job.getCompletedTime()).map(x -> x.format(FORMATTER)).orElse(DateUtil.now()))
+                        .dockSn(job.getDockSn())
+                        .flightTaskType(FlightTypeEnum.WAYLINE_TASK)
+                        .flightTaskMode(job.getTaskType())
+                        .flightTaskStatus(statusEnum)
+                        .continuable(job.getContinuable())
+                        .dockSn(job.getDockSn())
+                        .aircraftSn(obtainDroneSn(job.getDockSn()))
+                        .build());
         this.applicationJsonPost(ClientUri.URI_SORTIES_COMPLETE, recordParamBuilder.build());
     }
 

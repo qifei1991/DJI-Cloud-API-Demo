@@ -1,0 +1,166 @@
+# 双架构（amd64 + arm64）镜像流水线 —— 云服务 cloud-service（Spring Boot 2.7 + JDK11）
+#
+# 与 aircraft-calculate 多架构流水线的核心区别：
+#   aircraft-calculate 内含平台相关的 .so（dll/amd64、dll/arm64），必须按平台各打包一次 Maven 且严格串行；
+#   cloud-service 是纯 Java 服务，jar 与 CPU 架构无关，只构建一次，两个镜像步骤共用同一份 jar，
+#   因此两个镜像步骤可以并行，互不覆盖。
+#
+# 为什么 runner 不需要 QEMU / binfmt：
+#   Dockerfile 内没有任何 RUN 指令（只有 ARG/FROM/ENV/WORKDIR/COPY/ENTRYPOINT），
+#   跨架构构建只是把文件打成 tar 层 + 写 config JSON，不需要执行目标架构的二进制。
+#   一旦以后往 Dockerfile 里加回 RUN，就必须在 runner 上装 binfmt：
+#     docker run --privileged --rm tonistiigi/binfmt --install arm64
+#   JDK11 时区直接用 ENV TZ=Asia/Shanghai 即可，JVM 会读取该变量，无需改 /etc/localtime。
+#
+# 为什么不用 buildx 一次构建双架构：
+#   buildx 的 docker-container driver 不读 daemon.json，http 私仓要另写 buildkitd.toml，
+#   且需要先把 moby/buildkit 镜像搬进内网；同时要求基础镜像先合成 manifest list。
+#   “两次单架构 build + docker manifest 合并”对内网环境成本最低，故采用该方案。
+#
+# 镜像内目录约定（与 Dockerfile 对应，部署时把宿主配置目录挂载到 /app/config 方便改配置）：
+#   /app/sample-*.jar            运行 jar（sample 的 pom 已把 application*.yml 排除出 jar）
+#   /app/config/application.yml  外置配置文件
+
+name: CICD_cloud-service-multiarch
+
+kind: pipeline # 定义对象类型，还有secret和signature两种类型
+type: docker # 定义流水线类型，还有kubernetes、exec、ssh等类型
+
+volumes:
+  - name: docker
+    host:
+      path: /var/run/docker.sock
+  - name: docker-daemon
+    host:
+      path: /etc/docker/daemon.json
+  - name: mvn_repo
+    host:
+      path: /root/.m2
+
+## 定义流水线执行步骤
+steps:
+  ## ========== 打包（仅一次，JDK11）==========
+  ## 产物：sample/target/sample-*.jar
+  ## repackage 的原始包保存为 *.jar.original，不会被 sample-*.jar 通配匹配到
+  - name: step:build-package
+    image: maven:3.8-openjdk-11 # 与项目 JDK11 匹配；如内网无此 tag，换 10.43.11.21:5000 上的等价 maven+JDK11 镜像
+    volumes:
+      - name: mvn_repo
+        path: /root/.m2
+    commands:
+      - mvn clean package -DskipTests=true -gs /root/.m2/settings.xml -B -U
+      ## 断言：sample/target 下必须只有 1 个 jar，否则 ENTRYPOINT 的 ls -t 可能挑错 jar
+      - if [ $(ls sample/target/sample-*.jar | wc -l) -ne 1 ]; then echo "[ERROR] expect exactly 1 jar in sample/target, got" && ls -l sample/target && exit 1; fi
+      - ls -l sample/target/sample-*.jar
+
+  ## ========== amd64 镜像 ==========
+  ## 不用 plugins/docker 的 settings 模式：它不支持 --platform 与多 build-arg，
+  ## 改为直接复用该镜像自带的 docker CLI 连宿主 daemon（socket 已挂载）
+  - name: step:build-image-amd64
+    image: 10.43.11.21:5000/plugins/docker:latest
+    depends_on:
+      - step:build-package
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+      - name: docker-daemon
+        path: /etc/docker/daemon.json
+    environment:
+      DOCKER_BUILDKIT: "1" # --platform 必须走 BuildKit，经典 builder 会报 “requires BuildKit”
+      BASE_IMAGE_AMD64: 10.43.11.21:5000/openjdk:11.0.14.1-jdk-buster
+    commands:
+      - uname -m && docker version
+      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/$DRONE_REPO_NAME
+      - TAG=${DRONE_TAG:-$DRONE_BUILD_NUMBER} # 手动触发/promote 时 DRONE_TAG 为空，用构建号兜底
+      - docker build --platform linux/amd64 --build-arg BASE_IMAGE=$BASE_IMAGE_AMD64 -t $REPO:$TAG-amd64 -t $REPO:latest-amd64 .
+      ## 断言：产物的 architecture 字段必须是 amd64。它继承自基础镜像的 config JSON，
+      ##      如果基础镜像被标错架构，这里会拦住，避免 manifest list 里出现两个同架构条目
+      - ARCH=$(docker image inspect $REPO:$TAG-amd64 --format '{{.Architecture}}'); echo "built image architecture=$ARCH"; if [ "$ARCH" != "amd64" ]; then echo "[ERROR] expected amd64, base image $BASE_IMAGE_AMD64 may be mislabeled" && exit 1; fi
+      - docker push $REPO:$TAG-amd64
+      - docker push $REPO:latest-amd64
+      ## 等价于原 settings.purge=true，避免宿主 daemon 磁盘堆积；失败不阻断流水线
+      - docker rmi $REPO:$TAG-amd64 $REPO:latest-amd64 || true
+
+  ## ========== arm64 镜像（与 amd64 并行：两步骤只读同一份 jar、写不同 tag，无覆盖冲突） ==========
+  - name: step:build-image-arm64
+    image: 10.43.11.21:5000/plugins/docker:latest
+    depends_on:
+      - step:build-package
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+      - name: docker-daemon
+        path: /etc/docker/daemon.json
+    environment:
+      DOCKER_BUILDKIT: "1"
+      BASE_IMAGE_ARM64: 10.43.11.21:5000/openjdk:11.0.14.1-arm-jdk-buster
+    commands:
+      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/$DRONE_REPO_NAME
+      - TAG=${DRONE_TAG:-$DRONE_BUILD_NUMBER}
+      - docker build --platform linux/arm64 --build-arg BASE_IMAGE=$BASE_IMAGE_ARM64 -t $REPO:$TAG-arm64 -t $REPO:latest-arm64 .
+      - ARCH=$(docker image inspect $REPO:$TAG-arm64 --format '{{.Architecture}}'); echo "built image architecture=$ARCH"; if [ "$ARCH" != "arm64" ]; then echo "[ERROR] expected arm64, base image $BASE_IMAGE_ARM64 may be mislabeled" && exit 1; fi
+      - docker push $REPO:$TAG-arm64
+      - docker push $REPO:latest-arm64
+      - docker rmi $REPO:$TAG-arm64 $REPO:latest-arm64 || true
+
+  ## ========== 多架构镜像地址说明 ==========
+  ## 以 cloud-service 打 tag 1.10.42 为例，流水线产出以下 tag：
+  ##
+  ##   统一地址（manifest list，推荐在线部署使用）：
+  ##     10.43.11.21:5000/dlwy/mapzone-uav/cloud-service:1.10.42
+  ##     → x86 机器 docker pull 自动拉 amd64 层
+  ##     → ARM 机器 docker pull 自动拉 arm64 层
+  ##     → 部署脚本无需区分架构，同一个地址即可
+  ##
+  ##   分开地址（单架构镜像，离线交付 / docker save 用）：
+  ##     10.43.11.21:5000/dlwy/mapzone-uav/cloud-service:1.10.42-amd64
+  ##     10.43.11.21:5000/dlwy/mapzone-uav/cloud-service:1.10.42-arm64
+  ##
+  ##   latest 同理：统一地址 :latest 是 manifest list，:latest-amd64 / :latest-arm64 是单架构镜像。
+  ##
+  ## ========== 合并成多架构清单 ==========
+  ## 让 $REPO:$TAG 与 $REPO:latest 变成 manifest list，docker pull 时按宿主架构自动选层，
+  ## 老部署脚本（pull latest）无需任何改动即可兼容。
+  ## ！！docker manifest 是 CLI 直连 registry（不经过 daemon，也就不读 daemon.json 的 insecure-registries），
+  ##    所以每条子命令都必须带 --insecure，否则对 http 私仓会报 “http: server gave HTTP response to HTTPS client”。
+  ## ！！离线交付（docker save/load）用不了 manifest list，save 只能导出单平台镜像，
+  ##    那种场景直接交付上面带 -amd64 / -arm64 后缀的 tag。
+  - name: step:push-manifest
+    image: 10.43.11.21:5000/plugins/docker:latest
+    depends_on:
+      - step:build-image-amd64
+      - step:build-image-arm64
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    environment:
+      DOCKER_CLI_EXPERIMENTAL: enabled # Docker 20.10 以前 manifest 子命令需要这个开关
+    commands:
+      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/$DRONE_REPO_NAME
+      - TAG=${DRONE_TAG:-$DRONE_BUILD_NUMBER}
+      ## --amend：同名清单已存在时覆盖而不是报 “manifest list already exists”
+      ## -p(--purge)：推送后清掉 CLI 本地 manifest store 里的清单，等价于原 settings.purge=true 的意图
+      - docker manifest create --amend --insecure $REPO:$TAG $REPO:$TAG-amd64 $REPO:$TAG-arm64
+      - docker manifest push --purge --insecure $REPO:$TAG
+      - docker manifest create --amend --insecure $REPO:latest $REPO:latest-amd64 $REPO:latest-arm64
+      - docker manifest push --purge --insecure $REPO:latest
+      ## 打印最终清单，日志里可直接核对是否两个架构都在（inspect 同样必须带 --insecure）
+      - docker manifest inspect --insecure --verbose $REPO:$TAG
+
+  ## BuildKit 缓存不会随 docker rmi 释放，双架构构建会让宿主缓存翻倍增长，这里定期回收。
+  ## failure ignore —— 清理失败不应该把已经推送成功的流水线判为失败
+  - name: step:prune-build-cache
+    image: 10.43.11.21:5000/plugins/docker:latest
+    depends_on:
+      - step:push-manifest
+    failure: ignore
+    volumes:
+      - name: docker
+        path: /var/run/docker.sock
+    commands:
+      - docker builder prune -f --keep-storage 5GB || docker builder prune -f || true
+
+trigger:
+  event:
+    - tag
+    - tag_push

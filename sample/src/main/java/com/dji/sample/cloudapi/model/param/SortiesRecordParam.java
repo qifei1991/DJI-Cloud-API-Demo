@@ -1,6 +1,7 @@
 package com.dji.sample.cloudapi.model.param;
 
 import com.dji.sdk.cloudapi.media.FlightTypeEnum;
+import com.dji.sdk.cloudapi.wayline.FlighttaskStatusEnum;
 import com.dji.sdk.cloudapi.wayline.TaskTypeEnum;
 import lombok.Builder;
 import lombok.Data;
@@ -59,4 +60,12 @@ public class SortiesRecordParam {
     private FlightTypeEnum flightTaskType;
 
     private TaskTypeEnum flightTaskMode;
+
+    private FlighttaskStatusEnum flightTaskStatus;
+
+    /**
+     * 是否可断点续飞
+     */
+    @Builder.Default
+    private boolean continuable = false;
 }
