@@ -43,7 +43,7 @@ steps:
   ## 产物：sample/target/sample-*.jar
   ## repackage 的原始包保存为 *.jar.original，不会被 sample-*.jar 通配匹配到
   - name: step:build-package
-    image: maven:3.8-openjdk-11 # 与项目 JDK11 匹配；如内网无此 tag，换 10.43.11.21:5000 上的等价 maven+JDK11 镜像
+    image: 10.43.11.21:5000/maven:3.8-openjdk-11 # 与项目 JDK11 匹配；如内网无此 tag，换 10.43.11.21:5000 上的等价 maven+JDK11 镜像
     volumes:
       - name: mvn_repo
         path: /root/.m2
