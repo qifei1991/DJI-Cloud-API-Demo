@@ -70,7 +70,7 @@ steps:
       BASE_IMAGE_AMD64: 10.43.11.21:5000/openjdk:11.0.14.1-jdk-buster
     commands:
       - uname -m && docker version
-      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/$DRONE_REPO_NAME
+      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/cloud-service
       - TAG=${DRONE_TAG:-$DRONE_BUILD_NUMBER} # 手动触发/promote 时 DRONE_TAG 为空，用构建号兜底
       - docker build --platform linux/amd64 --build-arg BASE_IMAGE=$BASE_IMAGE_AMD64 -t $REPO:$TAG-amd64 -t $REPO:latest-amd64 .
       ## 断言：产物的 architecture 字段必须是 amd64。它继承自基础镜像的 config JSON，
@@ -95,7 +95,7 @@ steps:
       DOCKER_BUILDKIT: "1"
       BASE_IMAGE_ARM64: 10.43.11.21:5000/openjdk:11.0.14.1-arm-jdk-buster
     commands:
-      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/$DRONE_REPO_NAME
+      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/cloud-service
       - TAG=${DRONE_TAG:-$DRONE_BUILD_NUMBER}
       - docker build --platform linux/arm64 --build-arg BASE_IMAGE=$BASE_IMAGE_ARM64 -t $REPO:$TAG-arm64 -t $REPO:latest-arm64 .
       - ARCH=$(docker image inspect $REPO:$TAG-arm64 --format '{{.Architecture}}'); echo "built image architecture=$ARCH"; if [ "$ARCH" != "arm64" ]; then echo "[ERROR] expected arm64, base image $BASE_IMAGE_ARM64 may be mislabeled" && exit 1; fi
@@ -136,7 +136,7 @@ steps:
     environment:
       DOCKER_CLI_EXPERIMENTAL: enabled # Docker 20.10 以前 manifest 子命令需要这个开关
     commands:
-      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/$DRONE_REPO_NAME
+      - REPO=10.43.11.21:5000/dlwy/mapzone-uav/cloud-service
       - TAG=${DRONE_TAG:-$DRONE_BUILD_NUMBER}
       ## --amend：同名清单已存在时覆盖而不是报 “manifest list already exists”
       ## -p(--purge)：推送后清掉 CLI 本地 manifest store 里的清单，等价于原 settings.purge=true 的意图
