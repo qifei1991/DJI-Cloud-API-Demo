@@ -5,6 +5,8 @@ import com.dji.sample.cloudapi.client.FlightTaskClient;
 import com.dji.sample.common.error.CommonErrorEnum;
 import com.dji.sample.common.model.CustomClaim;
 import com.dji.sample.component.mqtt.model.EventsReceiver;
+import com.dji.sample.component.oss.model.OssConfiguration;
+import com.dji.sample.component.oss.service.impl.OssServiceContext;
 import com.dji.sample.component.redis.RedisConst;
 import com.dji.sample.component.redis.RedisOpsUtils;
 import com.dji.sample.component.websocket.model.BizCodeEnum;
@@ -20,6 +22,7 @@ import com.dji.sample.wayline.FlightTaskProperties;
 import com.dji.sample.wayline.StopFlyingCondition;
 import com.dji.sample.wayline.model.dto.ConditionalWaylineJobKey;
 import com.dji.sample.wayline.model.dto.DroneReturnHomeMonitor;
+import com.dji.sample.wayline.model.dto.WaylineFileFlightDTO;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.dto.WaylineTaskConditionDTO;
 import com.dji.sample.wayline.model.enums.WaylineErrorCodeEnum;
@@ -29,6 +32,7 @@ import com.dji.sample.wayline.model.param.CreateJobParam;
 import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sample.wayline.service.IFlightTaskService;
+import com.dji.sample.wayline.service.IWaylineFileFlightService;
 import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
@@ -91,6 +95,12 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     @Autowired
     private IWaylineFileService waylineFileService;
+
+    @Autowired
+    private IWaylineFileFlightService waylineFileFlightService;
+
+    @Autowired
+    private OssServiceContext ossService;
 
     @Autowired
     private SDKWaylineService abstractWaylineService;
@@ -410,9 +420,6 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             throw new SQLException("无法获取飞行任务的航线文件，请查证。");
         }
 
-        // get file url
-        URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.get().getId());
-
         FlighttaskPrepareRequest flightTask = new FlighttaskPrepareRequest()
                 .setFlightId(waylineJob.getJobId())
                 .setExecuteTime(waylineJob.getBeginTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
@@ -421,9 +428,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 .setRthAltitude(waylineJob.getRthAltitude())
                 .setOutOfControlAction(waylineJob.getOutOfControlAction())
                 .setExitWaylineWhenRcLost(ExitWaylineWhenRcLostEnum.EXECUTE_RC_LOST_ACTION)
-                .setFile(new FlighttaskFile()
-                        .setUrl(url.toString())
-                        .setFingerprint(waylineFile.get().getSign()))
+                .setFile(this.getFlightTaskFile(waylineJob, waylineFile.get()))
                 .setSimulateMission(waylineJob.getSimulateMission())
                 .setWaylinePrecisionType(waylineJob.getWaylinePrecisionType());
         if (Objects.nonNull(waylineJob.getRthMode())) {
@@ -461,15 +466,30 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         return true;
     }
 
+    /**
+     * The lost action can not be delivered to the aircraft by the cloud, so the wayline file copy
+     * whose lost action is modified by the flight task parameters is used to prepare the task.
+     * @param waylineJob
+     * @param waylineFile
+     * @return
+     */
+    private FlighttaskFile getFlightTaskFile(WaylineJobDTO waylineJob, GetWaylineListResponse waylineFile) throws SQLException {
+        WaylineFileFlightDTO flightFile = Objects.nonNull(waylineJob.getExitWaylineWhenRcLost())
+                ? waylineFileFlightService.getOrCreateFlightFile(waylineJob) : null;
+        if (Objects.isNull(flightFile)) {
+            URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.getId());
+            return new FlighttaskFile().setUrl(url.toString()).setFingerprint(waylineFile.getSign());
+        }
+        URL url = ossService.getObjectUrl(OssConfiguration.bucket, flightFile.getObjectKey());
+        return new FlighttaskFile().setUrl(url.toString()).setFingerprint(flightFile.getSign());
+    }
+
     private Boolean prepareMultiDockFlightTask(WaylineJobDTO waylineJob) throws SQLException {
         // get wayline file
         Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
         if (waylineFile.isEmpty()) {
             throw new SQLException("无法获取飞行任务的航线文件，请查证。");
         }
-
-        // get file url
-        URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.get().getId());
 
         FlighttaskPrepareRequest flightTask = new FlighttaskPrepareRequest()
                 .setFlightId(waylineJob.getJobId())
@@ -479,9 +499,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 .setRthAltitude(waylineJob.getRthAltitude())
                 .setOutOfControlAction(waylineJob.getOutOfControlAction())
                 .setExitWaylineWhenRcLost(ExitWaylineWhenRcLostEnum.EXECUTE_RC_LOST_ACTION)
-                .setFile(new FlighttaskFile()
-                        .setUrl(url.toString())
-                        .setFingerprint(waylineFile.get().getSign()))
+                .setFile(this.getFlightTaskFile(waylineJob, waylineFile.get()))
                 .setSimulateMission(waylineJob.getSimulateMission())
                 .setWaylinePrecisionType(waylineJob.getWaylinePrecisionType());
         if (Objects.nonNull(waylineJob.getRthMode())) {
@@ -1282,12 +1300,9 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         }
         // get file url
         try {
-            URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.get().getId());
             return new TopicRequestsResponse<MqttReply<FlighttaskResourceGetResponse>>().setData(
                     MqttReply.success(new FlighttaskResourceGetResponse()
-                            .setFile(new FlighttaskFile()
-                                    .setUrl(url.toString())
-                                    .setFingerprint(waylineFile.get().getSign()))));
+                            .setFile(getFlightTaskFile(waylineJob, waylineFile.get()))));
         } catch (SQLException | NullPointerException e) {
             log.error("Failed to get wayline file URL.", e);
             return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.SYSTEM_ERROR));

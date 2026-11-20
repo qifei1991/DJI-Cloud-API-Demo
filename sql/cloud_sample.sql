@@ -543,6 +543,30 @@ CREATE TABLE `wayline_file` (
 
 
 
+# wayline_file_flight
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `wayline_file_flight`;
+
+CREATE TABLE `wayline_file_flight` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The name of the wayline file copy. format: original name + timestamp.',
+  `file_id` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'uuid of the wayline file copy.',
+  `original_file_id` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'uuid of the original wayline file. It is the wayline_id in the wayline_file table.',
+  `job_id` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The job_id in the wayline_job table which the copy is used for.',
+  `object_key` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The key of the file in the bucket.',
+  `sign` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The md5 of the wayline file copy.',
+  `user_name` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT 'The name of the creator.',
+  `create_time` bigint NOT NULL,
+  `update_time` bigint NOT NULL COMMENT 'required, can''t modify.',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `file_id_UNIQUE` (`file_id`),
+  UNIQUE KEY `job_id_UNIQUE` (`job_id`),
+  KEY `original_file_id_INDEX` (`original_file_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Wayline file copy used by the flight task.';
+
+
+
 # wayline_job
 # ------------------------------------------------------------
 

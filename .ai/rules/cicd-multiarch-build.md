@@ -45,3 +45,8 @@
       （自带轮转）；
     - -XX:HeapDumpPath 与 gc 日志指向相对目录 logs，运行时需挂载宿主目录到 /app/logs，
       否则堆转储/GC 日志写进容器可写层，容器删除即丢失。
+
+## 相关文件
+- 流水线定义：`.drone.yml`
+- 镜像构建：`Dockerfile`
+- 构建入口：根 `pom.xml`、`sample/pom.xml`、`cloud-sdk/pom.xml`

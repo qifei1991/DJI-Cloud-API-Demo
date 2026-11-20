@@ -24,6 +24,7 @@ import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.entity.WaylineJobEntity;
 import com.dji.sample.wayline.model.enums.WaylineJobStatusEnum;
 import com.dji.sample.wayline.model.param.CreateJobParam;
+import com.dji.sample.wayline.service.IWaylineFileFlightService;
 import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sample.wayline.service.IWaylineJobService;
 import com.dji.sample.wayline.service.IWaylineRedisService;
@@ -69,6 +70,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
 
     @Autowired
     private IWaylineFileService waylineFileService;
+
+    @Autowired
+    private IWaylineFileFlightService waylineFileFlightService;
 
     @Autowired
     private IDeviceService deviceService;
@@ -320,6 +324,9 @@ public class WaylineJobServiceImpl implements IWaylineJobService {
                 new LambdaQueryWrapper<WaylineJobEntity>()
                         .eq(WaylineJobEntity::getWorkspaceId, workspaceId)
                         .eq(WaylineJobEntity::getJobId, jobId));
+        // The wayline file copy belongs to the job, so it is deleted together with the job.
+        // The original wayline file is independent of the job and can be used by other jobs, it is not deleted here.
+        waylineFileFlightService.deleteFlightFileByJobId(jobId);
     }
 
     private WaylineJobDTO entity2Dto(WaylineJobEntity entity) {
