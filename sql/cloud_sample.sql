@@ -561,7 +561,6 @@ CREATE TABLE `wayline_file_flight` (
   `update_time` bigint NOT NULL COMMENT 'required, can''t modify.',
   PRIMARY KEY (`id`),
   UNIQUE KEY `file_id_UNIQUE` (`file_id`),
-  UNIQUE KEY `job_id_UNIQUE` (`job_id`),
   KEY `original_file_id_INDEX` (`original_file_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Wayline file copy used by the flight task.';
 
