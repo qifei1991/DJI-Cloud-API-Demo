@@ -8,4 +8,4 @@ sql
 *.iml
 cloud-sdk
 sample/target/*
-!sample/target/sample-*.jar
+!sample/target/cloud-service.jar

@@ -1,0 +1,4 @@
+# Dockerfile 的 ENTRYPOINT 多行 JSON 数组依赖行尾 "\" 续行；仓库 core.autocrlf=true 时
+# Windows 检出为 CRLF，"\" 后跟 CRLF 会破坏 docker build 的解析（构建静默损坏），
+# 故强制 Dockerfile 以 LF 检出。修改 Dockerfile 前先阅读文件头部的说明，不要删除本行规则。
+Dockerfile text eol=lf
