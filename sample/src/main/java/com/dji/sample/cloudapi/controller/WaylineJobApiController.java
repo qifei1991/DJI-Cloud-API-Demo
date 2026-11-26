@@ -1,21 +1,20 @@
 package com.dji.sample.cloudapi.controller;
 
 import com.dji.sample.common.model.CustomClaim;
-import com.dji.sample.wayline.model.param.CreateInFlightWaylineTask;
-import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
-import com.dji.sample.wayline.service.IFlightTaskService;
-import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sample.wayline.model.dto.WaylineJobDTO;
 import com.dji.sample.wayline.model.enums.WaylineTaskStatusEnum;
+import com.dji.sample.wayline.model.param.CreateInFlightWaylineTask;
 import com.dji.sample.wayline.model.param.CreateJobParam;
+import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
+import com.dji.sample.wayline.service.IFlightTaskService;
 import com.dji.sample.wayline.service.IWaylineJobService;
+import com.dji.sdk.common.HttpResultResponse;
 import com.dji.sdk.common.PaginationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -64,7 +63,7 @@ public class WaylineJobApiController {
      */
     @PostMapping("/{workspace_id}/jobs")
     public HttpResultResponse<List<String>> publishCreateJob(@Valid @RequestBody CreateJobParam param,
-            @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
+            @PathVariable(name = "workspace_id") String workspaceId) {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);
         customClaim.setUsername(param.getUsername());
@@ -111,7 +110,7 @@ public class WaylineJobApiController {
     @PutMapping("/{workspace_id}/jobs/{job_id}")
     public HttpResultResponse updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
             @PathVariable(name = "job_id") String jobId,
-            @Valid @RequestBody UpdateJobParam param) throws SQLException {
+            @Valid @RequestBody UpdateJobParam param) {
 
         if (param.getStatus() == WaylineTaskStatusEnum.BREAK_POINT_CONTINUE) {
             return flightTaskService.breakPointContinueFlight(workspaceId, jobId);
@@ -128,7 +127,7 @@ public class WaylineJobApiController {
      */
     @PostMapping("/{workspace_id}/in-flight-wayline/jobs")
     public HttpResultResponse publishInFlightCreateJob(@PathVariable(name = "workspace_id") String workspaceId,
-            @Valid @RequestBody CreateInFlightWaylineTask param) throws SQLException {
+            @Valid @RequestBody CreateInFlightWaylineTask param) {
         CustomClaim customClaim = new CustomClaim();
         customClaim.setWorkspaceId(workspaceId);
         customClaim.setUsername(param.getUsername());

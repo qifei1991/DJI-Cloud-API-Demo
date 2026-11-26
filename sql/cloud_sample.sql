@@ -193,6 +193,7 @@ CREATE TABLE `manage_device_dictionary` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Device product enum';
 
+
 LOCK TABLES `manage_device_dictionary` WRITE;
 /*!40000 ALTER TABLE `manage_device_dictionary` DISABLE KEYS */;
 
@@ -240,7 +241,13 @@ VALUES
     (40, 1, 98, 0, 'M4D Camera', NULL),
     (41, 1, 99, 0, 'M4TD Camera', NULL),
     (42, 3, 3, 0, 'Dock3', NULL),
-    (43, 6, 600, 0, 'D-RTK 3', NULL)
+    (43, 6, 600, 0, 'D-RTK 3', NULL),
+    (44, 0, 130, 0, 'M5TD', 'Aircraft for DJI Dock 4'),
+    (45, 1, 122, 0, 'M5TD Camera', NULL),
+    (46, 6, 610, 0, 'DJI O4 Ground Station Relay', 'Reported when the ground station joins the gateway as a relay'),
+    (47, 7, 262, 1, 'DJI Power', 'Sub-device of DJI O4 Ground Station'),
+    (48, 8, 135, 0, 'DJI O4 Ground Station', 'Network base station for DJI Dock 3 and DJI Dock 4'),
+    (49, 9, 131, 0, 'Dock4', 'Sub-device of DJI O4 Ground Station')
 ;
 
 /*!40000 ALTER TABLE `manage_device_dictionary` ENABLE KEYS */;

@@ -264,7 +264,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             }
             try {
                 breakPointContinueFlight(breakJob.getWorkspaceId(), jobId);
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 log.error("下发断点续飞任务异常", e);
             }
         });
@@ -307,7 +307,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     }
 
     @Override
-    public HttpResultResponse<List<String>> publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException {
+    public HttpResultResponse<List<String>> publishFlightTask(CreateJobParam param, CustomClaim customClaim) {
 
         log.debug(":: Publish flight task: {}", param);
 
@@ -330,7 +330,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
                 Optional<WaylineJobDTO> waylineJobOpt = waylineJobService.createWaylineJob(param, customClaim.getWorkspaceId(),
                         customClaim.getUsername(), beginTime, endTime);
                 if (waylineJobOpt.isEmpty()) {
-                    throw new SQLException("创建航线飞行计划失败。");
+                    throw new RuntimeException("创建航线飞行计划失败。");
                 }
 
                 WaylineJobDTO waylineJob = waylineJobOpt.get();
@@ -352,13 +352,13 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     }
 
     @Override
-    public HttpResultResponse publishOneFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    public HttpResultResponse publishOneFlightTask(WaylineJobDTO waylineJob) {
         return StringUtils.hasText(waylineJob.getLandingDockSn())
                 ? publishMultiDockFlightTask(waylineJob)
                 : publishCommonOneFlightTask(waylineJob);
     }
 
-    private HttpResultResponse publishCommonOneFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    private HttpResultResponse publishCommonOneFlightTask(WaylineJobDTO waylineJob) {
         boolean isOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
         if (!isOnline) {
             throw new RuntimeException("机场已离线。");
@@ -385,7 +385,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         return HttpResultResponse.success();
     }
 
-    private HttpResultResponse publishMultiDockFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    private HttpResultResponse publishMultiDockFlightTask(WaylineJobDTO waylineJob) {
         boolean isTakeDockOnline = deviceRedisService.checkDeviceOnline(waylineJob.getDockSn());
         boolean isLandDockOnline = deviceRedisService.checkDeviceOnline(waylineJob.getLandingDockSn());
         if (!isTakeDockOnline || !isLandDockOnline) {
@@ -413,11 +413,11 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         return HttpResultResponse.success();
     }
 
-    private Boolean prepareFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    private Boolean prepareFlightTask(WaylineJobDTO waylineJob) {
         // get wayline file
         Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
         if (waylineFile.isEmpty()) {
-            throw new SQLException("无法获取飞行任务的航线文件，请查证。");
+            throw new RuntimeException("无法获取飞行任务的航线文件，请查证。");
         }
 
         FlighttaskPrepareRequest flightTask = new FlighttaskPrepareRequest()
@@ -473,22 +473,27 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
      * @param waylineFile
      * @return
      */
-    private FlighttaskFile getFlightTaskFile(WaylineJobDTO waylineJob, GetWaylineListResponse waylineFile) throws SQLException {
-        WaylineFileFlightDTO flightFile = Objects.nonNull(waylineJob.getExitWaylineWhenRcLost())
-                ? waylineFileFlightService.getOrCreateFlightFile(waylineJob) : null;
-        if (Objects.isNull(flightFile)) {
-            URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.getId());
-            return new FlighttaskFile().setUrl(url.toString()).setFingerprint(waylineFile.getSign());
+    private FlighttaskFile getFlightTaskFile(WaylineJobDTO waylineJob, GetWaylineListResponse waylineFile) {
+        try {
+            WaylineFileFlightDTO flightFile = Objects.nonNull(waylineJob.getExitWaylineWhenRcLost())
+                    ? waylineFileFlightService.getOrCreateFlightFile(waylineJob) : null;
+            if (Objects.isNull(flightFile)) {
+                URL url = waylineFileService.getObjectUrl(waylineJob.getWorkspaceId(), waylineFile.getId());
+                return new FlighttaskFile().setUrl(url.toString()).setFingerprint(waylineFile.getSign());
+            }
+            URL url = ossService.getObjectUrl(OssConfiguration.bucket, flightFile.getObjectKey());
+            return new FlighttaskFile().setUrl(url.toString()).setFingerprint(flightFile.getSign());
+        } catch (SQLException e) {
+            log.error("获取飞行计划使用的航线文件失败。", e);
+            throw new RuntimeException("获取飞行计划使用的航线文件失败。");
         }
-        URL url = ossService.getObjectUrl(OssConfiguration.bucket, flightFile.getObjectKey());
-        return new FlighttaskFile().setUrl(url.toString()).setFingerprint(flightFile.getSign());
     }
 
-    private Boolean prepareMultiDockFlightTask(WaylineJobDTO waylineJob) throws SQLException {
+    private Boolean prepareMultiDockFlightTask(WaylineJobDTO waylineJob) {
         // get wayline file
         Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(waylineJob.getWorkspaceId(), waylineJob.getFileId());
         if (waylineFile.isEmpty()) {
-            throw new SQLException("无法获取飞行任务的航线文件，请查证。");
+            throw new RuntimeException("无法获取飞行任务的航线文件，请查证。");
         }
 
         FlighttaskPrepareRequest flightTask = new FlighttaskPrepareRequest()
@@ -925,7 +930,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
 
     }
     @Override
-    public HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId) throws SQLException {
+    public HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId) {
         log.info("下发断点续飞任务：{}", jobId);
         Optional<ProgressExtBreakPoint> breakPointReceiver = waylineRedisService.getProgressExtBreakPoint(jobId);
         if (breakPointReceiver.isEmpty()) {
@@ -1303,7 +1308,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
             return new TopicRequestsResponse<MqttReply<FlighttaskResourceGetResponse>>().setData(
                     MqttReply.success(new FlighttaskResourceGetResponse()
                             .setFile(getFlightTaskFile(waylineJob, waylineFile.get()))));
-        } catch (SQLException | NullPointerException e) {
+        } catch (NullPointerException e) {
             log.error("Failed to get wayline file URL.", e);
             return new TopicRequestsResponse().setData(MqttReply.error(CommonErrorEnum.SYSTEM_ERROR));
         }
@@ -1381,7 +1386,7 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
     }
 
     @Override
-    public HttpResultResponse inFlightWaylineDeliver(CreateInFlightWaylineTask param, CustomClaim customClaim) throws SQLException {
+    public HttpResultResponse inFlightWaylineDeliver(CreateInFlightWaylineTask param, CustomClaim customClaim) {
         param.setWorkspaceId(customClaim.getWorkspaceId());
         param.setInFlightWaylineId(UUID.randomUUID().toString());
 
@@ -1397,11 +1402,11 @@ public class FlightTaskServiceImpl extends AbstractWaylineService implements IFl
         return HttpResultResponse.success(param.getInFlightWaylineId());
     }
 
-    private Boolean pushInFlightWayline(CreateInFlightWaylineTask param) throws SQLException {
+    private Boolean pushInFlightWayline(CreateInFlightWaylineTask param) {
         // get wayline file
         Optional<GetWaylineListResponse> waylineFile = waylineFileService.getWaylineByWaylineId(param.getWorkspaceId(), param.getFileId());
         if (waylineFile.isEmpty()) {
-            throw new SQLException("无法获取飞行任务的航线文件，请查证。");
+            throw new RuntimeException("无法获取飞行任务的航线文件，请查证。");
         }
         URL url = waylineFileService.getObjectUrl(param.getWorkspaceId(), waylineFile.get().getId());
 

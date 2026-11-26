@@ -9,7 +9,6 @@ import com.dji.sample.wayline.model.param.UpdateInFlightWaylineParam;
 import com.dji.sample.wayline.model.param.UpdateJobParam;
 import com.dji.sdk.common.HttpResultResponse;
 
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -27,20 +26,18 @@ public interface IFlightTaskService {
      * @param customClaim   user info
      * @return
      */
-    HttpResultResponse<List<String>> publishFlightTask(CreateJobParam param, CustomClaim customClaim) throws SQLException;
+    HttpResultResponse<List<String>> publishFlightTask(CreateJobParam param, CustomClaim customClaim);
 
     /**
      * Issue wayline mission to the dock.
      * @param waylineJob
      * @return
-     * @throws SQLException
      */
-    HttpResultResponse publishOneFlightTask(WaylineJobDTO waylineJob) throws SQLException;
+    HttpResultResponse publishOneFlightTask(WaylineJobDTO waylineJob);
 
     /**
      * Execute the task immediately.
      * @param jobId
-     * @throws SQLException
      * @return
      */
     Boolean executeFlightTask(String workspaceId, String jobId);
@@ -49,7 +46,6 @@ public interface IFlightTaskService {
      * Cancel the task Base on job Ids.
      * @param workspaceId
      * @param jobIds
-     * @throws SQLException
      */
     void cancelFlightTask(String workspaceId, Collection<String> jobIds);
 
@@ -84,9 +80,9 @@ public interface IFlightTaskService {
      * @param jobId 任务ID
      * @return ResponseResult
      */
-    HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId) throws SQLException;
+    HttpResultResponse breakPointContinueFlight(String workspaceId, String jobId);
 
-    HttpResultResponse inFlightWaylineDeliver(CreateInFlightWaylineTask param, CustomClaim customClaim) throws SQLException;
+    HttpResultResponse inFlightWaylineDeliver(CreateInFlightWaylineTask param, CustomClaim customClaim);
 
     void updateInFlightWaylineStatus(String workspaceId, String jobId, UpdateInFlightWaylineParam param);
 }

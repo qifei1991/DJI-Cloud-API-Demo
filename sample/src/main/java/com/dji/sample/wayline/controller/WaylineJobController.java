@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.sql.SQLException;
 import java.util.Set;
 
 import static com.dji.sample.component.AuthInterceptor.TOKEN_CLAIM;
@@ -39,12 +38,10 @@ public class WaylineJobController {
      * @param request
      * @param param
      * @param workspaceId
-     * @return
-     * @throws SQLException
      */
     @PostMapping("/{workspace_id}/flight-tasks")
     public HttpResultResponse createJob(HttpServletRequest request, @Valid @RequestBody CreateJobParam param,
-                                        @PathVariable(name = "workspace_id") String workspaceId) throws SQLException {
+                                        @PathVariable(name = "workspace_id") String workspaceId) {
         CustomClaim customClaim = (CustomClaim)request.getAttribute(TOKEN_CLAIM);
         customClaim.setWorkspaceId(workspaceId);
 
@@ -96,7 +93,7 @@ public class WaylineJobController {
     @PutMapping("/{workspace_id}/jobs/{job_id}")
     public HttpResultResponse updateJobStatus(@PathVariable(name = "workspace_id") String workspaceId,
                                               @PathVariable(name = "job_id") String jobId,
-                                              @Valid @RequestBody UpdateJobParam param) throws SQLException {
+                                              @Valid @RequestBody UpdateJobParam param) {
         if (param.getStatus() == WaylineTaskStatusEnum.BREAK_POINT_CONTINUE) {
             return flighttaskService.breakPointContinueFlight(workspaceId, jobId);
         }

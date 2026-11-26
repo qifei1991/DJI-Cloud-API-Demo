@@ -7,7 +7,8 @@
 - `sample`：示例云服务（Spring Boot 2.7 + MyBatis-Plus + Redis + MinIO），业务域包：
   `manage`（设备/机场）、`wayline`（航线与飞行计划）、`media`、`map`、`livestream`、`psdk`、`storage`、`control` 等。
 - 配置文件：`sample/src/main/resources/application.yml`（MySQL/Redis/MQTT/MinIO/业务开关）；
-  生产环境 `application*.yml` 不进 jar，外置到 `/app/config/application.yml`。
+  生产环境 `application*.yml` 不进 jar，镜像内不预建 `/app/config/`（挂载时由 Docker 自动
+  创建挂载点），配置由挂载到 `/app/config` 的宿主目录提供（如 `application.yml`）。
 
 ## wayline 业务域
 

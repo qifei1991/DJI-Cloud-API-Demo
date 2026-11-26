@@ -23,7 +23,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -98,7 +97,7 @@ public class WaylineFileController implements IHttpWaylineService {
         try {
             URL url = waylineFileService.getObjectUrl(workspaceId, waylineId);
             rsp.sendRedirect(url.toString());
-        } catch (IOException | SQLException e) {
+        } catch (IOException e) {
             log.error("Fail to obtain wayline file URL.", e);
         }
     }

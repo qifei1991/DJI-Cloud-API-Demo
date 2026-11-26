@@ -42,13 +42,15 @@ steps:
   ## ========== 打包（仅一次，JDK11）==========
   ## 产物：sample/target/cloud-service.jar（sample/pom.xml finalName 固定名，Dockerfile COPY/ENTRYPOINT 依赖）
   ## repackage 的原始包保存为 cloud-service.jar.original，精确文件名 COPY/断言不会误匹配
+  ## -Penv-prod 激活 sample/pom.xml 的 env-prod profile：application*.yml 不打进 jar，
+  ##   配置完全由部署时挂载的 /app/config 提供（Linux 上不激活 profile 时 yml 会进 jar，与挂载配置叠加导致参数来源混乱）
   - name: step:build-package
     image: 10.43.11.21:5000/maven:3.8-openjdk-11 # 与项目 JDK11 匹配；如内网无此 tag，换 10.43.11.21:5000 上的等价 maven+JDK11 镜像
     volumes:
       - name: mvn_repo
         path: /root/.m2
     commands:
-      - mvn clean package -DskipTests=true -gs /root/.m2/settings.xml -B -U
+      - mvn clean package -DskipTests=true -gs /root/.m2/settings.xml -B -U -Penv-prod
       ## 断言：固定名产物必须存在（ENTRYPOINT 直接 -jar cloud-service.jar，不再运行时找 jar）
       - if [ ! -f sample/target/cloud-service.jar ]; then echo "[ERROR] sample/target/cloud-service.jar not found, check mvn package" && ls -l sample/target && exit 1; fi
       - ls -l sample/target/cloud-service.jar

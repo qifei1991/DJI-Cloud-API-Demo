@@ -20,7 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +83,7 @@ public class KmzFileUtils {
      * @param executeRcLostAction
      * @return
      */
-    public static byte[] modifyRcLostAction(byte[] content, String exitOnRcLost, String executeRcLostAction) throws SQLException {
+    public static byte[] modifyRcLostAction(byte[] content, String exitOnRcLost, String executeRcLostAction) {
         Map<String, byte[]> entries = unzip(content);
 
         List<String> waylineXmlNames = entries.keySet().stream()
@@ -108,7 +107,7 @@ public class KmzFileUtils {
                 || (KmzFileProperties.FILE_DIR_FIRST + "/" + KmzFileProperties.FILE_DIR_SECOND_WAYLINES).equals(entryName);
     }
 
-    private static Map<String, byte[]> unzip(byte[] content) throws SQLException {
+    private static Map<String, byte[]> unzip(byte[] content) {
         Map<String, byte[]> entries = new LinkedHashMap<>(16);
         try (ByteArrayInputStream contentStream = new ByteArrayInputStream(content);
              ZipInputStream unzipFile = new ZipInputStream(contentStream, StandardCharsets.UTF_8)) {
@@ -118,15 +117,15 @@ public class KmzFileUtils {
                 nextEntry = unzipFile.getNextEntry();
             }
         } catch (IOException e) {
-            throw new SQLException("航线文件解压失败。", e);
+            throw new RuntimeException("航线文件解压失败。", e);
         }
         if (entries.isEmpty()) {
-            throw new SQLException("航线文件内容为空。");
+            throw new RuntimeException("航线文件内容为空。");
         }
         return entries;
     }
 
-    private static byte[] zip(Map<String, byte[]> entries) throws SQLException {
+    private static byte[] zip(Map<String, byte[]> entries) {
         try (ByteArrayOutputStream zipContent = new ByteArrayOutputStream();
              ZipOutputStream zipFile = new ZipOutputStream(zipContent, StandardCharsets.UTF_8)) {
             for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
@@ -137,7 +136,7 @@ public class KmzFileUtils {
             zipFile.finish();
             return zipContent.toByteArray();
         } catch (IOException e) {
-            throw new SQLException("航线文件压缩失败。", e);
+            throw new RuntimeException("航线文件压缩失败。", e);
         }
     }
 
@@ -148,7 +147,7 @@ public class KmzFileUtils {
      * @param executeRcLostAction skip the modification when it is null.
      * @return
      */
-    private static byte[] modifyWaylineXml(byte[] content, String exitOnRcLost, String executeRcLostAction) throws SQLException {
+    private static byte[] modifyWaylineXml(byte[] content, String exitOnRcLost, String executeRcLostAction) {
         try {
             SAXReader reader = new SAXReader();
             // The wayline file is uploaded by the user, so the doctype declaration and the external entities are disabled.
@@ -177,7 +176,7 @@ public class KmzFileUtils {
             writer.close();
             return xmlContent.toByteArray();
         } catch (DocumentException | IOException | SAXException e) {
-            throw new SQLException("修改航线文件失联动作失败。", e);
+            throw new RuntimeException("修改航线文件失联动作失败。", e);
         }
     }
 

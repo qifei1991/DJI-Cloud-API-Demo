@@ -19,6 +19,12 @@ public enum GatewayTypeEnum {
     DOCK2(DeviceEnum.DOCK2),
 
     DOCK3(DeviceEnum.DOCK3),
+
+    /**
+     * DJI O4 地面站，作为网络基站/网关设备接入；
+     * 大疆机场 4（9-131-0）为该网关下的子设备，不作为网关注册。
+     */
+    O4_GROUND_STATION(DeviceEnum.O4_GROUND_STATION),
     ;
 
     private final DeviceEnum[] gateway;

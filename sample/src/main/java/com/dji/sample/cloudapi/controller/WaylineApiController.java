@@ -1,19 +1,17 @@
 package com.dji.sample.cloudapi.controller;
 
+import com.dji.sample.wayline.model.dto.WaylineFileDTO;
+import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sdk.cloudapi.device.DeviceEnum;
 import com.dji.sdk.cloudapi.wayline.*;
 import com.dji.sdk.common.HttpResultResponse;
-import com.dji.sample.wayline.model.dto.WaylineFileDTO;
-import com.dji.sample.wayline.service.IWaylineFileService;
 import com.dji.sdk.common.PaginationData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -150,7 +148,7 @@ public class WaylineApiController {
             @PathVariable("wayline_id") String waylineId) {
         try {
             return HttpResultResponse.success(waylineFileService.getObjectUrl(workspaceId, waylineId).toString());
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.error("Fail to obtain wayline file URL.", e);
             return HttpResultResponse.error("Fail to obtain wayline file URL.");
         }

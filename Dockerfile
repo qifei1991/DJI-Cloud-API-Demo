@@ -15,7 +15,7 @@
 #   /app/cloud-service.jar       运行 jar（由 CI 打包后 COPY 进来；sample/pom.xml finalName 固定名）
 #   /app/config/                 外置配置目录（镜像内不预建、不内置 application.yml，挂载时由 Docker
 #                                自动创建挂载点，配置完全由挂载的宿主目录提供，避免与挂载配置冲突导致参数失效。
-#                                sample 的 pom 已把 application*.yml 排除出 jar，
+#                                CI 打包 -Penv-prod 激活 profile 把 application*.yml 排除出 jar，
 #                                Spring Boot 默认扫描 jar 同级的 ./config/，可自动加载挂载进来的配置）
 #   /app/logs                    GC 日志（/app/logs/gc.log）与 OOM 堆转储目录，运行时需挂载宿主目录到 /app/logs
 ARG BASE_IMAGE=10.43.11.21:5000/openjdk:11.0.14.1-jdk-buster
@@ -58,7 +58,7 @@ COPY sample/target/cloud-service.jar /app/
 # exec 启动 java 使其成为 PID 1：docker stop 的 SIGTERM 能直达 JVM，不会出现 sh 吞信号导致 JVM 被 SIGKILL。
 # jar 名固定 cloud-service.jar（sample/pom.xml finalName），运行时不再 ls 找 jar；
 # 缺失时 java 报 Unable to access jarfile 并非零退出，不会空转成“假活着”；交付前必须 mvn clean package。
-ENTRYPOINT ["sh", "-c", "exec java -Xms${MEM} -Xmx${MEM} -XX:ActiveProcessorCount=${CORE} \"$@\" ${JAVA_OPTS} -jar cloud-service.jar", "sh", \
+ENTRYPOINT ["sh", "-c", "exec java -Xms1g -Xmx${MEM} -XX:ActiveProcessorCount=${CORE} \"$@\" ${JAVA_OPTS} -jar cloud-service.jar", "sh", \
   # G1 收集器与停顿目标（JDK9+ 默认 G1，显式声明便于阅读；替换收集器必须改此 ENTRYPOINT）
   "-XX:+UseG1GC", \
   "-XX:MaxGCPauseMillis=200", \

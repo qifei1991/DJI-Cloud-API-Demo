@@ -104,7 +104,19 @@ public enum DeviceEnum {
 
     M4TD_CAMERA2(DeviceDomainEnum.PAYLOAD, DeviceTypeEnum.M4TD_CAMERA, DeviceSubTypeEnum.TWO),
 
-    D_RTK3(DeviceDomainEnum.D_RTK3, DeviceTypeEnum.D_RTK3, DeviceSubTypeEnum.ZERO),
+    D_RTK3(DeviceDomainEnum.RELAY, DeviceTypeEnum.D_RTK3, DeviceSubTypeEnum.ZERO),
+
+    O4_GROUND_STATION_RELAY(DeviceDomainEnum.RELAY, DeviceTypeEnum.O4_GROUND_STATION_RELAY, DeviceSubTypeEnum.ZERO),
+
+    DJI_POWER(DeviceDomainEnum.POWER, DeviceTypeEnum.DJI_POWER, DeviceSubTypeEnum.ONE),
+
+    O4_GROUND_STATION(DeviceDomainEnum.BASE_STATION, DeviceTypeEnum.O4_GROUND_STATION, DeviceSubTypeEnum.ZERO),
+
+    DOCK4(DeviceDomainEnum.DOCK_SUB_DEVICE, DeviceTypeEnum.DOCK4, DeviceSubTypeEnum.ZERO),
+
+    M5TD(DeviceDomainEnum.DRONE, DeviceTypeEnum.M5TD, DeviceSubTypeEnum.ZERO),
+
+    M5TD_CAMERA(DeviceDomainEnum.PAYLOAD, DeviceTypeEnum.M5TD_CAMERA, DeviceSubTypeEnum.ZERO),
 
     ;
 

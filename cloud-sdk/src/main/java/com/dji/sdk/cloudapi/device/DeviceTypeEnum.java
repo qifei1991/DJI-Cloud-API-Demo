@@ -87,6 +87,18 @@ public enum DeviceTypeEnum {
 
     D_RTK3(600),
 
+    O4_GROUND_STATION_RELAY(610),   // DJI O4 地面站（中继模式）
+
+    DJI_POWER(262),                 // DJI Power 移动电源
+
+    O4_GROUND_STATION(135),         // DJI O4 地面站（网络基站）
+
+    DOCK4(131),                     // 大疆机场 4
+
+    M5TD(130),                      // Matrice 5TD 飞行器
+
+    M5TD_CAMERA(122),               // Matrice 5TD 相机
+
     ;
 
     private final int type;
