@@ -49,8 +49,8 @@
     $DRONE_REPO_NAME，与服务名/jar 名统一）。
 11. **JVM 参数分环境变量 + ENTRYPOINT 固定参数两组，且 JDK11 不能照抄 JDK8 参数**（组织模式
     参考 aircraft-manager 的 Dockerfile，该文件面向 JDK8，参数不能照抄）：
-    - 可变参数用 ENV：CORE（→ -XX:ActiveProcessorCount，与 cpu limit 对应）、MEM（→ -Xms/-Xmx
-      等值，避免堆伸缩抖动）、JAVA_OPTS（追加覆盖参数），运行时 `docker run -e MEM=2g ...`
+    - 可变参数用 ENV：CORE（→ -XX:ActiveProcessorCount，与 cpu limit 对应）、MEM（→ -Xmx，
+      -Xms 固定 1g 弹性起步，避免启动即占满内存限额）、JAVA_OPTS（追加覆盖参数），运行时 `docker run -e MEM=2g ...`
       覆盖，不必重建镜像；固定参数拆成 ENTRYPOINT JSON 数组元素（"$@" 透传），${JAVA_OPTS}
       拼在其后、-jar 之前，同名选项后生效可覆盖默认值；
     - ENTRYPOINT 用 exec 形式 + "\" 续行，续行间可插注释行（解析器会剥离）；该写法依赖
@@ -66,6 +66,13 @@
     - -XX:HeapDumpPath 与 gc 日志用绝对路径 /app/logs，运行时需挂载宿主目录到 /app/logs，
       否则堆转储/GC 日志写进容器可写层，容器删除即丢失；
     - UseContainerSupport 在 JDK11 默认开启，无需显式书写，ActiveProcessorCount 直接生效。
+12. **变量替换类文件（Dockerfile、.drone.yml 等）的注释中禁止出现 $ 引用格式**（${var}、$var、
+    "$@"、$0 等）：Drone 对 yaml 的 commands 文本做变量替换时不区分 shell 注释，Docker 对
+    文件指令做 ${var} 替换，各工具链对注释内容处理不一致，注释中的变量格式文本存在被
+    意外展开的风险，且与真实变量引用易混淆；
+    - 注释中描述变量/参数时写裸名称（如 DRONE_TAG、JAVA_OPTS、MEM、CORE）或中文说明；
+    - 描述 shell 机制（位置参数透传等）用文字表述，不写 $ 引用本身；
+    - commands 的行尾注释同样属于注释，适用本规则。
 
 ## 相关文件
 - 流水线定义：`.drone.yml`

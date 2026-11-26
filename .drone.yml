@@ -120,7 +120,7 @@ steps:
   ##   避免 latest 漂移导致不同环境拉到非预期版本。
   ##
   ## ========== 合并成多架构清单 ==========
-  ## 让 $REPO:$TAG 变成 manifest list，docker pull 时按宿主架构自动选层，部署脚本无需区分架构。
+  ## 将版本号 tag（REPO 后接 TAG）合并成 manifest list，docker pull 时按宿主架构自动选层，部署脚本无需区分架构。
   ## 不发布 :latest（含 :latest-amd64 / :latest-arm64）：部署固定用带版本号的 tag，避免 latest 漂移。
   ## ！！docker manifest 是 CLI 直连 registry（不经过 daemon，也就不读 daemon.json 的 insecure-registries），
   ##    所以每条子命令都必须带 --insecure，否则对 http 私仓会报 “http: server gave HTTP response to HTTPS client”。

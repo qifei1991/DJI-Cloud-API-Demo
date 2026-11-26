@@ -26,13 +26,13 @@ ENV LANG=zh_CN.utf8
 
 # 核数与堆内存做成环境变量，k8s / docker 部署时与 limits 对应（组织模式参考 aircraft-manager 的 Dockerfile，
 #   该文件面向 JDK8，参数不能照抄，以下均为 JDK11 写法）：
-#   CORE → -XX:ActiveProcessorCount，与 cpu limit 一致；MEM → -Xms/-Xmx（等值避免堆伸缩抖动）。
+#   CORE → -XX:ActiveProcessorCount，与 cpu limit 一致；MEM → -Xmx（-Xms 固定 1g 弹性起步，避免启动即占满内存限额）。
 #   小内存宿主用 -e MEM=2g -e CORE=2 等覆盖，不必重建镜像。
 # ！！内存预算：容器内存限额 ≥ 1.5×MEM（元空间/代码缓存/线程栈为堆外开销；未显式设 MaxDirectMemorySize，
 #   默认值≈MEM，MQTT 客户端等会占直接内存），不足时可能被 cgroup OOM Kill。
 ENV CORE=4
 ENV MEM=4g
-# 追加 JVM 参数：拼在 ENTRYPOINT 固定参数（"$@"）之后、-jar 之前，同名 -X/-XX 选项后生效可覆盖默认值
+# 追加 JVM 参数：拼在 ENTRYPOINT 固定参数之后、-jar 之前，同名 -X/-XX 选项后生效可覆盖默认值
 #   （如 -e JAVA_OPTS="-XX:MaxGCPauseMillis=100"）。
 # ！！JDK11 不能经此变量切换为 JDK8 的 CMS 系列收集器：UseParNewGC 等在 JDK9+ 已移除，
 #   会报 Unrecognized VM option 直接启动失败；换收集器必须改下方 ENTRYPOINT。
@@ -44,8 +44,8 @@ COPY sample/target/cloud-service.jar /app/
 
 # JVM 参数分两组（结构参考 aircraft-manager 的 Dockerfile，参数按 JDK11 调整）：
 #   可变参数（MEM/CORE/JAVA_OPTS）写在 sh -c 模板里由 sh 展开（exec 形式不做环境变量展开）；
-#   固定参数拆成独立数组元素，作为第 4 个元素 "sh"（$0）之后的位置参数经 "$@" 原样透传。
-#   ${JAVA_OPTS} 在 "$@" 之后、-jar 之前：同名选项后生效保留追加覆盖语义（-jar 之后的选项会被 java 当作应用参数）。
+#   固定参数拆成独立数组元素，作为第 4 个元素 "sh"（占位第 0 参数）之后的位置参数，由模板原样透传；
+#   JAVA_OPTS 拼在位置参数之后、-jar 之前：同名选项后生效保留追加覆盖语义（-jar 之后的选项会被 java 当作应用参数）。
 # JDK11 与 JDK8 参数差异（只借鉴组织模式，参数不混用 JDK8 写法，否则启动失败或告警）：
 #   1. 收集器：JDK9+ 默认 G1，-XX:+UseG1GC 仅作显式声明；不写 NewRatio/SurvivorRatio 等
 #      新生代参数（干扰 G1 Region 自适应）；
